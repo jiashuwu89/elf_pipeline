@@ -1,13 +1,12 @@
-import paramiko
 import logging
 
-from util.credentials import HOST, USERNAME, PASSWORD
+import paramiko
+from util.credentials import HOST, PASSWORD, USERNAME
 
 # TODO: Logging in separate file
 
 
 class ServerManager:
-
     def __init__(self):
         host = HOST
         transport = paramiko.Transport(host)
@@ -30,7 +29,7 @@ class ServerManager:
             self.sftp_client.put(source, dest)
             return True
         except Exception as e:
-            self.logger.critical(f'⚠️\tFailed to transfer {source} to {dest}: {e}')
+            self.logger.critical(f"⚠️\tFailed to transfer {source} to {dest}: {e}")
             return False
 
     def transfer_files(self, files):
@@ -59,7 +58,7 @@ class FileNameConverter:
             "mrma": ["mrma", "mrma"],
             "mrmi": ["mrmi", "mrmi"],
             "state_defn": ["state/defn", "state/defn"],
-            "state_pred": ["state/pred", "state/pred"]
+            "state_pred": ["state/pred", "state/pred"],
         }
 
     def convert(self, source):

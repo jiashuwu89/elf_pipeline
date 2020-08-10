@@ -1,4 +1,5 @@
 import logging
+
 import pandas as pd
 
 from common import models
@@ -21,7 +22,6 @@ class PacketInfo:
 
 
 class Downlink:
-
     def __init__(self, mission_id, idpu_type, denominator, first_packet_info, last_packet_info):
         self.mission_id = mission_id
         self.idpu_type = idpu_type
@@ -38,7 +38,6 @@ class Downlink:
 
 
 class DownlinkManager:
-
     def __init__(self, session):
         self.session = session
         self.logger = logging.getLogger("DownlinkManager")
@@ -65,7 +64,8 @@ class DownlinkManager:
                 models.ScienceDownlink.first_time == d.first_packet_info.idpu_time,
                 models.ScienceDownlink.last_time == d.last_packet_info.idpu_time,
                 models.ScienceDownlink.first_collection_time == d.first_packet_info.collection_time,
-                models.ScienceDownlink.last_collection_time == d.last_packet_info.collection_time)
+                models.ScienceDownlink.last_collection_time == d.last_packet_info.collection_time,
+            )
             if self.session.query(q.exists()).scalar():
                 continue
 
@@ -80,7 +80,8 @@ class DownlinkManager:
                 first_time=d.first_packet_info.idpu_time,
                 last_time=d.last_packet_info.idpu_time,
                 first_collection_time=d.first_packet_info.collection_time,
-                last_collection_time=d.last_packet_info.collection_time)
+                last_collection_time=d.last_packet_info.collection_time,
+            )
 
             self.session.add(entry)
 
@@ -99,12 +100,19 @@ class DownlinkManager:
         """
 
         # Fetching Downlink Data
-        q = self.session.query(models.SciencePacket, models.Packet.data.label('packet_data'), models.Packet.source.label('source')).filter(
-            models.SciencePacket.mission_id == downlink.mission_id,
-            models.SciencePacket.idpu_type == downlink.idpu_type,     # May need to delete this in order to get packets with no idpu_type
-            models.SciencePacket.id >= downlink.first_packet_info.id,
-            models.SciencePacket.id <= downlink.last_packet_info.id
-        ).join(models.Packet)
+        q = (
+            self.session.query(
+                models.SciencePacket, models.Packet.data.label("packet_data"), models.Packet.source.label("source")
+            )
+            .filter(
+                models.SciencePacket.mission_id == downlink.mission_id,
+                # May need to delete this in order to get packets with no idpu_type
+                models.SciencePacket.idpu_type == downlink.idpu_type,
+                models.SciencePacket.id >= downlink.first_packet_info.id,
+                models.SciencePacket.id <= downlink.last_packet_info.id,
+            )
+            .join(models.Packet)
+        )
         df = pd.read_sql_query(q.statement, q.session.bind)
 
         """
@@ -113,37 +121,49 @@ class DownlinkManager:
         having multiple commanders open, which causes data to be duplicated in the database (eg.
         there are two packets that are identical except for packet_id)
         """
-        df = df.drop_duplicates(subset=['data', 'idpu_type', 'numerator', 'denominator'])
+        df = df.drop_duplicates(subset=["data", "idpu_type", "numerator", "denominator"])
 
         # Formatting DataFrame
-        df_columns = ['id', 'mission_id', 'idpu_type', 'idpu_time', 'data', 'numerator', 'denominator', 'packet_id', 'packet_data', 'timestamp', 'source']
+        df_columns = [
+            "id",
+            "mission_id",
+            "idpu_type",
+            "idpu_time",
+            "data",
+            "numerator",
+            "denominator",
+            "packet_id",
+            "packet_data",
+            "timestamp",
+            "source",
+        ]
         reduced_df = pd.DataFrame(df, columns=df_columns)
 
-        existing_numerators = reduced_df['numerator']
+        existing_numerators = reduced_df["numerator"]
         max_numerator = existing_numerators.max()
-        denominator = reduced_df.loc[0]['denominator']
+        denominator = reduced_df.loc[0]["denominator"]
         if max_numerator > denominator:
             self.logger.debug(f"⚠️ Maximum numerator {max_numerator} exceeds denominator {denominator}")
         all_numerators = pd.Series(range(max(max_numerator, denominator) + 1))
         missing_numerators = all_numerators[~all_numerators.isin(existing_numerators)]
 
         missing_frames = {
-            'mission_id': downlink.mission_id,
-            'idpu_type': downlink.idpu_type,
-            'numerator': missing_numerators,
-            'denominator': denominator,
-            'id': None,
-            'packet_id': None,
-            'timestamp': None,
-            'idpu_time': None,
-            'data': None,
-            'packet_data': None,
-            'source': None
+            "mission_id": downlink.mission_id,
+            "idpu_type": downlink.idpu_type,
+            "numerator": missing_numerators,
+            "denominator": denominator,
+            "id": None,
+            "packet_id": None,
+            "timestamp": None,
+            "idpu_time": None,
+            "data": None,
+            "packet_data": None,
+            "source": None,
         }
         missing_df = pd.DataFrame(data=missing_frames)
 
         formatted_df = reduced_df.append(missing_df, sort=False)
-        formatted_df = reduced_df.sort_values('numerator').reset_index(drop=True)
+        formatted_df = reduced_df.sort_values("numerator").reset_index(drop=True)
 
         return formatted_df
 
@@ -159,7 +179,8 @@ class DownlinkManager:
         query = self.session.query(models.ScienceDownlink).filter(
             models.ScienceDownlink.mission_id == downlink_range.mission_id,
             models.ScienceDownlink.first_collection_time <= downlink_range.last_collection_time,
-            models.ScienceDownlink.last_collection_time >= downlink_range.first_collection_time)
+            models.ScienceDownlink.last_collection_time >= downlink_range.first_collection_time,
+        )
 
         for row in query:
             # TODO: Bad Nones

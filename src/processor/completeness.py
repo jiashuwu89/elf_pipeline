@@ -23,7 +23,8 @@ class CompletenessConfig:
             self.idpu_type = 4
             self.data_type = "EPDE"
             self.intent_type = "ScienceCollection"
-            self.start_delay = dt.timedelta(seconds=50)  # first two spin periods discarded, with 3 seconds margin
+            # first two spin periods discarded, with 3 seconds margin
+            self.start_delay = dt.timedelta(seconds=50)
             self.start_margin = dt.timedelta(seconds=9)
             self.median_diff = None
             self.expected_collection_duration = dt.timedelta(minutes=6, seconds=5)

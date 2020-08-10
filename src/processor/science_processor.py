@@ -1,11 +1,12 @@
 import datetime as dt
 import logging
 from abc import ABC
-from spacepy import pycdf
-import pandas as pd
 
-from util.constants import MISSION_DICT, MASTERCDF_DIR
+import pandas as pd
+from spacepy import pycdf
+
 from util.completeness import CompletenessConfig
+from util.constants import MASTERCDF_DIR, MISSION_DICT
 from util.science_utils import dt_to_tt2000, s_if_plural
 
 
@@ -21,7 +22,7 @@ class ScienceProcessor(ABC):
         self.output_dir = output_dir
 
         self.downlink_manager = DownlinkManager(session)
-        self.logger.er = logging.getLogger(f'science.processor.{processor_name}')
+        self.logger = logging.getLogger(f"science.processor.{processor_name}")
 
     def generate_files(self, processing_request):
         l0_file_name, l0_df = self.generate_l0_products(processing_request)
@@ -30,7 +31,7 @@ class ScienceProcessor(ABC):
         return [l0_file_name, l1_file_name]
 
     def generate_l0_products(self, processing_request):
-        self.logger.info('>>> Generating Level 0 Products...')
+        self.logger.info(">>> Generating Level 0 Products...")
         l0_df = self.generate_l0_df(processing_request)
         l0_file_name = self.generate_l0_file(processing_request, l0_df.copy())
         return l0_file_name, l0_df
@@ -81,11 +82,12 @@ class ScienceProcessor(ABC):
 
         # Select Data belonging only to a certain day
         l0_df = l0_df[
-                    (l0_df['idpu_time'] >= processing_request.date) &
-                    (l0_df['idpu_time'] < processing_request.date + dt.timedelta(days=1))]
+            (l0_df["idpu_time"] >= processing_request.date)
+            & (l0_df["idpu_time"] < processing_request.date + dt.timedelta(days=1))
+        ]
 
         # TT2000 conversion
-        l0_df['idpu_time'] = l0_df['idpu_time'].apply(pycdf.lib.datetime_to_tt2000)
+        l0_df["idpu_time"] = l0_df["idpu_time"].apply(pycdf.lib.datetime_to_tt2000)
 
         if l0_df.shape[0] == 0:
             raise RuntimeError(f"Empty level 0 DataFrame: {processing_request.to_string()}")
@@ -98,13 +100,13 @@ class ScienceProcessor(ABC):
 
     # Input: series of sorted, not-none times
     def update_completeness_table(self, times, config):
-        '''
+        """
         Update ScienceZoneCompleteness table, if possible
 
         May be overriden in derived classes
 
         TODO: update to take in CompletenessConfig
-        '''
+        """
         # Edge case: empty Series
         if times.shape[0] == 0:
             self.logger.warning("Empty Time Series, cannot update completeness table")
@@ -129,7 +131,7 @@ class ScienceProcessor(ABC):
         if not median_diff:
             diffs = []
             for sz in szs:
-                diffs += [(j-i).total_seconds() for i, j in zip(sz[:-1], sz[1:])]
+                diffs += [(j - i).total_seconds() for i, j in zip(sz[:-1], sz[1:])]
             median_diff = median(diffs)
 
         # Update completeness for each science zone
@@ -139,13 +141,18 @@ class ScienceProcessor(ABC):
 
             # Find corresponding collection (for the time range)
             # Assumes that only one execution time will be found
-            q = self.session.query(models.TimeIntervals).filter(
+            q = (
+                self.session.query(models.TimeIntervals)
+                .filter(
                     models.TimeIntervals.start_time <= sz_end_time.to_pydatetime(),
                     models.TimeIntervals.end_time >= sz_start_time.to_pydatetime(),
                     models.TimeIntervals.mission_id == self.mission_id,
-                    models.TimeIntervals.interval_type == 'ExecutionTime',
-                    models.Intent.intent_type == intent_type
-                ).join(models.Intent, models.TimeIntervals.intent_id == models.Intent.id).first()
+                    models.TimeIntervals.interval_type == "ExecutionTime",
+                    models.Intent.intent_type == intent_type,
+                )
+                .join(models.Intent, models.TimeIntervals.intent_id == models.Intent.id)
+                .first()
+            )
             if not q:
                 self.logger.warning(f"Empty Query, skipping interval {sz_start_time} to {sz_end_time}")
                 continue
@@ -165,19 +172,20 @@ class ScienceProcessor(ABC):
                 models.ScienceZoneCompleteness.idpu_type == idpu_type,
                 models.ScienceZoneCompleteness.data_type == data_type,
                 models.ScienceZoneCompleteness.sz_start_time <= sz_end_time.to_pydatetime(),
-                models.ScienceZoneCompleteness.sz_end_time >= sz_start_time.to_pydatetime()
+                models.ScienceZoneCompleteness.sz_end_time >= sz_start_time.to_pydatetime(),
             ).delete()
 
             entry = models.ScienceZoneCompleteness(
                 mission_id=self.mission_id,
-                idpu_type=idpu_type,    # TODO: Need to deprecate this column at some point
+                idpu_type=idpu_type,  # TODO: Need to deprecate this column at some point
                 data_type=data_type,
                 sz_start_time=str(start_time),
                 sz_end_time=str(end_time),
-                completeness=float(percent_completeness),   # TODO: Need to deprecate this column at some point
+                # TODO: Need to deprecate this column at some point
+                completeness=float(percent_completeness),
                 num_received=obtained,
                 num_expected=estimated_total,
-                insert_date=str(dt.datetime.now())
+                insert_date=str(dt.datetime.now()),
             )
 
             self.session.add(entry)
@@ -204,14 +212,15 @@ class ScienceProcessor(ABC):
         # Timestamp conversion
         try:
             l1_df = l1_df[
-                (l1_df['idpu_time'] >= processing_request.date) &
-                (l1_df['idpu_time'] < processing_request.date + dt.timedelta(days=1))]
-            l1_df['idpu_time'] = l1_df['idpu_time'].apply(dt_to_tt2000)
+                (l1_df["idpu_time"] >= processing_request.date)
+                & (l1_df["idpu_time"] < processing_request.date + dt.timedelta(days=1))
+            ]
+            l1_df["idpu_time"] = l1_df["idpu_time"].apply(dt_to_tt2000)
             if l1_df.shape[0] == 0:
                 raise RuntimeError(f"Final Dataframe is empty: {processing_request.to_string()}")
 
         except KeyError:
-            self.logger.debug('The column \'idpu_time\' does not exist, but it\'s probably OK')
+            self.logger.debug("The column 'idpu_time' does not exist, but it's probably OK")
 
         return l1_df
 
@@ -227,7 +236,6 @@ class ScienceProcessor(ABC):
     def generate_l2_products(self):
         pass
 
-
     def get_relevant_downlinks(self, collection_date):
         """
         Gets a list of downlinks that occured for the collection date.
@@ -239,18 +247,18 @@ class ScienceProcessor(ABC):
             last_id, first collection time, last collection time)`
         """
 
-        queried_downlinks   = []
-        start               = collection_date + dt.timedelta(microseconds=0)
-        end                 = collection_date + dt.timedelta(days=1) - dt.timedelta(microseconds = 1)
+        queried_downlinks = []
+        start = collection_date + dt.timedelta(microseconds=0)
+        end = collection_date + dt.timedelta(days=1) - dt.timedelta(microseconds=1)
 
         for data_type in self.idpu_types:
             queried_downlinks.extend(
-                self.downlink_manager.fetch_downlinks_from_range(self.mission_id, data_type, start, end))
+                self.downlink_manager.fetch_downlinks_from_range(self.mission_id, data_type, start, end)
+            )
 
         if len(queried_downlinks) == 0:
             raise exceptions.EmptyError
         return queried_downlinks
-
 
     def get_merged_dataframes(self, downlinks):
         """
@@ -271,7 +279,7 @@ class ScienceProcessor(ABC):
         """
 
         # Sort Downlinks by Downlink Time, and then by size
-        downlinks = sorted(downlinks, key=lambda x: (x[2], x[6]-x[5]))
+        downlinks = sorted(downlinks, key=lambda x: (x[2], x[6] - x[5]))
         if not downlinks:
             raise exceptions.EmptyError
 
@@ -279,31 +287,30 @@ class ScienceProcessor(ABC):
         _, m_ptype, m_first_time, m_last_time, _, _, _, _, _ = downlinks[0]
         m_df = self.downlink_manager.get_formatted_df_from_downlink(downlinks[0])
 
-        for i,downlink in enumerate(downlinks[1:]):
+        for i, downlink in enumerate(downlinks[1:]):
             _, ptype, first_time, last_time, _, _, _, _, _ = downlink
             df = self.downlink_manager.get_formatted_df_from_downlink(downlink)
 
             # Merge if we have found a good offset (downlink overlaps with the current one and packet type matches)
-            offset = self.downlink_manager.calculate_offset(m_df,df)
+            offset = self.downlink_manager.calculate_offset(m_df, df)
             if ptype == m_ptype and offset != None and m_first_time <= first_time <= m_last_time:
-                m_last_time     = max(m_last_time, last_time)
-                m_df            = self.downlink_manager.merge_downlinks(m_df, df, offset)
+                m_last_time = max(m_last_time, last_time)
+                m_df = self.downlink_manager.merge_downlinks(m_df, df, offset)
 
             else:
                 merged_downlinks.append(m_df)
-                m_first_time    = first_time
-                m_last_time     = last_time
-                m_ptype         = ptype
-                m_df            = df
+                m_first_time = first_time
+                m_last_time = last_time
+                m_ptype = ptype
+                m_df = df
 
         merged_downlinks.append(m_df)
 
         # Data Completeness Stuff
         for df in merged_downlinks:
-            df['packet_id'] = df['packet_id'].apply(lambda x: [x])
+            df["packet_id"] = df["packet_id"].apply(lambda x: [x])
 
         return merged_downlinks
-
 
     def rejoin_data(self, d):
         """
@@ -315,9 +322,9 @@ class ScienceProcessor(ABC):
         row will be inserted to identify that a packet is missing.
         """
 
-        data = d['data'].apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
-        frames = d['packet_data'].apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
-        packet_ids = d['packet_id'] # Each item should be a list
+        data = d["data"].apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
+        frames = d["packet_data"].apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
+        packet_ids = d["packet_id"]  # Each item should be a list
 
         missing_numerators = []
         idpu_type = None
@@ -328,7 +335,7 @@ class ScienceProcessor(ABC):
 
         while idx < d.shape[0]:
 
-            numerator = d['numerator'].iloc[idx]
+            numerator = d["numerator"].iloc[idx]
             cur_packets = packet_ids.iloc[idx]
 
             if not data.iloc[idx]:
@@ -337,22 +344,22 @@ class ScienceProcessor(ABC):
                 idx += 1
                 continue
 
-            if not idpu_type: # get default data to give to missing frames
-                idpu_type = d['idpu_type'].iloc[idx]
-                denominator = d['denominator'].iloc[idx]
+            if not idpu_type:  # get default data to give to missing frames
+                idpu_type = d["idpu_type"].iloc[idx]
+                denominator = d["denominator"].iloc[idx]
 
-            cur_data    = data.iloc[idx]
-            cur_frame   = frames.iloc[idx]
-            cur_row     = d.iloc[idx].copy()
+            cur_data = data.iloc[idx]
+            cur_frame = frames.iloc[idx]
+            cur_row = d.iloc[idx].copy()
 
             current_length = len(cur_data)
 
             # Making sure this frame has a header
             try:
                 # make sure the CRC is ok, then remove header
-                if(_utils.compute_crc(0xFF, cur_frame[1:12]) != cur_frame[12]):
+                if _utils.compute_crc(0xFF, cur_frame[1:12]) != cur_frame[12]:
                     raise Exception(f"Bad CRC at {idx}")
-                expected_length = int.from_bytes(cur_frame[1:3], 'little', signed=False)//2 - 12
+                expected_length = int.from_bytes(cur_frame[1:3], "little", signed=False) // 2 - 12
 
             except Exception as e:
                 self.logger.debug(f"Dropping idx={idx}: Probably not a header - {e}\n")
@@ -369,14 +376,16 @@ class ScienceProcessor(ABC):
 
                     cur_packets += packet_ids.iloc[idx]
 
-            except: # Missing packet (or something else)
+            except:  # Missing packet (or something else)
                 self.logger.debug(f"Dropping idx={idx}: Empty continuation\n")
                 missing_numerators.append(numerator)
                 idx += 1
                 continue
 
             if current_length != expected_length:
-                self.logger.debug(f"Dropping idx={idx}: Current and Expected length differ: {current_length} != {expected_length}\n")
+                self.logger.debug(
+                    f"Dropping idx={idx}: Current and Expected length differ: {current_length} != {expected_length}\n"
+                )
                 missing_numerators.append(numerator)
                 idx += 1
                 continue
@@ -384,29 +393,32 @@ class ScienceProcessor(ABC):
             idx += 1
 
             # If we get this far, add to final_df
-            cur_row.loc['data'] = cur_data.hex()
-            cur_row.loc['packet_id'] = cur_packets
+            cur_row.loc["data"] = cur_data.hex()
+            cur_row.loc["packet_id"] = cur_packets
             final_df = final_df.append(cur_row)
 
-
         missing_frames = {
-            'id':           None,
-            'mission_id':   self.mission_id,
-            'idpu_type':    idpu_type,
-            'idpu_time':    None,
-            'data':         None,
-            'numerator':    pd.Series(missing_numerators),
-            'denominator':  denominator,
-            'packet_id':    None,
-            'packet_data':  None,
-            'timestamp':    None
+            "id": None,
+            "mission_id": self.mission_id,
+            "idpu_type": idpu_type,
+            "idpu_time": None,
+            "data": None,
+            "numerator": pd.Series(missing_numerators),
+            "denominator": denominator,
+            "packet_id": None,
+            "packet_data": None,
+            "timestamp": None,
         }
 
-        final_df = final_df.append(
-            pd.DataFrame(data=missing_frames), sort=False
-        ).sort_values('numerator').reset_index(drop=True)
+        final_df = (
+            final_df.append(pd.DataFrame(data=missing_frames), sort=False)
+            .sort_values("numerator")
+            .reset_index(drop=True)
+        )
 
-        return final_df[['timestamp', 'mission_id', 'idpu_type', 'idpu_time', 'numerator', 'denominator', 'data', 'packet_id']]
+        return final_df[
+            ["timestamp", "mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "packet_id"]
+        ]
 
     def merge_processed_dataframes(self, dataframes):
         """
@@ -418,20 +430,20 @@ class ScienceProcessor(ABC):
         """
         df = pd.concat(dataframes)
 
-        df['idpu_type'] = df['idpu_type'].astype('category').cat.set_categories(self.idpu_types, ordered=True)
+        df["idpu_type"] = df["idpu_type"].astype("category").cat.set_categories(self.idpu_types, ordered=True)
         df = df.dropna(subset=["data", "idpu_time"])
         df = df.sort_values(["idpu_time", "idpu_type"])
 
         # Keeping the first item means that the first/earlier idpu_type will be preserved
         # idpu_type is ordered in the same order as self.idpu_types
-        df = df.drop_duplicates("idpu_time", keep='first')
+        df = df.drop_duplicates("idpu_time", keep="first")
 
         return df.reset_index()
-
 
     ################################
     # Abstract (Default) Functions #
     ################################
+
     def process_l0(self, data):
         """
         (Default implementation. Should be overridden in child class)
@@ -452,7 +464,7 @@ class FileMaker:
     def __init__(self, probe_name):
         self.probe_name = probe_name
 
-    def make_filename(self, save_directory, data_product_name, level, collection_date, size = None):
+    def make_filename(self, save_directory, data_product_name, level, collection_date, size=None):
         """Constructs the appropriate filename for a L0/L1/L2 file, and returns the full path
 
         Parameters
@@ -478,7 +490,6 @@ class FileMaker:
             raise ValueError(f"Bad level: {level}")
         return save_directory + "/" + fname
 
-
     def create_CDF(self, fname):
         """
         Gets or creates a CDF with the desired fname. If existing path is specified, it would check to see if the correct CDF exists.
@@ -490,16 +501,15 @@ class FileMaker:
             a string that includes the  target file path along with the target file name of the desired file. The file name is of the data product format used.
         """
         fname_parts = fname.split("/")[-1].split("_")
-        probe       = fname_parts[0]
-        level       = fname_parts[1]
-        idpu_type   = fname_parts[2]
+        probe = fname_parts[0]
+        level = fname_parts[1]
+        idpu_type = fname_parts[2]
 
         if os.path.isfile(fname):
             os.remove(fname)
 
-        cdf = pycdf.CDF(fname,  MASTERCDF_DIR + f"{probe}_{level}_{idpu_type}_00000000_v01.cdf")
+        cdf = pycdf.CDF(fname, MASTERCDF_DIR + f"{probe}_{level}_{idpu_type}_00000000_v01.cdf")
         return cdf
-
 
     def fill_CDF(self, cdf, cdf_fields, df):
         """ Inserts data from df into a CDF file

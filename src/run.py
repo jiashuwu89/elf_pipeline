@@ -4,12 +4,11 @@ python run.py --help
 """
 
 import argparse
-import logging
 import datetime as dt
+import logging
 
 import util.constants
 from coordinator import Coordinator
-
 
 # TODO: logging.getLogger(__name__)
 # https://docs.python.org/3/library/logging.html#logging.basicConfig
@@ -35,9 +34,8 @@ class CLIHandler:
 
         # daily subcommand
         sub_daily = subcommands.add_parser(
-            "daily",
-            help="run daily processing",
-            description="Process all science packets received over the last day")
+            "daily", help="run daily processing", description="Process all science packets received over the last day"
+        )
         sub_daily.set_defaults(func="run_daily")
 
         # dump subcommand
@@ -47,7 +45,8 @@ class CLIHandler:
             description="Reprocess and generate a dump of specific science data \
                 products. If collection time is specified, the downlinks table \
                 will be ignored. Otherwise, the table will be updated unless \
-                --no-db is used.")
+                --no-db is used.",
+        )
         sub_dump.set_defaults(func="run_dump")
         sub_dump_time_group = sub_dump.add_mutually_exclusive_group(required=True)
         sub_dump_time_group.add_argument(
@@ -56,14 +55,16 @@ class CLIHandler:
             help="process data collected in the range [START, END)",
             action="store",
             nargs=2,
-            metavar=("START", "END"))
+            metavar=("START", "END"),
+        )
         sub_dump_time_group.add_argument(
             "-d",
             "--downlink-time",
             help="process data downlinked in the range [START, END)",
             action="store",
             nargs=2,
-            metavar=("START", "END"))
+            metavar=("START", "END"),
+        )
         sub_dump.add_argument(
             "-p",
             "--products",
@@ -72,13 +73,15 @@ class CLIHandler:
             nargs="+",
             choices=util.constants.ALL_PRODUCTS,
             default=util.constants.ALL_PRODUCTS,
-            metavar="PRODUCTS")
+            metavar="PRODUCTS",
+        )
 
         # downlinks subcommand
         sub_downlinks = subcommands.add_parser(
             "downlinks",
             help="calculate/list downlink entries",
-            description="Scan downlinked science packets and group them into downlink entries")
+            description="Scan downlinked science packets and group them into downlink entries",
+        )
         sub_downlinks.set_defaults(func="run_downlinks")
         sub_downlinks.add_argument(
             "-c",
@@ -86,61 +89,39 @@ class CLIHandler:
             help="generate downlink entries in the range [START, END) using collection time",
             action="store",
             nargs=2,
-            metavar=("START", "END"))
+            metavar=("START", "END"),
+        )
         sub_downlinks.add_argument(
             "-d",
             "--downlink-time",
             help="generate downlink entries in the range [START, END)",
             action="store",
             nargs=2,
-            metavar=("START", "END"))
+            metavar=("START", "END"),
+        )
 
         # Options
-        argparser.add_argument(
-            "--ela",
-            help="Process ELA data",
-            action="store_true")
-        argparser.add_argument(
-            "--elb",
-            help="Process ELB data",
-            action="store_true")
-        argparser.add_argument(
-            "--em3",
-            help="Process EM3 data",
-            action="store_true")
+        argparser.add_argument("--ela", help="Process ELA data", action="store_true")
+        argparser.add_argument("--elb", help="Process ELB data", action="store_true")
+        argparser.add_argument("--em3", help="Process EM3 data", action="store_true")
         argparser.add_argument(
             "--calculate",
             help="mode for calculating downlink entries (from science_packets \
                 table). If set to nodb, will be calculated but not uploaded. \
                 Choices: (yes/no/nodb), Default: yes",
             action="store",
-            choices=[
-                "yes",
-                "no",
-                "nodb"],
-            default="yes")
+            choices=["yes", "no", "nodb"],
+            default="yes",
+        )
 
+        argparser.add_argument("-v", "--verbose", help="use DEBUG log level", action="store_true")
+        argparser.add_argument("-n", "--no-upload", help="don't upload L0/L1 files to the server", action="store_true")
         argparser.add_argument(
-            "-v",
-            "--verbose",
-            help="use DEBUG log level",
-            action="store_true")
+            "-ne", "--no-email", help="don't send warning emails to people in the email list", action="store_true"
+        )
         argparser.add_argument(
-            "-n",
-            "--no-upload",
-            help="don't upload L0/L1 files to the server",
-            action="store_true")
-        argparser.add_argument(
-            "-ne",
-            "--no-email",
-            help="don't send warning emails to people in the email list",
-            action="store_true")
-        argparser.add_argument(
-            "-o",
-            "--output-dir",
-            help="directory in which to output generated files",
-            action="store",
-            metavar="DIR")
+            "-o", "--output-dir", help="directory in which to output generated files", action="store", metavar="DIR"
+        )
 
         return argparser
 

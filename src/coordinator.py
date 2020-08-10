@@ -1,17 +1,16 @@
-import logging
 import datetime as dt
-from dateutil.parser import parse as dateparser
+import logging
 import tempfile
 
-from common import models, db
+from dateutil.parser import parse as dateparser
 
-from request_manager import RequestManager
+from common import db, models
+from db.request_manager import RequestManager
+from output.server_manager import ServerManager
 from processor.processor_manager import ProcessorManager
-from server_manager import ServerManager
 
 
 class Coordinator:
-
     def __init__(self):
 
         if db.SESSIONMAKER is None:
@@ -91,11 +90,8 @@ class Coordinator:
 
     def run_func(self):
         processing_requests = self.request_manager.get_processing_requests(
-            self.mission_ids,
-            self.times,
-            self.start_time,
-            self.end_time,
-            self.calculate)  # TODO: Check name of function
+            self.mission_ids, self.times, self.start_time, self.end_time, self.calculate
+        )  # TODO: Check name of function
 
         generated_files = self.processor_manager.generate_files(processing_requests)
 

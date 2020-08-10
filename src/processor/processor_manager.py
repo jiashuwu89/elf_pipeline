@@ -1,11 +1,10 @@
 import traceback
 
-from util.exception_collector import ExceptionCollector
 from util.constants import DAILY_EMAIL_LIST
+from util.exception_collector import ExceptionCollector
 
 
 class ProcessorManager:
-
     def __init__(self, session):
         self.session = session
         self.processors = {
@@ -13,7 +12,7 @@ class ProcessorManager:
             "epd": EpdProcessor(),
             "state": StateProcessor(),
             "mrm": MrmProcessor(),
-            "eng": EngProcessor()
+            "eng": EngProcessor(),
         }
         self.exception_collector = ExceptionCollector(DAILY_EMAIL_LIST)
 
@@ -25,8 +24,8 @@ class ProcessorManager:
                 files.update(self.processors[pr.data_product].generate_files(pr))
             except Exception as e:
                 traceback_msg = traceback.format_exc()
-                self.error_collector.record_exception(pr, e, traceback_msg)
+                self.exception_collector.record_exception(pr, e, traceback_msg)
 
-        self.error_collector.email_if_exceptions_occurred()
+        self.exception_collector.email_if_exceptions_occurred()
 
         return files

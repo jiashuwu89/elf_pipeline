@@ -1,3 +1,6 @@
 src/util/credentials.py
 **/__pycache__
 docs
+env
+.coverage
+.vscode

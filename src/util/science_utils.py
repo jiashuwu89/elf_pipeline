@@ -1,3 +1,6 @@
+"""
+Utility functions relating to science
+"""
 import pandas as pd
 from spacepy import pycdf
 

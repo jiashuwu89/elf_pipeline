@@ -1,13 +1,13 @@
 import datetime as dt
+
 import sqlalchemy
 
-from processor.processing_request import ProcessingRequest
-from util.downlink import DownlinkManager
 from common import models
+from db.downlink import DownlinkManager
+from processor.processing_request import ProcessingRequest
 
 
 class RequestManager:
-
     def __init__(self, session):
         self.session = session
         self.downlink_manager = DownlinkManager(session)
@@ -47,11 +47,13 @@ class RequestManager:
         return {
             ProcessingRequest(res.mission_id, res.mrm_type, dt.date(res.date))
             for res in self.session.query(sqlalchemy.distinct(func.date(models.MRM.timestamp)))
-                .filter(models.Packet.mission_id.in_(mission_ids),
-                        models.Packet.timestamp >= start_time,
-                        models.Packet.timestamp <= end_time,
-                        models.MRM.mrm_type.in_(mrm_types))
-                .join(models.Packet)
+            .filter(
+                models.Packet.mission_id.in_(mission_ids),
+                models.Packet.timestamp >= start_time,
+                models.Packet.timestamp <= end_time,
+                models.MRM.mrm_type.in_(mrm_types),
+            )
+            .join(models.Packet)
             if res.date is not None
         }
 

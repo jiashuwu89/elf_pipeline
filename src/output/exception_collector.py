@@ -2,8 +2,8 @@ import logging
 import smtplib
 import time
 
-from utils.credentials import EMAIL_USERNAME, EMAIL_PASSWORD
 from util.science_utils import s_if_plural
+from utils.credentials import EMAIL_PASSWORD, EMAIL_USERNAME
 
 
 class ExceptionCollector:
@@ -22,11 +22,12 @@ class ExceptionCollector:
             self.logger.info("No exceptions recorded")
             return
 
-        with smtplib.SMTP('smtp.gmail.com', 587) as email_manager:
+        with smtplib.SMTP("smtp.gmail.com", 587) as email_manager:
             email_manager.starttls()
             email_manager.login(EMAIL_USERNAME, EMAIL_PASSWORD)
             email_manager.sendmail(EMAIL_USERNAME, self.email_list, self.generate_email())
-            time.sleep(1)       # An attempt to avoid issues like the one that occured 2020-01-22: https://stackoverflow.com/questions/39097834/gmail-smtp-error-temporary-block
+            # An attempt to avoid issues like the one that occured 2020-01-22: https://stackoverflow.com/questions/39097834/gmail-smtp-error-temporary-block
+            time.sleep(1)
 
     def generate_email(self):
         subject = f"Subject: Exception{s_if_plural(self.exception_list)} occurred"
