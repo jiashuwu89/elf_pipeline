@@ -15,6 +15,7 @@ from dateutil.parser import parse as dateparser
 
 from common import db, models
 from db.request_manager import RequestManager
+from output.exception_collector import ExceptionCollector
 from output.server_manager import ServerManager
 from processor.processor_manager import ProcessorManager
 
@@ -66,6 +67,7 @@ class Coordinator:
         self.request_manager = RequestManager(self.session)
         self.processor_manager = ProcessorManager(self.session)
         self.server_manager = ServerManager()
+        self.exception_collector = ExceptionCollector(DAILY_EMAIL_LIST)
 
     def handle_args(self, args):
 
@@ -114,21 +116,29 @@ class Coordinator:
 
         self.upload = not args.no_upload and self.generate_files
 
-        self.email = not args.no_email  # TODO: Email should be done at this level, not processor level?
+        self.email = not args.no_email
 
     def run_func(self):
-        processing_requests = self.request_manager.get_processing_requests(
-            self.mission_ids,
-            self.data_products,
-            self.times,
-            self.start_time,
-            self.end_time,
-            self.calculate,
-            self.update_db,
-        )  # TODO: Check name of function
+        try:
+            processing_requests = self.request_manager.get_processing_requests(
+                self.mission_ids,
+                self.data_products,  # TODO: Sort out product name vs idpu_type, not 1 to 1
+                self.times,
+                self.start_time,
+                self.end_time,
+                self.calculate,
+                self.update_db,
+            )  # TODO: Check name of function
 
-        if self.generated_files:
-            generated_files = self.processor_manager.generate_files(processing_requests)
+            if self.generated_files:
+                generated_files = self.processor_manager.generate_files(processing_requests)
 
-        if self.upload:
-            self.server_manager.transfer_files(generated_files)
+            if self.upload:
+                self.server_manager.transfer_files(generated_files)
+
+        except Exception as e:
+            traceback_msg = traceback.format_exc()
+            self.exception_collector.record_exception(e, traceback_msg)
+
+        if self.exception_collector.email_list:
+            self.exception_collector.email()

@@ -13,15 +13,16 @@ class ExceptionCollector:
 
         self.logger = logging.getLogger("ExceptionCollector")
 
-    def record_exception(self, pr, e, traceback_msg):
-        self.logger.critical(f"Exception Recorded:\n\t\t{pr.to_string()}\n\t\t{e}\n\t\t{traceback_msg}")
-        self.exception_list.append((pr, e, traceback_msg))
+    def record_exception(self, *to_record):
+        log_msg = "Exception Recorded:"
+        email_msg = "Exception Recorded:"
+        for x in to_record:
+            log_msg += f"\n\t\t{x}"
+            log_msg += f"\n{x}"
+        self.logger.critical(log_msg)
+        self.exception_list.append(email_msg)
 
-    def email_if_exceptions_occurred(self):
-        if not self.exception_list:
-            self.logger.info("No exceptions recorded")
-            return
-
+    def email(self):
         with smtplib.SMTP("smtp.gmail.com", 587) as email_manager:
             email_manager.starttls()
             email_manager.login(EMAIL_USERNAME, EMAIL_PASSWORD)
@@ -32,6 +33,6 @@ class ExceptionCollector:
     def generate_email(self):
         subject = f"Subject: Exception{s_if_plural(self.exception_list)} occurred"
         seperator = "\n\n"
-        body = "\n".join([f"{pr.to_string()}\n{e}\n{traceback_msg}" for pr, e, traceback_msg in self.exception_list])
+        body = "\n".join(self.exception_list)
 
         return subject + seperator + body
