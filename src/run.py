@@ -1,4 +1,4 @@
-""" CLI for running the Science Processing Pipeline
+"""CLI for running the Science Processing Pipeline
 
 For additional help, run: python run.py --help
 """

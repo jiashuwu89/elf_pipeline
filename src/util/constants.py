@@ -1,5 +1,4 @@
-"""
-constants.py
+"""constants.py: Commonly used constants throughout science processing.
 
 This file holds some information about the mission, specifically information
 that helps with science processing (ex. data products). These were originally

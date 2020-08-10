@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 
 from common import models
 from db.downlink import DownlinkManager
-from processor.processing_request import ProcessingRequest
+from db.processing_request import ProcessingRequest
 
 
 class RequestManager:

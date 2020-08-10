@@ -1,5 +1,5 @@
-"""
-The Coordinator class coordinates the main tasks of the pipeline:
+"""A class to coordinate the main tasks of the pipeline.
+These tasks are:
     - Determining what new data was obtained and what files should be created
     - Creation of new files
     - Uploading of new files, and reporting errors
@@ -13,15 +13,17 @@ import tempfile
 
 from dateutil.parser import parse as dateparser
 
-from common import db, models
+from common import db
 from db.request_manager import RequestManager
 from output.exception_collector import ExceptionCollector
 from output.server_manager import ServerManager
 from processor.processor_manager import ProcessorManager
+from util.constants import ALL_MISSIONS, DAILY_EMAIL_LIST
 
 
 class Coordinator:
-    """
+    """Coordinator class to coordinate the pipeline.
+
     mission_ids
         list containing subset of 1, 2, 3 for ELA, ELB, EM3 (respectively)
     times
@@ -70,7 +72,7 @@ class Coordinator:
         self.exception_collector = ExceptionCollector(DAILY_EMAIL_LIST)
 
     def handle_args(self, args):
-
+        """Given args from argparser.parse_args, update Coordinator"""
         if args.ela:
             self.mission_ids.append(1)
         if args.elb:
@@ -78,7 +80,7 @@ class Coordinator:
         if args.em3:
             self.mission_ids.append(3)
         if not self.mission_ids:
-            self.log.info("No missions specified, defaulting to ELA and ELB")
+            self.logger.info("No missions specified, defaulting to ELA and ELB")
             self.mission_ids = ALL_MISSIONS
 
         if args.func == "run_daily":

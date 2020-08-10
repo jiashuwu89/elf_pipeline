@@ -1,1 +1,1 @@
-# Needed so coverage can pick this up
+"""Needed so coverage can pick this up."""

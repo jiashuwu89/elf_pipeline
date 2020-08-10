@@ -18,7 +18,7 @@ format:
 
 check-style:
 	@echo "⭐ Checking Style ⭐"
-	prospector 	--strictness high \
+	prospector 	--strictness medium \
 				--max-line-length 120 \
 				--with-tool vulture \
 				--pylint-config-file $(PYLINT_CONFIG) \

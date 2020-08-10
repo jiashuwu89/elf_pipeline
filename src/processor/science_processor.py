@@ -26,3 +26,6 @@ class ScienceProcessor(ABC):
 
     def generate_files(self, processing_request):
         pass
+
+
+# TODO: make_filename and create_CDF functions
