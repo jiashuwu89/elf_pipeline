@@ -1,3 +1,6 @@
+# TODO: Move to db dir?
+
+
 class ProcessingRequest:
     def __init__(self, mission_id, data_product, date):
         """
@@ -8,6 +11,14 @@ class ProcessingRequest:
         self.mission_id = mission_id
         self.data_product = data_product
         self.date = date
+
+    def __eq__(self, other):
+        return (
+            self.mission_id == other.mission_id and self.data_product == other.data_product and self.date == other.date
+        )
+
+    def __hash__(self):
+        return hash((self.mission_id, self.data_product, self.date))
 
     def to_string(self):
         return f"ProcessingRequest(\

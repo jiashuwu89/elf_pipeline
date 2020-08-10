@@ -1,5 +1,14 @@
+"""
+The Coordinator class coordinates the main tasks of the pipeline:
+    - Determining what new data was obtained and what files should be created
+    - Creation of new files
+    - Uploading of new files, and reporting errors
+"""
+
+
 import datetime as dt
 import logging
+import os
 import tempfile
 
 from dateutil.parser import parse as dateparser
@@ -11,6 +20,31 @@ from processor.processor_manager import ProcessorManager
 
 
 class Coordinator:
+    """
+    mission_ids
+        list containing subset of 1, 2, 3 for ELA, ELB, EM3 (respectively)
+    times
+        "downlink" or "collection", for downlink time and collection time,
+        respectively
+    start_time/end_time
+        time range to search for data
+    products
+        list containing subset of ALL_PRODUCTS, specifying products for which
+        to search for data
+    calculate
+        Search for new data and use to calculate new downlinks, as opposed to
+        using downlinks already found in science downlinks table
+    upload_to_db
+        Relevant ONLY IF calculate is True. Upload calculated downlinks to the
+        science downlinks table
+    output_dir
+        Directory in which to put files when generated
+    upload
+        Upload generated files to server
+    email
+        Email notifications if exceptions occurred during processing
+    """
+
     def __init__(self):
 
         if db.SESSIONMAKER is None:
@@ -18,13 +52,13 @@ class Coordinator:
         self.session = db.SESSIONMAKER()
         self.logger = logging.getLogger("Coordinator")
 
-        self.func = None
         self.mission_ids = None
         self.times = None
         self.start_time = None
         self.end_time = None
         self.products = None
         self.calculate = None
+        self.upload_to_db = None
         self.output_dir = None
         self.upload = None
         self.email = None
@@ -35,17 +69,6 @@ class Coordinator:
 
     def handle_args(self, args):
 
-        # Function to execute
-        if args.func == "run_daily":
-            self.func = self.run_daily
-        elif args.func == "run_dump":
-            self.func = self.run_dump
-        elif args.func == "run_downlinks":
-            self.func = self.run_downlinks
-        else:
-            raise Exception("No function specified")
-
-        # Mission IDs
         if args.ela:
             self.mission_ids.append(1)
         if args.elb:
@@ -53,9 +76,9 @@ class Coordinator:
         if args.em3:
             self.mission_ids.append(3)
         if not self.mission_ids:
-            raise Exception("No missions specified")
+            self.log.info("No missions specified, defaulting to ELA and ELB")
+            self.mission_ids = ALL_MISSIONS
 
-        # Time range
         if args.func == "run_daily":
             self.times = "downlink"
             self.end_time = dt.datetime(*dt.datetime.utcnow().timetuple()[:4])
@@ -71,28 +94,41 @@ class Coordinator:
         else:
             raise Exception("Need either downlink time or collection time range")
 
-        # Products
         if not args.products:
             raise Exception("No products specified")
         self.products = args.products
 
-        # Calculate
-        self.calculate = args.calculate
+        self.calculate = args.calculate in ["yes", "nodb"]
 
-        # Output Directory (For produced files)
+        self.upload_to_db = args.calculate not in ["no", "nodb"]
+
+        self.generate_files = args.func in ["run_daily", "run_dump"]
+
         if args.output_dir:
-            self.output_dir = args.output_dir
+            if os.path.isdir(args.output_dir):
+                self.output_dir = args.output_dir
+            else:
+                raise ValueError(f"Bad Output Directory: {args.output_dir}")
         else:
             self.output_dir = tempfile.mkdtemp()
 
-        self.upload = not args.no_upload
-        self.email = not args.no_email
+        self.upload = not args.no_upload and self.generate_files
+
+        self.email = not args.no_email  # TODO: Email should be done at this level, not processor level?
 
     def run_func(self):
         processing_requests = self.request_manager.get_processing_requests(
-            self.mission_ids, self.times, self.start_time, self.end_time, self.calculate
+            self.mission_ids,
+            self.data_products,
+            self.times,
+            self.start_time,
+            self.end_time,
+            self.calculate,
+            self.update_db,
         )  # TODO: Check name of function
 
-        generated_files = self.processor_manager.generate_files(processing_requests)
+        if self.generated_files:
+            generated_files = self.processor_manager.generate_files(processing_requests)
 
-        self.server_manager.transfer_files(generated_files)
+        if self.upload:
+            self.server_manager.transfer_files(generated_files)

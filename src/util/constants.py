@@ -13,6 +13,7 @@ Contents:
 """
 
 MISSION_DICT = {1: "ela", 2: "elb", 3: "em3"}
+ALL_MISSIONS = [1, 2]
 
 MASTERCDF_DIR = "/home/elfin-esn/OPS/science/trunk/science_processing/mastercdf/"
 
@@ -26,7 +27,6 @@ STATE_PRODUCTS = ["state"]
 # A Dictionary of MRM Types
 MRM_TYPES = {"mrma": "ACB", "mrmi": "IDPU"}
 
-ALL_MISSIONS = [1, 2]
 ALL_PRODUCTS = EPD_PRODUCTS + FGM_PRODUCTS + ENG_PRODUCTS + MRM_PRODUCTS + STATE_PRODUCTS
 
 

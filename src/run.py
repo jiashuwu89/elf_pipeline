@@ -1,6 +1,6 @@
 """ CLI for running the Science Processing Pipeline
 
-python run.py --help
+For additional help, run: python run.py --help
 """
 
 import argparse
