@@ -56,7 +56,7 @@ class IDPUProcessor(ScienceProcessor):
         df = self.merge_processed_dataframes(dfs)
         self.logger.info("✔️ Done with final merge")
 
-        if df.shape[0] == 0:
+        if df.empty:
             raise RuntimeError(f"Final Dataframe is empty: {processing_request.to_string()}")
 
         return df
@@ -75,7 +75,7 @@ class IDPUProcessor(ScienceProcessor):
         # TT2000 conversion
         l0_df["idpu_time"] = l0_df["idpu_time"].apply(pycdf.lib.datetime_to_tt2000)
 
-        if l0_df.shape[0] == 0:
+        if l0_df.empty:
             raise RuntimeError(f"Empty level 0 DataFrame: {processing_request.to_string()}")
 
         # Generate L0 file
@@ -109,7 +109,7 @@ class IDPUProcessor(ScienceProcessor):
                 & (l1_df["idpu_time"] < processing_request.date + dt.timedelta(days=1))
             ]
             l1_df["idpu_time"] = l1_df["idpu_time"].apply(dt_to_tt2000)
-            if l1_df.shape[0] == 0:
+            if l1_df.empty:
                 raise RuntimeError(f"Final Dataframe is empty: {processing_request.to_string()}")
 
         except KeyError:

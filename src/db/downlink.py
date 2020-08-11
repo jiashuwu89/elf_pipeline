@@ -73,7 +73,7 @@ class DownlinkManager:
         msg = "Downlinks:\n" + "\n".join([d.to_string() for d in downlinks])
         self.logger.info(msg)
 
-    def calculate_new_downlinks(self, start_time, end_time):
+    def calculate_new_downlinks(self, start_time, end_time, update_db):
         """
         Calculate new science downlinks by scanning through the
         list of science packets received within a range of dates
@@ -189,6 +189,12 @@ class DownlinkManager:
             downlinks.append(Downlink(mission_id, cur_packet_type, first_packet_info, last_packet_info))
 
         downlinks.sort(key=lambda x: x.idpu_type)
+
+        if update_db:
+            self.logger.info(
+                f"Updating DB with the calculated Downlinks:\n{self.downlink_manager.print_downlinks(downlinks)}"
+            )
+            self.upload_downlink_entries(downlinks)
 
         return downlinks
 

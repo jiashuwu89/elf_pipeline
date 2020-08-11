@@ -1,4 +1,5 @@
 import datetime as dt
+import logging
 
 import sqlalchemy
 from sqlalchemy.sql import func
@@ -12,6 +13,7 @@ class RequestManager:
     def __init__(self, session):
         self.session = session
         self.downlink_manager = DownlinkManager(session)
+        self.logger = logging.getLogger("RequestManager")
 
     def get_processing_requests(self, mission_ids, data_products, times, start_time, end_time, calculate, update_db):
         # TODO: "times" is just for idpu products?
@@ -38,20 +40,39 @@ class RequestManager:
     def get_general_processing_requests(
         self, mission_ids, data_products, times, start_time, end_time, calculate, update_db
     ):
-        """ FGM and EPD Processing Requests
-        start_time and end_time are downlink times
+        """FGM and EPD Processing Requests
 
-        calculate [True|False] should only be True if daily
+        Logic:
+        - If we want requests by downlink time, we ALWAYS need to calculate new downlinks
+            - Science Downlinks Table does not store downlink times, only IDPU times and collection times, so it cannot be used
+            - Once we have our Downlinks, refer to update_db to determine if we should put the downlinks onto the Science Downlinks Table
+        - If we want requests by collection time, we must use the Science Downlinks Table
+            - We can't calculate new downlinks for the specified times, as we can't query the Science Packets Table by collection time
+                - By extension, no point in updating DB without having any new downlinks
+            - However, if calculate option is specified, we can calculate new downlinks for the past 5 hours
+                - Update DB based on update_db
+                - TODO: Could try to calculate new downlinks within the last 5 hours
         """
-
-        if calculate:
-            dl_list = self.downlink_manager.calculate_new_downlinks(start_time, end_time)
-            if update_db:
-                self.downlink_manager.upload_downlink_entries(dl_list)
-            dl_list = list(filter(lambda dl: dl.mission_id in mission_ids and dl.idpu_type in data_products, dl_list))
+        if times == "downlink_time":
+            # Always need to calculate
+            calculated_dls = self.downlink_manager.calculate_new_downlinks(start_time, end_time, upload_db)
+            dl_list = list(
+                filter(lambda dl: dl.mission_id in mission_ids and dl.idpu_type in data_products, calculated_dls)
+            )
+        elif times == "collection_time":
+            if calculate:
+                cur_time = dt.datetime(*dt.datetime.utcnow().timetuple()[:4])
+                cur_time_minus_delta = self.end_time - dt.timedelta(hours=5)
+                calculated_dls = self.downlink_manager.calculate_new_downlinks(
+                    cur_time_minus_delta, cur_time, upload_db
+                )
+            dl_list = self.downlink_manager.get_downlinks_by_collection_time(
+                mission_ids, data_products, times, start_time, end_time
+            )
         else:
-            dl_list = self.downlink_manager.get_downlinks(mission_ids, data_products, times, start_time, end_time)
+            raise ValueError(f"Bad times value: {times}")
 
+        self.logger.info(f"Obtained Downlinks:\n{self.downlink_manager.print_downlinks(dl_list)}")
         return self.get_requests_from_downlinks(dl_list)
 
     def get_requests_from_downlinks(self, dl_list):

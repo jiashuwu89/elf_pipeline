@@ -1,17 +1,17 @@
 import traceback
 
-from util.constants import DAILY_EMAIL_LIST
-from util.exception_collector import ExceptionCollector
-
 from processor.eng_processor import EngProcessor
 from processor.epd_processor import EpdProcessor
 from processor.fgm_processor import FgmProcessor
 from processor.mrm_processor import MrmProcessor
 from processor.state_processor import StateProcessor
+from util.constants import DAILY_EMAIL_LIST
+from util.exception_collector import ExceptionCollector
 
 
 class ProcessorManager:
     """A class to generate files using processors, given processing requests."""
+
     def __init__(self, session):
         self.session = session
         self.processors = {

@@ -1,4 +1,4 @@
-# TODO: Move to db dir?
+from util.constants import MISSION_DICT
 
 
 class ProcessingRequest:
@@ -10,7 +10,7 @@ class ProcessingRequest:
         """
         self.mission_id = mission_id
         self.data_product = data_product
-        self.date = date
+        self.date = date  # Should be a DATE, not a DATETIME
 
     def __eq__(self, other):
         return (
@@ -25,3 +25,6 @@ class ProcessingRequest:
             mission_id={self.mission_id}, \
             data_product={self.data_product}, \
             date={self.date}"
+
+    def get_probe(self):
+        return MISSION_DICT[self.mission_id]

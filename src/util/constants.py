@@ -631,3 +631,5 @@ EPD_LOSSY_VALS = [
 IDL_SCRIPT_VERSION = 8
 
 DAILY_EMAIL_LIST = ["jcking1034@gmail.com"]
+
+STATE_CSV_DIR = "/home/elfin-esn/state_data/"

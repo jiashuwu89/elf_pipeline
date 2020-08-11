@@ -102,9 +102,9 @@ class Coordinator:
             raise Exception("No products specified")
         self.products = args.products
 
-        self.calculate = args.calculate in ["yes", "nodb"]
+        self.calculate = self.times == "downlink" or args.calculate in ["yes", "nodb"]
 
-        self.upload_to_db = args.calculate not in ["no", "nodb"]
+        self.upload_to_db = args.func == "run_daily" or args.calculate == "yes"
 
         self.generate_files = args.func in ["run_daily", "run_dump"]
 
@@ -130,7 +130,7 @@ class Coordinator:
                 self.end_time,
                 self.calculate,
                 self.update_db,
-            )  # TODO: Check name of function
+            )
 
             if self.generated_files:
                 generated_files = self.processor_manager.generate_files(processing_requests)
