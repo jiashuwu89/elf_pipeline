@@ -287,7 +287,7 @@ class DownlinkManager:
 
         return downlinks
 
-    def convert_downlink_to_formatted_df(self, downlink) -> pd.DataFrame:
+    def get_formatted_df(self, downlink) -> pd.DataFrame:
         """
         This function takes in a downlink, and returns a DataFrame corresponding to the processed data.
         It gets the data, fixes the data, then formats it

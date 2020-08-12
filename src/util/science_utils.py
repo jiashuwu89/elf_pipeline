@@ -1,4 +1,4 @@
-"""Utility functions relating to science"""
+"""Utility functions relating to science."""
 from datetime import datetime, timedelta
 
 import numpy as np
@@ -20,18 +20,37 @@ def s_if_plural(x):
     return "s" if len(x) > 1 else ""
 
 
+def twos_comp(uint_val, bits=24):
+    mask = 2**(bits-1)
+    return -(uint_val & mask) + (uint_val & ~mask)
+
+
+def hex_to_int(hexData):
+    if type(hexData) is str:
+        return twos_comp(65536*int(hexData[0:2],16) + 256*int(hexData[2:4], 16) + int(hexData[4:6], 16))
+
+
 def interpolate_attitude(S_init, t_init, S_fin, t_fin):
-    """
-    Wynne's Function to perform attitude interpolation
+    """Wynne's Function to perform attitude interpolation.
 
-    Parameters:
-        t_init, t_fin   First and Last times (Datetimes)
-        S_init, S_fin   First and Last numpy arrays
+    Parameters
+    ----------
+    t_init : dt.datetime
+        First time
+    t_fin : dt.datetime
+        Last time
+    S_init : np.array
+        First numpy array
+    S_fin : np.array
+        Last numpy array
 
-    Return Value:
+    Returns
+    -------
+    (np.array, np.array)
         Tuple of two numpy arrays:
         1. NP Array of DateTimes (One element per minute)
         2. NP Array of Attitudes (Interpolated)
+
     """
     # Find total angle difference
     phi_tot = np.arccos(np.dot(S_init, S_fin))
@@ -44,7 +63,8 @@ def interpolate_attitude(S_init, t_init, S_fin, t_fin):
     t_tot_obj = datetime_fin - datetime_init
     t_tot = t_tot_obj.total_seconds()
 
-    # Define time array (1 soln per minute between t_init and t_fin), then extract time portion in dt to find nearest minute
+    # Define time array (1 soln per minute between t_init and t_fin), then
+    # extract time portion in dt to find nearest minute
     t_arr_minres = []
     if datetime_init.second > 0 or datetime_init.microsecond > 0:
         current_time = datetime(

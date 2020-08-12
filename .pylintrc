@@ -1,5 +1,7 @@
 [MESSAGES CONTROL]
-disable=C0103,W1202
+disable=invalid-name,
+        logging-fstring-interpolation,
+        fixme
 
 [FORMAT]
 max-line-length=120

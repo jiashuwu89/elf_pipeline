@@ -1,9 +1,11 @@
+"""Defines a class to describe a processing job that must be performed."""
+
 from util.constants import MISSION_DICT
 
 
 class ProcessingRequest:
     def __init__(self, mission_id, data_product, date):
-        """
+        """Constructor for ProcessingRequest class.
         mission_id = 1, 2, 3
         data_product
         date = date for which to generate file (ex. 2020-08-05)

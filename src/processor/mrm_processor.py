@@ -5,8 +5,8 @@ import pandas as pd
 from spacepy import pycdf
 
 from common import models
-from processor.science_processor import ScienceProcessor
 from processor.completeness import CompletenessUpdater, MrmCompletenessConfig
+from processor.science_processor import ScienceProcessor
 from util.constants import MRM_TYPES
 
 
@@ -42,7 +42,7 @@ class MrmProcessor(ScienceProcessor):
             self.log.info("No matching data found")
             return []
 
-        self.completeness_updater.update_completeness_table(mrm_df['timestamp'])
+        self.completeness_updater.update_completeness_table(mrm_df["timestamp"])
 
         # Create CDF
         cdf_fname = self.make_filename(level=1, collection_date=processing_request.date)

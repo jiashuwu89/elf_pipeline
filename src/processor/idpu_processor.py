@@ -1,18 +1,30 @@
+import datetime as dt
+
+import numpy as np
+import pandas as pd
+from spacepy import pycdf
+
+from abc import abstractmethod
+
+
+from db import downlink_utils
+from db.downlink import DownlinkManager
+from libelfin.utils import compute_crc
 from processor.science_processor import ScienceProcessor
+from util.science_utils import dt_to_tt2000, s_if_plural
 
 
 class IDPUProcessor(ScienceProcessor):
-    def __init__(self, session):
-        super().__init__(session)  # TODO: Finish this
-        self.completeness_config = __  # TODO: Finish this
-        self.downlink_manager = ____
-        self.completeness_updater = CompletenessUpdater(
-            session, self.completeness_config
-        )  # TODO: self.get_completeness_config()
+    def __init__(self, session, output_dir, processor_name):
+        super().__init__(session, output_dir, processor_name)
+        # TODO: CompletenessUpdater in fgm and epd
+        self.cdf_fields = []
+
+        self.downlink_manager = DownlinkManager(session)
 
     def generate_files(self, processing_request):
         l0_file_name, l0_df = self.generate_l0_products(processing_request)
-        l1_file_name, l1_df = self.generate_l1_products(processing_request, l0_df)
+        l1_file_name, _ = self.generate_l1_products(processing_request, l0_df)
 
         return [l0_file_name, l1_file_name]
 
@@ -23,8 +35,7 @@ class IDPUProcessor(ScienceProcessor):
         return l0_file_name, l0_df
 
     def generate_l0_df(self, processing_request):
-        """
-        Generate a dataframe of processed level 0 data given a specific collection date.
+        """Generate a dataframe of processed level 0 data given a specific collection date.
 
         All relevant downlinks are fetched, merged, and concatenated, and then
         passed separately (as a list) through process_l0.
@@ -32,16 +43,13 @@ class IDPUProcessor(ScienceProcessor):
         """
         self.logger.info(f"Creating level 0 DataFrame: {processing_request.to_string()}")
 
-        # Get Downlinks by collection time
-        # Downlink Format: mission id, idpu_type, first/last downlink time, first/last id, first/last collection time
-        list_of_downlinks = self.downlink_manager.get_relevant_downlinks(processing_request.date)
+        dl_list = self.downlink_manager.get_relevant_downlinks(processing_request)  # By COLLECTION Time
 
         self.logger.info("Relevant downlinks:")
-        for _, p, ft, lt, d, fid, lid, _, _ in list_of_downlinks:
-            self.logger.info(f"-- {p} {str(ft)} - {str(lt)} [{fid}-{lid}]")
+        self.downlink_manager.print_downlinks(dl_list)
 
-        self.logger.info(f"Initial merging of {len(list_of_downlinks)} downlink{s_if_plural(list_of_downlinks)}...")
-        merged_dfs = self.get_merged_dataframes(list_of_downlinks)
+        self.logger.info(f"Initial merging of {len(dl_list)} downlink{s_if_plural(dl_list)}...")
+        merged_dfs = self.get_merged_dataframes(dl_list)
         self.logger.info(f"✔️ Merged to {len(merged_dfs)} downlink{s_if_plural(merged_dfs)}")
 
         self.logger.info("Rejoining frames into packets...")
@@ -79,7 +87,7 @@ class IDPUProcessor(ScienceProcessor):
             raise RuntimeError(f"Empty level 0 DataFrame: {processing_request.to_string()}")
 
         # Generate L0 file
-        fname = self.make_filename(0, processing_request.date, size=l0_df.shape[0])
+        fname = self.make_filename(processing_request.date, 0, l0_df.shape[0])
         l0_df.to_csv(fname, index=False)
 
         return fname, l0_df
@@ -116,22 +124,22 @@ class IDPUProcessor(ScienceProcessor):
             self.logger.debug("The column 'idpu_time' does not exist, but it's probably OK")
 
         return l1_df
+    
+    @abstractmethod
+    def transform_l0(self, l0_df, collection_date):
+        pass
 
     def generate_l1_file(self, processing_request, l1_df):
         fname = self.make_filename(1, processing_request.date)
         cdf = self.create_CDF(fname, l1_df)
-        self.fill_CDF(1, cdf, l1_df)
+        self.fill_cdf(1, cdf, l1_df)
         cdf.close()
 
         return fname, l1_df
 
-    # Level 2 Generation
-    def generate_l2_products(self):
-        pass
-
     def get_merged_dataframes(self, downlinks):
-        """
-        Merge a list of downlinks, and retrieve their associated dataframes.
+        """Merge a list of downlinks, and retrieve their associated dataframes.
+
         Downlinks are merged only if they refer to the same physical range of
         packets onboard the MSP (they have matching IDPU_TYPE and overlapping IDPU_TIME)
 
@@ -147,37 +155,36 @@ class IDPUProcessor(ScienceProcessor):
         - a tuple of: (concatenated dataframe, list of merged dataframes)
         """
 
-        # Sort Downlinks by Downlink Time, and then by size
-        downlinks = sorted(downlinks, key=lambda x: (x[2], x[6] - x[5]))
+        # TODO: Sort Downlinks by Downlink Time, and then by size
         if not downlinks:
-            raise exceptions.EmptyError
+            raise RuntimeError("No Downlinks to merge!")
 
         merged_downlinks = []
-        _, m_ptype, m_first_time, m_last_time, _, _, _, _, _ = downlinks[0]
-        m_df = self.downlink_manager.get_formatted_df_from_downlink(downlinks[0])
+        first_dl = downlinks[0]
+        m_idpu_type = first_dl.idpu_type
+        m_first_time = first_dl.first_packet_info.idpu_time
+        m_last_time = first_dl.last_packet_info.idpu_time
+        m_df = self.downlink_manager.get_formatted_df(first_dl)
 
         for i, downlink in enumerate(downlinks[1:]):
-            _, ptype, first_time, last_time, _, _, _, _, _ = downlink
-            df = self.downlink_manager.get_formatted_df_from_downlink(downlink)
+            idpu_type = downlink.idpu_type
+            first_time = downlink.first_packet_info.idpu_time
+            last_time = downlink.last_packet_info.idpu_time
+            df = self.downlink_manager.get_formatted_df(downlink)
 
             # Merge if we have found a good offset (downlink overlaps with the current one and packet type matches)
-            offset = self.downlink_manager.calculate_offset(m_df, df)
-            if ptype == m_ptype and offset != None and m_first_time <= first_time <= m_last_time:
+            offset = downlink_utils.calculate_offset(m_df, df)
+            if idpu_type == m_idpu_type and offset is not None and m_first_time <= first_time <= m_last_time:
                 m_last_time = max(m_last_time, last_time)
-                m_df = self.downlink_manager.merge_downlinks(m_df, df, offset)
-
+                m_df = downlink_utils.merge_downlinks(m_df, df, offset)
             else:
                 merged_downlinks.append(m_df)
                 m_first_time = first_time
                 m_last_time = last_time
-                m_ptype = ptype
+                m_idpu_type = idpu_type
                 m_df = df
 
         merged_downlinks.append(m_df)
-
-        # Data Completeness Stuff
-        for df in merged_downlinks:
-            df["packet_id"] = df["packet_id"].apply(lambda x: [x])
 
         return merged_downlinks
 
@@ -193,7 +200,6 @@ class IDPUProcessor(ScienceProcessor):
 
         data = d["data"].apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
         frames = d["packet_data"].apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
-        packet_ids = d["packet_id"]  # Each item should be a list
 
         missing_numerators = []
         idpu_type = None
@@ -203,9 +209,7 @@ class IDPUProcessor(ScienceProcessor):
         idx = 0
 
         while idx < d.shape[0]:
-
             numerator = d["numerator"].iloc[idx]
-            cur_packets = packet_ids.iloc[idx]
 
             if not data.iloc[idx]:
                 self.logger.debug(f"Dropping idx={idx}: Empty data")
@@ -224,27 +228,18 @@ class IDPUProcessor(ScienceProcessor):
             current_length = len(cur_data)
 
             # Making sure this frame has a header
-            try:
-                # make sure the CRC is ok, then remove header
-                if _utils.compute_crc(0xFF, cur_frame[1:12]) != cur_frame[12]:
-                    raise Exception(f"Bad CRC at {idx}")
-                expected_length = int.from_bytes(cur_frame[1:3], "little", signed=False) // 2 - 12
-
-            except Exception as e:
+            if compute_crc(0xFF, cur_frame[1:12]) != cur_frame[12]:
                 self.logger.debug(f"Dropping idx={idx}: Probably not a header - {e}\n")
                 missing_numerators.append(numerator)
                 idx += 1
                 continue
+            expected_length = int.from_bytes(cur_frame[1:3], "little", signed=False) // 2 - 12
 
             try:
                 while current_length < expected_length:
-                    # Need to get more
                     idx += 1
                     cur_data += data.iloc[idx]
                     current_length = len(cur_data)
-
-                    cur_packets += packet_ids.iloc[idx]
-
             except:  # Missing packet (or something else)
                 self.logger.debug(f"Dropping idx={idx}: Empty continuation\n")
                 missing_numerators.append(numerator)
@@ -252,19 +247,16 @@ class IDPUProcessor(ScienceProcessor):
                 continue
 
             if current_length != expected_length:
-                self.logger.debug(
-                    f"Dropping idx={idx}: Current and Expected length differ: {current_length} != {expected_length}\n"
-                )
+                self.logger.debug(f"Dropping idx={idx}: Cur len {current_length} != Expected len {expected_length}\n")
                 missing_numerators.append(numerator)
                 idx += 1
                 continue
 
-            idx += 1
-
-            # If we get this far, add to final_df
+            # Add good row to final_df
             cur_row.loc["data"] = cur_data.hex()
-            cur_row.loc["packet_id"] = cur_packets
             final_df = final_df.append(cur_row)
+
+            idx += 1
 
         missing_frames = {
             "id": None,
@@ -274,7 +266,6 @@ class IDPUProcessor(ScienceProcessor):
             "data": None,
             "numerator": pd.Series(missing_numerators),
             "denominator": denominator,
-            "packet_id": None,
             "packet_data": None,
             "timestamp": None,
         }
@@ -285,9 +276,11 @@ class IDPUProcessor(ScienceProcessor):
             .reset_index(drop=True)
         )
 
-        return final_df[
-            ["timestamp", "mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "packet_id"]
-        ]
+        return final_df[["timestamp", "mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data"]]
+
+    def process_rejoined_data(self, df):
+        """Override if necessary (ex. to perform decompression)"""
+        return df
 
     def merge_processed_dataframes(self, dataframes):
         """
@@ -309,83 +302,22 @@ class IDPUProcessor(ScienceProcessor):
 
         return df.reset_index()
 
-    ################################
-    # Abstract (Default) Functions #
-    ################################
-
-    def process_l0(self, data):
-        """
-        (Default implementation. Should be overridden in child class)
-        Process a level 0 dataframe - this usually just involves decompressing it as needed.
-        """
-        return data
-
-    def process_l1(self, df):
-        pass
-
-    def process_level_2(self, df):
-        pass
-
-    def make_filename(self, save_directory, data_product_name, level, collection_date, size=None):
-        """Constructs the appropriate filename for a L0/L1/L2 file, and returns the full path
-
-        Parameters
-        ==========
-        save_directory: str
-        probe_name: str
-        data_product_name: str
-        level: int
-        collection_date
-        size
-        """
-
-        fname = self.probe_name + "_l" + str(level) + "_" + data_product_name + "_" + collection_date.strftime("%Y%m%d")
-        if level == 0:
-            if size is None:
-                raise ValueError("No size given for level 0 naming")
-            fname += "_" + str(size) + ".pkt"
-        elif level == 1:
-            fname += "_v01" + ".cdf"
-        elif level == 2:
-            pass
-        else:
-            raise ValueError(f"Bad level: {level}")
-        return save_directory + "/" + fname
-
-    def create_CDF(self, fname):
-        """
-        Gets or creates a CDF with the desired fname. If existing path is specified, it would check to see if the correct CDF exists.
-        If it does not exist, a new cdf will be created with the master cdf.
-
-        Parameters
-        ==========
-        fname: str
-            a string that includes the  target file path along with the target file name of the desired file. The file name is of the data product format used.
-        """
-        fname_parts = fname.split("/")[-1].split("_")
-        probe = fname_parts[0]
-        level = fname_parts[1]
-        idpu_type = fname_parts[2]
-
-        if os.path.isfile(fname):
-            os.remove(fname)
-
-        cdf = pycdf.CDF(fname, MASTERCDF_DIR + f"{probe}_{level}_{idpu_type}_00000000_v01.cdf")
-        return cdf
-
-    def fill_CDF(self, cdf, cdf_fields, df):
+    def fill_cdf(self, probe_name, df, cdf):
         """ Inserts data from df into a CDF file
 
         Parameters
         ==========
-        cdf
-        cdf_fields
         df
+        cdf
         """
-        for key in cdf_fields:
-            if f"{self.probe_name}_{key}" in cdf.keys() and cdf_fields[key] in df.columns:
-                data = df[cdf_map2_df[key]].values
+        for key in self.cdf_fields:
+            df_field_name = self.cdf_fields[key]
+            cdf_field_name = f"{probe_name}_{key}"
+
+            if cdf_field_name in cdf.keys() and df_field_name in df.columns:
+                data = df[df_field_name].values
                 # numpy array with lists need to be converted to a multi-dimensional numpy array of numbers
                 if isinstance(data[0], list):
                     data = np.stack(data)
-                cdf[f"{self.probe_name}_{key}"] = data
+
+                cdf[cdf_field_name] = data

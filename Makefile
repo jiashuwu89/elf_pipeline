@@ -16,16 +16,20 @@ format:
 	black --line-length 120 $(TST);
 	isort -rc $(TST);
 
+# TODO: Vulture broken in prospector right now
+# TODO: mypy?
 check-style:
 	@echo "⭐ Checking Style ⭐"
 	prospector 	--strictness medium \
 				--max-line-length 120 \
 				--with-tool vulture \
+				--without-tool pep257 \
 				--pylint-config-file $(PYLINT_CONFIG) \
 				$(SRC);
 	prospector 	--strictness high \
 				--max-line-length 120 \
 				--with-tool vulture \
+				--without-tool pep257 \
 				--pylint-config-file $(PYLINT_CONFIG) \
 				$(TST);
 
@@ -40,3 +44,11 @@ doc:
 	@echo "doc";
 	sphinx-apidoc -f -o docs/source/pages/ $(SRC);
 	cd docs && make html;
+
+todo:
+	@echo "⭐ Finding TODOs ⭐"
+	grep --color=always -irn "todo" $(SRC)
+
+help:
+	@echo "⭐ Available Targets ⭐"
+	@grep -E "^[a-z\-]+:" Makefile | sed "s/:[ a-z-]*//g"
