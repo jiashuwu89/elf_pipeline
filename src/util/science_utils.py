@@ -8,7 +8,7 @@ from spacepy import pycdf
 np.set_printoptions(precision=20)
 
 
-def dt_to_tt2000(dt):
+def dt_to_tt2000(dt: datetime):
     """Wrapper for spacepy date conversion function, handling null dates."""
     if pd.isnull(dt):
         return None
@@ -21,13 +21,16 @@ def s_if_plural(x):
 
 
 def twos_comp(uint_val, bits=24):
+    """Performs a two's complement conversion"""
     mask = 2 ** (bits - 1)
     return -(uint_val & mask) + (uint_val & ~mask)
 
 
-def hex_to_int(hexData):
-    if type(hexData) is str:
-        return twos_comp(65536 * int(hexData[0:2], 16) + 256 * int(hexData[2:4], 16) + int(hexData[4:6], 16))
+def hex_to_int(hex_data: str):
+    """Given a string of hex data, convert the string to an integer"""
+    if not isinstance(hex_data, str):
+        raise ValueError(f"Expected str, not {type(hex_data)}")
+    return twos_comp(65536 * int(hex_data[0:2], 16) + 256 * int(hex_data[2:4], 16) + int(hex_data[4:6], 16))
 
 
 def interpolate_attitude(S_init, t_init, S_fin, t_fin):

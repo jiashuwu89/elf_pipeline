@@ -1,3 +1,4 @@
+"""Processor for State data, which includes things like attitude"""
 import datetime as dt
 
 import numpy as np
@@ -8,13 +9,13 @@ from spacepy import pycdf
 
 from common import models
 from processor.science_processor import ScienceProcessor
-from util.constants import IDL_SCRIPT_VERSION, MISSION_DICT, STATE_CSV_DIR
+from util.constants import IDL_SCRIPT_VERSION, STATE_CSV_DIR
 from util.science_utils import interpolate_attitude
-
-# TODO: Probe not defined many place
 
 
 class StateProcessor(ScienceProcessor):
+    """The processor of State data"""
+
     def __init__(self, session, output_dir):
         super().__init__(session, output_dir, "state")
 
@@ -26,7 +27,7 @@ class StateProcessor(ScienceProcessor):
         probe = processing_request.probe
 
         cdf_fname = self.make_filename(processing_request)
-        cdf = self.create_CDF(cdf_fname)
+        cdf = self.create_cdf(cdf_fname)
 
         csv_df = self.combine_state_csvs(processing_request.date)
         self.update_cdf_with_csv_df(probe, csv_df, cdf)  # time, position, and velocity
@@ -56,10 +57,10 @@ class StateProcessor(ScienceProcessor):
         fname = f"{probe}_l1_state_{self.state_type}_{file_date}_v01.cdf"
         return f"{self.save_directory}/{fname}"
 
-    def create_CDF(self, cdf_fname):
+    def create_cdf(self, cdf_fname):
         datestr_run = dt.datetime.utcnow().strftime("%04Y-%02m-%02d")
 
-        cdf = super().create_CDF(cdf_fname)
+        cdf = super().create_cdf(cdf_fname)
         cdf.attrs["Generation_date"] = datestr_run
         cdf.attrs["MODS"] = "Rev- " + datestr_run
 
@@ -212,11 +213,11 @@ class StateProcessor(ScienceProcessor):
                 seen.add(q.time)
                 temp_query_list.append(q)
             else:
-                self.log.debug(f"Attitude for {q.time} obtained on {q.insert_date}, but more recent solution exists")
+                self.logger.debug(f"Attitude for {q.time} obtained on {q.insert_date}, but more recent solution exists")
         query_list = sorted(temp_query_list, key=lambda q: q.time)
 
         # Convert the queries into a dictionary format for easier access
-        self.log.debug(f"Potential DateTimes: {[q.time for q in query_list]}")
+        self.logger.debug(f"Potential DateTimes: {[q.time for q in query_list]}")
         q_dict_list = [get_q_dict(i) for i in query_list]
 
         # Edge Case: If there is only one result, just fill everything in with it
@@ -239,7 +240,7 @@ class StateProcessor(ScienceProcessor):
         xyz_list = [[q["X"], q["Y"], q["Z"]] for q in q_dict_list]
         time_list_dt = [q["solution_date_dt"] for q in q_dict_list]
         for i in range(len(time_list_dt) - 1):
-            self.log.debug(
+            self.logger.debug(
                 f"Iteration {i}: From {xyz_list[i]}, {time_list_dt[i]} To {xyz_list[i + 1]}, {time_list_dt[i + 1]}"
             )
             times_dt, atts = interpolate_attitude(xyz_list[i], time_list_dt[i], xyz_list[i + 1], time_list_dt[i + 1])
@@ -305,7 +306,7 @@ class StateProcessor(ScienceProcessor):
             raise ValueError(f"attitude DataFrame is the wrong shape (expected 1440): {att_df.shape[0]}")
         if vel_pos_df.shape[0] != 60 * 24:
             msg = f"Bad velocity and position DataFrame, reducing attitude DataFrame from 60 * 24 = 1440 min/day to: {vel_pos_df.shape[0]}"
-            self.log.warning(msg)
+            self.logger.warning(msg)
 
             # TODO: Email Warning
 

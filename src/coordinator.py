@@ -55,6 +55,7 @@ class Coordinator:
 
     def __init__(self, args):
         self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
+        self.exception_collector = ExceptionCollector(DAILY_EMAIL_LIST)
 
         # Initialize DB connection
         if db.SESSIONMAKER is None:
@@ -74,9 +75,8 @@ class Coordinator:
 
         # Initialize Pipeline Managers
         self.request_manager = RequestManager(self.session, self.calculate, self.update_db)
-        self.processor_manager = ProcessorManager(self.session)
+        self.processor_manager = ProcessorManager(self.session, self.exception_collector)
         self.server_manager = ServerManager()
-        self.exception_collector = ExceptionCollector(DAILY_EMAIL_LIST)
 
     def run_func(self):
         """Execute the pipeline"""

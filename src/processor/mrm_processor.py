@@ -24,12 +24,12 @@ class MrmProcessor(ScienceProcessor):
     def generate_files(self, processing_request):
         """Generates a level 1 MRM file, given a processing request."""
         if processing_request.mission_id == 2 and processing_request.data_product == "mrmi":
-            self.log.warning("Skipping IDPU MRM data product generation for ELFIN-B")
+            self.logger.warning("Skipping IDPU MRM data product generation for ELFIN-B")
             return []
 
         mrm_df = self.get_mrm_df(processing_request)
         if mrm_df.empty:
-            self.log.info("No matching data found")
+            self.logger.info("No matching data found")
             return []
 
         self.completeness_updater.update_completeness_table(mrm_df["timestamp"])

@@ -1,3 +1,4 @@
+"""Contains class to manage/handle downlinks"""
 import datetime as dt
 import logging
 
@@ -16,12 +17,15 @@ from util import byte_tools
 
 
 class DownlinkManager:
+    """A class that provides utilities involving downlinks"""
+
     def __init__(self, session, update_db):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.session = session
         self.update_db = update_db
 
     def print_downlinks(self, downlinks):
+        """Prints the collection of downlinks given, in a formatted fashion"""
         msg = "Downlinks:\n" + "\n".join([str(d) for d in downlinks])
         self.logger.info(msg)
 
@@ -262,12 +266,10 @@ class DownlinkManager:
         )
         df = pd.read_sql_query(q.statement, q.session.bind)
 
-        """
-        Given a dataframe of data from fetch_downlink_data function, checks if data needs to
-        repaired, and applies the appropriate fixes. Currently, this handles issues relating to
-        having multiple commanders open, which causes data to be duplicated in the database (eg.
-        there are two packets that are identical except for packet_id)
-        """
+        # Given a dataframe of data from fetch_downlink_data function, checks if data needs to
+        # repaired, and applies the appropriate fixes. Currently, this handles issues relating to
+        # having multiple commanders open, which causes data to be duplicated in the database (eg.
+        # there are two packets that are identical except for packet_id)
         df = df.drop_duplicates(subset=["data", "idpu_type", "numerator", "denominator"])
 
         # Formatting DataFrame

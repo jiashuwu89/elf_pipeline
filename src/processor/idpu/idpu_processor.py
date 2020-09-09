@@ -1,3 +1,7 @@
+"""Base processor for all processors of IDPU data
+
+IDPU data processors usually need some methods to perform decompression
+"""
 import datetime as dt
 from abc import abstractmethod
 
@@ -93,7 +97,7 @@ class IDPUProcessor(ScienceProcessor):
     def generate_l1_products(self, processing_request, l0_df=None):
         """
         Generates level 1 CDFs for given collection time, optionally provided
-        a level 0 dataframe (otherwise, create_l0_df will be called again).
+        a level 0 dataframe (otherwise, generate_l0_df will be called again).
 
         Returns the path and name of the generated level 1 file.
         """
@@ -103,7 +107,7 @@ class IDPUProcessor(ScienceProcessor):
 
     def generate_l1_df(self, processing_request, l0_df):
         if l0_df is None:
-            l0_df = self.create_l0_df(processing_request.date)
+            l0_df = self.generate_l0_df(processing_request.date)
 
         # Allow derived class to transform data
         l1_df = self.transform_l0(l0_df, processing_request.date)
@@ -164,7 +168,7 @@ class IDPUProcessor(ScienceProcessor):
         m_last_time = first_dl.last_packet_info.idpu_time
         m_df = self.downlink_manager.get_formatted_df(first_dl)
 
-        for i, downlink in enumerate(downlinks[1:]):
+        for _, downlink in enumerate(downlinks[1:]):
             idpu_type = downlink.idpu_type
             first_time = downlink.first_packet_info.idpu_time
             last_time = downlink.last_packet_info.idpu_time
