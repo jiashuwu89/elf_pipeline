@@ -16,8 +16,7 @@ class EngProcessor(ScienceProcessor):
         super().__init__(self, session, output_dir, "eng")
         self.idpu_types = SCIENCE_TYPES[data_product]
 
-        self.cdf_fields_l1 = {}
-        for field in [
+        self.eng_fields = [
             "fc_time",
             "idpu_time",
             "fgm_time",
@@ -43,7 +42,10 @@ class EngProcessor(ScienceProcessor):
             "fgm_analog_ground",
             "fgm_eu_temp",
             "fgm_sh_temp",
-        ]:
+        ]
+
+        self.cdf_fields_l1 = {}
+        for field in self.eng_fields:
             self.cdf_fields_l1[field] = field
 
     def gen_level_0(self, collection_time):

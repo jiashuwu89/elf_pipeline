@@ -10,6 +10,10 @@ from processor.science_processor import ScienceProcessor
 from util.constants import MRM_TYPES
 
 
+# TODO: Probe name
+# TODO: Processors return sets?
+
+
 class MrmProcessor(ScienceProcessor):
     """A type of ScienceProcessor which generates files for MRM data."""
 
@@ -24,6 +28,24 @@ class MrmProcessor(ScienceProcessor):
             self.log.warning("Skipping IDPU MRM data product generation for ELFIN-B")
             return []
 
+        mrm_df = self.get_mrm_df(processing_request)
+        if mrm_df.empty:
+            self.log.info("No matching data found")
+            return []
+
+        self.completeness_updater.update_completeness_table(mrm_df["timestamp"])
+
+        # Create CDF
+        cdf_fname = self.make_filename(level=1, collection_date=processing_request.date)
+        cdf = self.create_CDF(cdf_fname)
+
+        # Fill CDF
+        self.fill_cdf(processing_request, mrm_df, cdf)
+
+        cdf.close()
+        return [cdf_fname]
+
+    def get_mrm_df(self, processing_request):
         query = (
             self.session.query(models.MRM)
             .filter(
@@ -38,24 +60,16 @@ class MrmProcessor(ScienceProcessor):
         mrm_df = pd.read_sql_query(query.statement, query.session.bind)
         mrm_df = mrm_df.drop_duplicates(subset=["timestamp", "mrm_x", "mrm_y", "mrm_z", "mrm_type", "mission_id"])
 
-        if mrm_df.empty:
-            self.log.info("No matching data found")
-            return []
+        return mrm_df
 
-        self.completeness_updater.update_completeness_table(mrm_df["timestamp"])
+    def fill_cdf(self, processing_request, mrm_df, cdf):
+        probe = processing_request.probe
 
-        # Create CDF
-        cdf_fname = self.make_filename(level=1, collection_date=processing_request.date)
-        cdf = self.create_CDF(cdf_fname)
-
-        # Fill CDF
         datestr_run = dt.datetime.utcnow().strftime("%04Y-%02m-%02d")
         cdf.attrs["Generation_date"] = datestr_run
-        cdf.attrs["MODS"] = "Rev- " + datestr_run
-        cdf[self.probe_name + "_" + processing_request.data_product + "_time"] = mrm_df["timestamp"].apply(
+        cdf.attrs["MODS"] = f"Rev- {datestr_run}"  # TODO: Check this string
+
+        cdf[f"{probe}_{processing_request.data_product}_time"] = mrm_df["timestamp"].apply(
             pycdf.lib.datetime_to_tt2000
         )
-        cdf[self.probe_name + "_" + processing_request.data_product] = mrm_df[["mrm_x", "mrm_y", "mrm_z"]].values
-        cdf.close()
-
-        return [cdf_fname]
+        cdf[f"{probe}_{processing_request.data_product}"] = mrm_df[["mrm_x", "mrm_y", "mrm_z"]].values

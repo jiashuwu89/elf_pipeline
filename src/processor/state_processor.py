@@ -23,23 +23,25 @@ class StateProcessor(ScienceProcessor):
 
     def generate_files(self, processing_request):
         """Generate L1 state file for processing_request"""
+        probe = processing_request.probe
+
         cdf_fname = self.make_filename(processing_request)
         cdf = self.create_CDF(cdf_fname)
 
         csv_df = self.combine_state_csvs(processing_request.date)
-        self.update_cdf_with_csv_df(csv_df, cdf)  # time, position, and velocity
+        self.update_cdf_with_csv_df(probe, csv_df, cdf)  # time, position, and velocity
 
-        self.update_cdf_with_sun(processing_request.date, cdf)  # Sun/Shadow Variable
+        self.update_cdf_with_sun(probe, processing_request.date, cdf)  # Sun/Shadow Variable
 
         # Inserting Attitude and Sun Calculations, if possible
         att_df = self.get_attitude(processing_request.date)
         if not att_df.empty:
-            self.update_cdf_with_att_df(att_df, cdf)
-            self.update_cdf_with_sun_calculations(csv_df, att_df, processing_request.date, cdf)
+            self.update_cdf_with_att_df(probe, att_df, cdf)
+            self.update_cdf_with_sun_calculations(probe, csv_df, att_df, processing_request.date, cdf)
         else:
             # Fill appropriate columns with NaN - Vassilis's request
             self.logger.warning(f"No attitude data found for {processing_request.date} (searched 30 days before/after)")
-            self.update_cdf_with_nans(cdf)
+            self.update_cdf_with_nans(probe, cdf)
 
         cdf.close()
         return [cdf_fname]
@@ -49,7 +51,7 @@ class StateProcessor(ScienceProcessor):
 
         Overrides default implementation
         """
-        probe = processing_request.get_probe()
+        probe = processing_request.probe
         file_date = processing_request.date.strftime("%Y%m%d")
         fname = f"{probe}_l1_state_{self.state_type}_{file_date}_v01.cdf"
         return f"{self.save_directory}/{fname}"
@@ -87,16 +89,16 @@ class StateProcessor(ScienceProcessor):
 
         return df.loc[(df.index >= date) & (df.index < date + dt.timedelta(days=1))]
 
-    def update_cdf_with_csv_df(self, csv_df, cdf):
+    def update_cdf_with_csv_df(self, probe, csv_df, cdf):
         cdf_df = pd.DataFrame()
-        cdf_df[probe + "_state_time"] = csv_df.index.values
-        cdf_df[probe + "_state_time"] = cdf_df[probe + "_state_time"].apply(pycdf.lib.datetime_to_tt2000)
-        cdf_df[probe + "_pos_gei"] = csv_df["pos_gei"].values
-        cdf_df[probe + "_vel_gei"] = csv_df["vel_gei"].values
+        cdf_df[f"{probe}_state_time"] = csv_df.index.values
+        cdf_df[f"{probe}_state_time"] = cdf_df[f"{probe}_state_time"].apply(pycdf.lib.datetime_to_tt2000)
+        cdf_df[f"{probe}_pos_gei"] = csv_df["pos_gei"].values
+        cdf_df[f"{probe}_vel_gei"] = csv_df["vel_gei"].values
         for k in cdf_df.keys():
             cdf[k] = cdf_df[k].values.tolist()
 
-    def update_cdf_with_sun(self, date, cdf):
+    def update_cdf_with_sun(self, probe, date, cdf):
         """
         Each 1 represents the satellite being 'in sun'
         Each 0 refers to umbra or penumbra
@@ -136,7 +138,7 @@ class StateProcessor(ScienceProcessor):
 
     def get_attitude(self, start_time):
         """
-        For each minute in the day beginning on [start_time], find the attitude solution 
+        For each minute in the day beginning on [start_time], find the attitude solution
         or the closest solution (up to 30 days difference).
 
         Approach:
@@ -263,13 +265,13 @@ class StateProcessor(ScienceProcessor):
 
         return final_df
 
-    def update_cdf_with_att_df(self, att_df, cdf):
+    def update_cdf_with_att_df(self, probe, att_df, cdf):
         cdf[probe + "_att_time"] = att_df["time"]
         cdf[probe + "_att_solution_date"] = att_df["solution_date"]
         cdf[probe + "_att_gei"] = att_df[["X", "Y", "Z"]].values
         cdf[probe + "_att_uncertainty"] = att_df["uncertainty"].values
 
-    def update_cdf_with_sun_calculations(self, vel_pos_df, att_df, start_time, cdf):
+    def update_cdf_with_sun_calculations(self, probe, vel_pos_df, att_df, start_time, cdf):
         """Function to calculate sun angle and orbnorm angle (in degrees)
 
         1. Prepare DataFrames
@@ -347,7 +349,7 @@ class StateProcessor(ScienceProcessor):
         for column in ["_spin_sun_angle", "_spin_orbnorm_angle"]:
             cdf[probe + column] = final_df[column]
 
-    def update_cdf_with_nans(self, cdf):
+    def update_cdf_with_nans(self, probe, cdf):
         nan_numeric_cols = ["_att_solution_date", "_att_uncertainty", "_spin_sun_angle", "_spin_orbnorm_angle"]
         nan_df_cols = ["_att_time", "X", "Y", "Z"] + nan_numeric_cols
 

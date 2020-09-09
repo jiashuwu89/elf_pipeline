@@ -1,20 +1,13 @@
 import datetime as dt
 
-import pytest
 from spacepy import pycdf
 
 from src.util import science_utils
 
 
-def dt_to_tt2000(dt):
-    if pd.isnull(dt):
-        return None
-    return pycdf.lib.datetime_to_tt2000(dt)
-
-
 class Test_dt_to_tt2000:
     def test_one(self):
-        assert science_utils.dt_to_tt2000(None) == None
+        assert science_utils.dt_to_tt2000(None) is None
 
     def test_two(self):
         d = dt.datetime(2020, 1, 2, 3, 4, 5)

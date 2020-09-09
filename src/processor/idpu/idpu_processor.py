@@ -41,7 +41,7 @@ class IDPUProcessor(ScienceProcessor):
         """
         self.logger.info(f"Creating level 0 DataFrame: {processing_request.to_string()}")
 
-        dl_list = self.downlink_manager.get_relevant_downlinks(processing_request)  # By COLLECTION Time
+        dl_list = self.downlink_manager.get_relevant_downlinks(processing_request)  # TODO: By COLLECTION Time
 
         self.logger.info("Relevant downlinks:")
         self.downlink_manager.print_downlinks(dl_list)
@@ -238,8 +238,8 @@ class IDPUProcessor(ScienceProcessor):
                     idx += 1
                     cur_data += data.iloc[idx]
                     current_length = len(cur_data)
-            except:  # Missing packet (or something else)
-                self.logger.debug(f"Dropping idx={idx}: Empty continuation\n")
+            except Exception as e:  # Missing packet (or something else)
+                self.logger.debug(f"Dropping idx={idx}: Empty continuation (Exception={e})\n")
                 missing_numerators.append(numerator)
                 idx += 1
                 continue

@@ -29,4 +29,9 @@ class ProcessingRequest:
             date={self.date}"
 
     def get_probe(self):
+        # TODO: Deprecate in favor of probe property
+        return MISSION_DICT[self.mission_id]
+
+    @property
+    def probe(self):
         return MISSION_DICT[self.mission_id]
