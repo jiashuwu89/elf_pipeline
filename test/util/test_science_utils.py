@@ -5,20 +5,16 @@ from spacepy import pycdf
 from src.util import science_utils
 
 
-class Test_dt_to_tt2000:
-    def test_one(self):
+class TestScienceUtils:
+    def test_dt_to_tt2000(self):
         assert science_utils.dt_to_tt2000(None) is None
 
-    def test_two(self):
-        d = dt.datetime(2020, 1, 2, 3, 4, 5)
-        assert d == pycdf.lib.tt2000_to_datetime(science_utils.dt_to_tt2000(d))
+        sample_dt = dt.datetime(2020, 1, 2, 3, 4, 5)
+        assert sample_dt == pycdf.lib.tt2000_to_datetime(science_utils.dt_to_tt2000(sample_dt))
 
+    def test_s_if_plural(self):
+        sample_list = [5]
+        assert science_utils.s_if_plural(sample_list) == ""
 
-class Test_s_if_plural:
-    def test_one(self):
-        l = [5]
-        assert science_utils.s_if_plural(l) == ""
-
-    def test_two(self):
-        l = [1, 5, 2]
-        assert science_utils.s_if_plural(l) == "s"
+        sample_list = [1, 5, 2]
+        assert science_utils.s_if_plural(sample_list) == "s"

@@ -39,7 +39,7 @@ class IDPUProcessor(ScienceProcessor):
         passed separately (as a list) through process_l0.
         Finally, the individual dataframes are merged and duplicates/empty packets dropped.
         """
-        self.logger.info(f"Creating level 0 DataFrame: {processing_request.to_string()}")
+        self.logger.info(f"Creating level 0 DataFrame: {str(processing_request)}")
 
         dl_list = self.downlink_manager.get_relevant_downlinks(processing_request)  # TODO: By COLLECTION Time
 
@@ -63,7 +63,7 @@ class IDPUProcessor(ScienceProcessor):
         self.logger.info("✔️ Done with final merge")
 
         if df.empty:
-            raise RuntimeError(f"Final Dataframe is empty: {processing_request.to_string()}")
+            raise RuntimeError(f"Final Dataframe is empty: {str(processing_request)}")
 
         return df
 
@@ -82,7 +82,7 @@ class IDPUProcessor(ScienceProcessor):
         l0_df["idpu_time"] = l0_df["idpu_time"].apply(pycdf.lib.datetime_to_tt2000)
 
         if l0_df.empty:
-            raise RuntimeError(f"Empty level 0 DataFrame: {processing_request.to_string()}")
+            raise RuntimeError(f"Empty level 0 DataFrame: {str(processing_request)}")
 
         # Generate L0 file
         fname = self.make_filename(processing_request.date, 0, l0_df.shape[0])
@@ -116,7 +116,7 @@ class IDPUProcessor(ScienceProcessor):
             ]
             l1_df["idpu_time"] = l1_df["idpu_time"].apply(dt_to_tt2000)
             if l1_df.empty:
-                raise RuntimeError(f"Final Dataframe is empty: {processing_request.to_string()}")
+                raise RuntimeError(f"Final Dataframe is empty: {str(processing_request)}")
 
         except KeyError:
             self.logger.debug("The column 'idpu_time' does not exist, but it's probably OK")

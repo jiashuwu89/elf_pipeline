@@ -31,7 +31,7 @@ class ProcessorManager:
                 files.update(self.processors[pr.data_product].generate_files(pr))
             except Exception as e:
                 traceback_msg = traceback.format_exc()
-                self.exception_collector.record_exception(pr.to_string(), e, traceback_msg)
+                self.exception_collector.record_exception(str(pr), e, traceback_msg)
 
         if self.exception_collector.email_list:
             self.exception_collector.email()

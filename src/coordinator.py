@@ -42,7 +42,7 @@ class Coordinator:
     calculate
         Search for new data and use to calculate new downlinks, as opposed to
         using downlinks already found in science downlinks table
-    upload_to_db
+    update_db
         Relevant ONLY IF calculate is True. Upload calculated downlinks to the
         science downlinks table
     output_dir
@@ -64,16 +64,16 @@ class Coordinator:
         # Initialize parameters/options from command line
         self.mission_ids = self.get_mission_ids(args.ela, args.elb, args.em3)
         self.times, self.start_time, self.end_time = self.get_times(args.func, args.d, args.c)
-        self.products = self.get_data_products(args.products)
+        self.data_products = self.get_data_products(args.products)
         self.calculate = self.downlink_calculation_necessary(self.times, args.calculate)
-        self.upload_to_db = self.downlink_upload_necessary(args.func, args.calculate)
+        self.update_db = self.downlink_upload_necessary(args.func, args.calculate)
         self.generate_files = self.file_generation_necessary(args.func)
         self.output_dir = self.get_output_dir(args.output_dir)
         self.upload = self.upload_necessary(args.no_upload, args.generate_files)
         self.email = self.email_necessary(args.no_email)
 
         # Initialize Pipeline Managers
-        self.request_manager = RequestManager(self.session, self.calculate, self.upload_to_db)
+        self.request_manager = RequestManager(self.session, self.calculate, self.update_db)
         self.processor_manager = ProcessorManager(self.session)
         self.server_manager = ServerManager()
         self.exception_collector = ExceptionCollector(DAILY_EMAIL_LIST)
@@ -93,7 +93,7 @@ class Coordinator:
             )
 
             # Transform
-            if self.generated_files:
+            if self.generate_files:
                 generated_files = self.processor_manager.generate_files(processing_requests)
 
             # Load
@@ -119,7 +119,7 @@ class Coordinator:
             mission_ids.append(3)
         if len(mission_ids) == 0:
             self.logger.info("No missions specified, defaulting to ELA and ELB")
-            mission_ids = [mission_id for mission_id in ALL_MISSIONS]
+            mission_ids = ALL_MISSIONS.copy()
 
         return mission_ids
 

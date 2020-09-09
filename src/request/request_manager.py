@@ -1,3 +1,4 @@
+"""Definition of class to determine data to process, files to generate"""
 import datetime as dt
 import logging
 
@@ -23,6 +24,7 @@ class RequestManager:
         self.downlink_manager = DownlinkManager(session, update_db)
 
     def get_processing_requests(self, mission_ids, data_products, times, start_time, end_time):
+        """Determines IDPU, MRM, ENG, and State products to be created"""
         # TODO: "times" is just for idpu products?
         processing_requests = set()
 
@@ -112,6 +114,7 @@ class RequestManager:
         return general_processing_requests
 
     def get_mrm_processing_requests(self, mission_ids, mrm_types, start_time, end_time):
+        """MRM files to create"""
         return {
             ProcessingRequest(res.mission_id, res.mrm_type, dt.date(res.date))
             for res in self.session.query(sqlalchemy.distinct(func.date(models.MRM.timestamp)))
@@ -126,7 +129,9 @@ class RequestManager:
         }
 
     def get_eng_processing_requests(self):
+        """ENG files to create"""
         pass
 
     def get_state_processing_requests(self):
+        """State files to create"""
         pass

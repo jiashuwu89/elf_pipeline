@@ -2,10 +2,10 @@ import datetime as dt
 
 import numpy as np
 import pandas as pd
-from spacepy import pycdf
-
 from astropy import coordinates as a_c
 from astropy.time import Time
+from spacepy import pycdf
+
 from common import models
 from processor.science_processor import ScienceProcessor
 from util.constants import IDL_SCRIPT_VERSION, MISSION_DICT, STATE_CSV_DIR

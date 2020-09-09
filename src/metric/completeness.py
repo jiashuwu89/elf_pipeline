@@ -1,3 +1,4 @@
+"""Tools to analyze packet times to estimate completeness"""
 import datetime as dt
 import logging
 import math
@@ -96,7 +97,7 @@ class CompletenessUpdater:
         self.logger.info(f"Found {len(szs)} science zone{s_if_plural(szs)}")
 
         # Get median diff
-        if not self.completeness_configmedian_diff:
+        if not self.completeness_config.median_diff:
             diffs = []
             for sz in szs:
                 diffs += [(j - i).total_seconds() for i, j in zip(sz[:-1], sz[1:])]

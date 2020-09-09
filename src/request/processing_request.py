@@ -4,6 +4,8 @@ from util.constants import MISSION_DICT
 
 
 class ProcessingRequest:
+    """A class to create objects describing files to generate"""
+
     def __init__(self, mission_id, data_product, date):
         """Constructor for ProcessingRequest class.
         mission_id = 1, 2, 3
@@ -22,16 +24,18 @@ class ProcessingRequest:
     def __hash__(self):
         return hash((self.mission_id, self.data_product, self.date))
 
-    def to_string(self):
+    def __str__(self):
         return f"ProcessingRequest(\
             mission_id={self.mission_id}, \
             data_product={self.data_product}, \
             date={self.date}"
 
     def get_probe(self):
+        """Gives the probe (ex. ELA, ELB, EM3)"""
         # TODO: Deprecate in favor of probe property
         return MISSION_DICT[self.mission_id]
 
     @property
     def probe(self):
+        """Gives the probe (ex. ELA, ELB, EM3)"""
         return MISSION_DICT[self.mission_id]

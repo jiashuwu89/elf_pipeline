@@ -4,6 +4,9 @@ import logging
 import pandas as pd
 
 from common import models
+from request.downlink.downlink import Downlink
+from request.downlink.packet_info import PacketInfo
+from util import byte_tools
 
 # TODO: packet_id vs id Check
 
@@ -19,7 +22,7 @@ class DownlinkManager:
         self.update_db = update_db
 
     def print_downlinks(self, downlinks):
-        msg = "Downlinks:\n" + "\n".join([d.to_string() for d in downlinks])
+        msg = "Downlinks:\n" + "\n".join([str(d) for d in downlinks])
         self.logger.info(msg)
 
     def calculate_new_downlinks(self, start_time, end_time):
@@ -69,14 +72,14 @@ class DownlinkManager:
             # - Numerator shifts
             # - Denominator shifts
             if (
-                first_id == None
+                first_id is None
                 or science_packet.idpu_type != cur_packet_type
                 or science_packet.numerator < cur_num
                 or science_packet.denominator != cur_denom
             ):
 
                 # flush the existing downlink
-                if cur_packet_type != None and first_idpu_time != None and last_idpu_time != None:
+                if cur_packet_type is not None and first_idpu_time is not None and last_idpu_time is not None:
                     first_packet_info = PacketInfo(None, first_id, first_idpu_time, first_collection_time)
                     last_packet_info = PacketInfo(None, last_id, last_idpu_time, last_collection_time)
                     downlinks.append(Downlink(mission_id, cur_packet_type, first_packet_info, last_packet_info))
@@ -132,7 +135,7 @@ class DownlinkManager:
             last_id = science_packet.id
 
         # flush the final downlink
-        if cur_packet_type != None and first_idpu_time != None and last_idpu_time != None:
+        if cur_packet_type is not None and first_idpu_time is not None and last_idpu_time is not None:
             first_packet_info = PacketInfo(None, first_id, first_idpu_time, first_collection_time)
             last_packet_info = PacketInfo(None, last_id, last_idpu_time, last_collection_time)
             downlinks.append(Downlink(mission_id, cur_packet_type, first_packet_info, last_packet_info))
@@ -186,22 +189,23 @@ class DownlinkManager:
         self.session.commit()
 
     def get_downlinks(self, mission_ids, data_products, by, start_time, end_time):
-        """
-        To be used by RequestManager to help find ranges of data to be processed
+        """Method to find ranges of data to be processed
+
+        To be used primarily by RequestManager
         """
         if by == "downlink_time":
             query = self.session.query(models.ScienceDownlink).filter(
                 models.ScienceDownlink.idpu_type.in_(data_products),
                 models.ScienceDownlink.mission_id.in_(mission_ids),
-                models.ScienceDownlink.first_time <= last_time,
-                models.ScienceDownlink.last_time >= first_time,
+                models.ScienceDownlink.first_time <= end_time,
+                models.ScienceDownlink.last_time >= start_time,
             )
         elif by == "collection_time":
             query = self.session.query(models.ScienceDownlink).filter(
                 models.ScienceDownlink.idpu_type.in_(data_products),
                 models.ScienceDownlink.mission_id.in_(mission_ids),
-                models.ScienceDownlink.first_collection_time <= last_time,
-                models.ScienceDownlink.last_collection_time >= first_time,
+                models.ScienceDownlink.first_collection_time <= end_time,
+                models.ScienceDownlink.last_collection_time >= start_time,
             )
         else:
             raise ValueError(f"Bad value for by: {by}")
@@ -214,8 +218,8 @@ class DownlinkManager:
 
         return downlinks
 
-    def get_downlinks(processing_request):
-        q = self.session.query(models.ScienceDownlink).filter(
+    def get_downlinks(self, processing_request):
+        query = self.session.query(models.ScienceDownlink).filter(
             models.ScienceDownlink.mission_id == processing_request.mission_id,
             models.ScienceDownlink.idpu_type == processing_request.data_product,
             models.ScienceDownlink.first_collection_time < processing_request.date + dt.timedelta(days=1),

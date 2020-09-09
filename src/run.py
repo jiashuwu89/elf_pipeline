@@ -25,6 +25,7 @@ class CLIHandler:
 
     def get_argparser(self):
         """ Get argparser for parsing arguments """
+        self.logger.debug("Creating argparser")
 
         argparser = argparse.ArgumentParser(description="Process Science Data from ELFIN")
         subcommands = argparser.add_subparsers(required=True, dest="subcommand")
@@ -132,8 +133,7 @@ class CLIHandler:
         if args.verbose:
             self.logger.setLevel(logging.DEBUG)
 
-        coordinator: Coordinator = Coordinator()
-        coordinator.handle_args(args)
+        coordinator: Coordinator = Coordinator(args)
         coordinator.run_func()
 
         elapsed_time: dt.timedelta = dt.datetime.utcnow() - start_time

@@ -5,11 +5,13 @@ import pandas as pd
 
 from processor.completeness import CompletenessUpdater, FgmCompletenessConfig
 from processor.idpu_processor import IdpuProcessor
+from util import byte_tools
 from util.constants import HUFFMAN_TABLE
 from util.science_utils import hex_to_int
 
-
 # TODO: Hardcoded values -> Constants
+
+
 class FgmProcessor(IdpuProcessor):
     def __init__(self, session, output_dir, processor_name):
         super().__init__(session, output_dir, processor_name)
@@ -36,12 +38,10 @@ class FgmProcessor(IdpuProcessor):
         uncompressed = df["idpu_type"].isin([1, 17]).any()
         compressed = df["idpu_type"].isin([2, 18]).any()
         if uncompressed and compressed:
-            self.log.warning(f"⚠️ Detected both compressed and uncompressed data. This should never happen...")
+            self.log.warning("⚠️ Detected both compressed and uncompressed data. This should never happen...")
             return df[df["idpu_type"].isin([1, 17])]
-
         elif compressed:
             df = self.decompress_df(df)
-
         elif uncompressed:
             df["sampling_rate"] = self.find_diff(df)
 
@@ -219,8 +219,7 @@ class FgmProcessor(IdpuProcessor):
                 # https://elfin-dev1.igpp.ucla.edu/repos/eng/FPGA/elfin_ns8/idpu_em/source/branches/akhil_branch/embedded/idpu_3
                 if signb == "11":
                     self.log.debug(
-                        f"⚠️\tProblem with Sign: Got 11, skipping packet "
-                        + f"at idpu_time {row['idpu_time']}, numerator {row['numerator']}"
+                        f"⚠️\tProblem with Sign: Got 11, skipping packet at idpu_time {row['idpu_time']}, numerator {row['numerator']}"
                     )
                     break
                 sign = -1 if signb == "01" else 1

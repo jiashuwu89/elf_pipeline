@@ -9,7 +9,6 @@ from processor.completeness import CompletenessUpdater, MrmCompletenessConfig
 from processor.science_processor import ScienceProcessor
 from util.constants import MRM_TYPES
 
-
 # TODO: Probe name
 # TODO: Processors return sets?
 
@@ -69,7 +68,5 @@ class MrmProcessor(ScienceProcessor):
         cdf.attrs["Generation_date"] = datestr_run
         cdf.attrs["MODS"] = f"Rev- {datestr_run}"  # TODO: Check this string
 
-        cdf[f"{probe}_{processing_request.data_product}_time"] = mrm_df["timestamp"].apply(
-            pycdf.lib.datetime_to_tt2000
-        )
+        cdf[f"{probe}_{processing_request.data_product}_time"] = mrm_df["timestamp"].apply(pycdf.lib.datetime_to_tt2000)
         cdf[f"{probe}_{processing_request.data_product}"] = mrm_df[["mrm_x", "mrm_y", "mrm_z"]].values
