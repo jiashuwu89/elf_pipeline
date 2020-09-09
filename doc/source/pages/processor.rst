@@ -1,45 +1,21 @@
 processor package
 =================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   processor.idpu
+
 Submodules
 ----------
-
-processor.completeness module
------------------------------
-
-.. automodule:: processor.completeness
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 processor.eng\_processor module
 -------------------------------
 
 .. automodule:: processor.eng_processor
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-processor.epd\_processor module
--------------------------------
-
-.. automodule:: processor.epd_processor
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-processor.fgm\_processor module
--------------------------------
-
-.. automodule:: processor.fgm_processor
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-processor.idpu\_processor module
---------------------------------
-
-.. automodule:: processor.idpu_processor
    :members:
    :undoc-members:
    :show-inheritance:

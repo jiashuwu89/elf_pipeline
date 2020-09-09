@@ -5,8 +5,9 @@ src
    :maxdepth: 4
 
    coordinator
-   db
+   metric
    output
    processor
+   request
    run
    util

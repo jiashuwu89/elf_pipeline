@@ -4,6 +4,14 @@ util package
 Submodules
 ----------
 
+util.compression\_values module
+-------------------------------
+
+.. automodule:: util.compression_values
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 util.constants module
 ---------------------
 
@@ -16,6 +24,14 @@ util.credentials module
 -----------------------
 
 .. automodule:: util.credentials
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+util.downlink\_utils module
+---------------------------
+
+.. automodule:: util.downlink_utils
    :members:
    :undoc-members:
    :show-inheritance:

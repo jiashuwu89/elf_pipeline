@@ -12,6 +12,14 @@ output.exception\_collector module
    :undoc-members:
    :show-inheritance:
 
+output.file\_name\_converter module
+-----------------------------------
+
+.. automodule:: output.file_name_converter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 output.server\_manager module
 -----------------------------
 

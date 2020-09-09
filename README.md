@@ -17,6 +17,8 @@ Pipeline to process packets and generate CDFs.
 ## General TODOs
 - Types for all variables
 - Favor f-string over string concat, other string creation techniques
+- test -> tst
+- docs -> doc
 
 ## Contributors
 - Akhil Palla

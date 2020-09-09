@@ -42,7 +42,7 @@ test:
 doc:
 	@echo "⭐ Generating Documentation ⭐"
 	@echo "doc";
-	sphinx-apidoc -f -o docs/source/pages/ $(SRC);
+	sphinx-apidoc -f -o doc/source/pages/ $(SRC);
 	cd docs && make html;
 
 todo:
