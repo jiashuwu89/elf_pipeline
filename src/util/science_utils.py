@@ -21,13 +21,13 @@ def s_if_plural(x):
 
 
 def twos_comp(uint_val, bits=24):
-    mask = 2**(bits-1)
+    mask = 2 ** (bits - 1)
     return -(uint_val & mask) + (uint_val & ~mask)
 
 
 def hex_to_int(hexData):
     if type(hexData) is str:
-        return twos_comp(65536*int(hexData[0:2],16) + 256*int(hexData[2:4], 16) + int(hexData[4:6], 16))
+        return twos_comp(65536 * int(hexData[0:2], 16) + 256 * int(hexData[2:4], 16) + int(hexData[4:6], 16))
 
 
 def interpolate_attitude(S_init, t_init, S_fin, t_fin):
@@ -120,9 +120,9 @@ if __name__ == "__main__":
     Ti = "2019-04-30/17:38:32"
     Tf = "2019-05-02/09:29:14"
 
-    datetime_init = datetime.strptime(Ti, "%Y-%m-%d/%H:%M:%S")
-    datetime_fin = datetime.strptime(Tf, "%Y-%m-%d/%H:%M:%S")
+    dt_init = datetime.strptime(Ti, "%Y-%m-%d/%H:%M:%S")
+    dt_fin = datetime.strptime(Tf, "%Y-%m-%d/%H:%M:%S")
 
-    interp_times, interp_atts = interpolate_attitude(Si, datetime_init, Sf, datetime_fin)
+    interp_times, interp_atts = interpolate_attitude(Si, dt_init, Sf, dt_fin)
 
     print(interp_times, interp_atts)

@@ -1,11 +1,12 @@
+import datetime as dt
+
+import numpy as np
 import pandas as pd
 
 from processor.completeness import CompletenessUpdater, FgmCompletenessConfig
 from processor.idpu_processor import IdpuProcessor
-from util.science_utils import hex_to_int
-import numpy as np
-import datetime as dt
 from util.constants import HUFFMAN_TABLE
+from util.science_utils import hex_to_int
 
 
 # TODO: Hardcoded values -> Constants

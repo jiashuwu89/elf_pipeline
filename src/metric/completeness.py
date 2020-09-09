@@ -9,6 +9,9 @@ from util.science_utils import s_if_plural
 
 
 # TODO: Remove IDPU_Type
+# TODO: Convert to Enum?
+
+
 class CompletenessConfig(ABC):
     idpu_type = None
     data_type = None
@@ -64,7 +67,7 @@ class CompletenessUpdater:
     def __init__(self, session, completeness_config):
         self.session = self.session
         self.completeness_config = completeness_config
-        self.logger = logging.getLogger("CompletenessUpdater")
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def update_completeness_table(self, times):
         """Update ScienceZoneCompleteness table, if possible

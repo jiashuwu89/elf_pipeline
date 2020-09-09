@@ -10,21 +10,19 @@ import logging
 import util.constants
 from coordinator import Coordinator
 
-# TODO: logging.getLogger(__name__)
-# https://docs.python.org/3/library/logging.html#logging.basicConfig
-
 
 # Logging Init
-LOG_FORMAT = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
-DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+LOG_FORMAT: str = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
+DATE_FORMAT: str = "%Y-%m-%d %H:%M:%S"
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT, datefmt=DATE_FORMAT)
-logger = logging.getLogger("science")
 
 
 class CLIHandler:
+    """A class to parse arguments and use them to run the pipeline"""
+
     def __init__(self):
-        self.logger = logging.getLogger("CLI")
-        self.argparser = self.get_argparser()
+        self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)  # TODO: Log to file
+        self.argparser: argparse.ArgumentParser = self.get_argparser()
 
     def get_argparser(self):
         """ Get argparser for parsing arguments """
@@ -127,22 +125,22 @@ class CLIHandler:
 
     def run(self):
         """ Get arguments and perform processing, noting the duration """
-        start_time = dt.datetime.utcnow()
+        start_time: dt.datetime = dt.datetime.utcnow()
         self.logger.info(f"🤠\tBegining at {start_time.strftime('%Y-%m-%d %H:%M:%S')} (UTC)\t🤠")
 
-        args = self.argparser.parse_args()
+        args: argparse.ArgumentParser = self.argparser.parse_args()
 
         if args.verbose:
             self.logger.setLevel(logging.DEBUG)
 
-        coordinator = Coordinator()
+        coordinator: Coordinator = Coordinator()
         coordinator.handle_args(args)
         coordinator.run_func()
 
-        elapsed_time = dt.datetime.utcnow() - start_time
-        logger.info(f"🤠\tTotal run time: {str(elapsed_time)}\t🤠")
+        elapsed_time: dt.timedelta = dt.datetime.utcnow() - start_time
+        self.logger.info(f"🤠\tTotal run time: {str(elapsed_time)}\t🤠")
 
 
 if __name__ == "__main__":
-    cliHandler = CLIHandler()
-    cliHandler.run()
+    cli_handler: CLIHandler = CLIHandler()
+    cli_handler.run()

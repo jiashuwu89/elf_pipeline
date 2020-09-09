@@ -12,6 +12,9 @@ from util.constants import IDL_SCRIPT_VERSION, MISSION_DICT, STATE_CSV_DIR
 from util.science_utils import interpolate_attitude
 
 
+# TODO: Probe not defined many place
+
+
 class StateProcessor(ScienceProcessor):
     def __init__(self, session, output_dir):
         super().__init__(session, output_dir, "state")
@@ -29,25 +32,27 @@ class StateProcessor(ScienceProcessor):
 
         self.update_cdf_with_sun(processing_request.date, cdf)  # Sun/Shadow Variable
 
-        # Inserting Attitude
+        # Inserting Attitude and Sun Calculations, if possible
         att_df = self.get_attitude(processing_request.date)
         if not att_df.empty:
             self.update_cdf_with_att_df(att_df, cdf)
-            self.update_cdf_with_sun_calculations(
-                csv_df, att_df, processing_request.date, cdf
-            )  # Inserting Sun Calculations
-
+            self.update_cdf_with_sun_calculations(csv_df, att_df, processing_request.date, cdf)
         else:
             # Fill appropriate columns with NaN - Vassilis's request
             self.logger.warning(f"No attitude data found for {processing_request.date} (searched 30 days before/after)")
             self.update_cdf_with_nans(cdf)
 
         cdf.close()
-        return cdf_fname
+        return [cdf_fname]
 
     def make_filename(self, processing_request):
-        """Constructs the appropriate filename for a L1 file, and returns the full path"""
-        fname = f"{processing_request.get_probe()}_l1_state_{self.state_type}_{processing_request.date.strftime('%Y%m%d')}_v01.cdf"
+        """Constructs the appropriate filename for a L1 file, and returns the full path
+
+        Overrides default implementation
+        """
+        probe = processing_request.get_probe()
+        file_date = processing_request.date.strftime('%Y%m%d')
+        fname = f"{probe}_l1_state_{self.state_type}_{file_date}_v01.cdf"
         return f"{self.save_directory}/{fname}"
 
     def create_CDF(self, cdf_fname):
@@ -76,7 +81,7 @@ class StateProcessor(ScienceProcessor):
             except FileNotFoundError:
                 self.logger.warning(f"File not found: {csv_fname}")
 
-        if type(df) == type(None):
+        if not df:
             raise RuntimeError(
                 f"csv_df could not be created! Check /home/elfin-esn/state_data to see if csv exists for {date}"
             )
@@ -207,7 +212,7 @@ class StateProcessor(ScienceProcessor):
                 temp_query_list.append(q)
             else:
                 self.log.debug(
-                    f"Attitude for {q.time} obtained on {q.insert_date}, " + f"but more recent solution exists"
+                    f"Attitude for {q.time} obtained on {q.insert_date}, but more recent solution exists"
                 )
         query_list = sorted(temp_query_list, key=lambda q: q.time)
 

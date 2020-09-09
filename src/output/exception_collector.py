@@ -11,7 +11,7 @@ class ExceptionCollector:
         self.email_list = email_list
         self.exception_list = []
 
-        self.logger = logging.getLogger("ExceptionCollector")
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def record_exception(self, *to_record):
         log_msg = "Exception Recorded:"

@@ -9,71 +9,20 @@ from common import models
 
 # TODO: Unify Downlink class and Downlink dataframe?
 
-
-class PacketInfo:
-    def __init__(self, packet_id, id, idpu_time, collection_time):
-        self.packet_id = packet_id
-        self.id = id  # ID in science_packets table
-        self.idpu_time = idpu_time
-        self.collection_time = collection_time
-
-    def __eq__(self, other):
-        return (
-            self.packet_id == other.packet_id
-            and self.id == other.id
-            and self.idpu_time == other.idpu_time
-            and self.collection_time == other.collection_time
-        )
-
-    def __hash__(self):
-        return hash((self.packet_id, self.id, self.idpu_time, self.collection_time))
-
-    def to_string(self):
-        return f"PacketInfo(packet_id={self.packet_id}, id={self.id}, \
-                idpu_time={self.idpu_time}, collection_time={self.collection_time})"
-
-
-class Downlink:
-    def __init__(self, mission_id, idpu_type, denominator, first_packet_info, last_packet_info):
-        self.mission_id = mission_id
-        self.idpu_type = idpu_type
-        self.denominator = denominator
-
-        self.first_packet_info = first_packet_info
-        self.last_packet_info = last_packet_info
-
-    def __eq__(self, other):
-        return (
-            self.mission_id == other.mission_id
-            and self.idpu_type == other.idpu_type
-            and self.denominator == other.denominator
-            and self.first_packet_info == other.first_packet_info
-            and self.last_packet_info == other.last_packet_info
-        )
-
-    def __hash__(self):
-        return hash((self.mission_id, self.idpu_type, self.denominator, self.first_packet_info, self.last_packet_info))
-
-    def to_string(self):
-        return f"Downlink:\n\
-                \tmission_id={self.mission_id}, idpu_type={self.idpu_type}, denominator={self.denominator}\n\
-                \tFirst: {self.first_packet_info.to_string()}\n\
-                \tSecond: {self.second_packet_info.to_string()}"
-
-
 # TODO: Group of DLs should be a set, not a list?
 
 
 class DownlinkManager:
-    def __init__(self, session):
+    def __init__(self, session, update_db):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.session = session
-        self.logger = logging.getLogger("DownlinkManager")
+        self.update_db = update_db
 
     def print_downlinks(self, downlinks):
         msg = "Downlinks:\n" + "\n".join([d.to_string() for d in downlinks])
         self.logger.info(msg)
 
-    def calculate_new_downlinks(self, start_time, end_time, update_db):
+    def calculate_new_downlinks(self, start_time, end_time):
         """
         Calculate new science downlinks by scanning through the
         list of science packets received within a range of dates
@@ -190,7 +139,7 @@ class DownlinkManager:
 
         downlinks.sort(key=lambda x: x.idpu_type)
 
-        if update_db:
+        if self.update_db:
             self.logger.info(
                 f"Updating DB with the calculated Downlinks:\n{self.downlink_manager.print_downlinks(downlinks)}"
             )

@@ -19,12 +19,12 @@ class ScienceProcessor(ABC):
     """
 
     def __init__(self, session, output_dir, processor_name):
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         self.session = session
         self.output_dir = output_dir
 
         self.downlink_manager = DownlinkManager(session)
-        self.logger = logging.getLogger(f"science.processor.{processor_name}")
 
     @abstractmethod
     def generate_files(self, processing_request):
@@ -33,15 +33,15 @@ class ScienceProcessor(ABC):
     def make_filename(self, processing_request, level, size=None):
         """Constructs the appropriate filename for a L0/L1/L2 file, and returns the full path (level is int)"""
 
-        fname = f"{processing_request.get_probe()}_l{level}_{processing_request.data_product}_{processing_request.datestrftime('%Y%m%d')}"
+        fname = f"{processing_request.get_probe()}_l{level}_{processing_request.data_product}_{processing_request.date.strftime('%Y%m%d')}"
         if level == 0:
             if size is None:
                 raise ValueError("No size given for level 0 naming")
-            fname += f"_{str(size)}.pkt"
+            fname += f"_{size}.pkt"
         elif level == 1:
             fname += "_v01.cdf"
         else:
-            raise ValueError("INVALID LEVEL")
+            raise ValueError(f"Invalid Level: {level}")
         return f"{self.output_dir}/{fname}"
 
     def create_cdf(self, fname):
@@ -59,6 +59,6 @@ class ScienceProcessor(ABC):
         if os.path.isfile(fname):
             os.remove(fname)
 
-        master_cdf = f"/home/elfin-esn/OPS/science/trunk/science_processing/mastercdf/{probe}_{level_str}_{idpu_type}_00000000_v01.cdf"
+        master_cdf = f"{MASTERCDF_DIR}/{probe}_{level_str}_{idpu_type}_00000000_v01.cdf"
 
         return pycdf.CDF(fname, master_cdf)

@@ -17,7 +17,7 @@ def calculate_offset(df1, df2):
     Returns:
         Offset if valid offset found, otherwise None
     """
-    logger = logging.getLogger("calculate_offset")
+    logger = logging.getLogger(self.__class__.__name__)
 
     s1 = df1["data"]
     s2 = df2["data"]
@@ -105,7 +105,7 @@ def merge_downlinks(sf1, sf2, offset):
     - Look through sf2[:overlap] for not null
     - Append sf2[overlap:] to sf1
     """
-    logger = logging.getLogger("merge_downlinks")
+    logger = logging.getLogger(self.__class__.__name__)
 
     # Make sure sf1 occurs before sf2
     if offset < 0:
@@ -153,7 +153,7 @@ def merge_helper(a, b):
         to_return = b
     else:  # both have some data
         if a["data"] != b["data"]:
-            _merge_helper_log = logging.getLogger("base_downlinks._merge_helper")
+            _merge_helper_log = logging.getLogger(self.__class__.__name__)
             _merge_helper_log.info(
                 f"WARNING: CONFLICTING DATA, keeping data with earlier timestamp (less likely to have been corrupted):\n\t"
                 + f"Packet ID: {a['packet_id']}, Timestamp: {a['timestamp']}\t"

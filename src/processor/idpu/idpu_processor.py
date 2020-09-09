@@ -1,11 +1,9 @@
 import datetime as dt
+from abc import abstractmethod
 
 import numpy as np
 import pandas as pd
 from spacepy import pycdf
-
-from abc import abstractmethod
-
 
 from db import downlink_utils
 from db.downlink import DownlinkManager
@@ -124,7 +122,7 @@ class IDPUProcessor(ScienceProcessor):
             self.logger.debug("The column 'idpu_time' does not exist, but it's probably OK")
 
         return l1_df
-    
+
     @abstractmethod
     def transform_l0(self, l0_df, collection_date):
         pass
