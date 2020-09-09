@@ -2,6 +2,18 @@
 
 Pipeline to process packets and generate CDFs.
 
+## Statuses
+- metric
+  - Needs testing
+- output
+  - Needs testing
+- processor
+  - In progress
+- request
+  - In progress
+- util
+  - Grow as necessary
+
 ## General TODOs
 - Types for all variables
 

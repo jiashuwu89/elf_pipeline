@@ -12,6 +12,7 @@ import logging
 import os
 import tempfile
 import traceback
+from typing import List, Optional
 
 from dateutil.parser import parse as dateparser
 
@@ -22,9 +23,8 @@ from output.server_manager import ServerManager
 from processor.processor_manager import ProcessorManager
 from util.constants import ALL_MISSIONS, DAILY_EMAIL_LIST
 
-from typing import List, Optional
-
 # TODO: self.times should be an enum
+
 
 class Coordinator:
     """Coordinator class to coordinate the pipeline.

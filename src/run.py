@@ -10,7 +10,6 @@ import logging
 import util.constants
 from coordinator import Coordinator
 
-
 # Logging Init
 LOG_FORMAT: str = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
 DATE_FORMAT: str = "%Y-%m-%d %H:%M:%S"

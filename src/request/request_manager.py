@@ -12,6 +12,7 @@ from util.constants import LOOK_BEHIND_DELTA
 
 class RequestManager:
     """An object to determine mission/time/product combinations to process"""
+
     def __init__(self, session, calculate, update_db):
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -29,7 +30,9 @@ class RequestManager:
         selected_mrm_products = []
 
         if selected_idpu_products:
-            general_processing_requests = self.get_general_processing_requests(mission_ids, selected_idpu_products, times, start_time, end_time)
+            general_processing_requests = self.get_general_processing_requests(
+                mission_ids, selected_idpu_products, times, start_time, end_time
+            )
             processing_requests.update(general_processing_requests)
         if selected_mrm_products:
             processing_requests.update(self.get_mrm_processing_requests(selected_mrm_products, start_time, end_time))
@@ -82,8 +85,10 @@ class RequestManager:
 
     def get_filtered_downlinks(self, mission_ids, data_products, start_time, end_time):
         """Calculate Downlinks (by downlink time) with desired mission ids and idpu types"""
+
         def valid_downlink(downlink):
             return downlink.mission_id in mission_ids and downlink.idpu_type in data_products
+
         calculated_dls = self.downlink_manager.calculate_new_downlinks(start_time, end_time)
         return [downlink for downlink in calculated_dls if valid_downlink(downlink)]
 

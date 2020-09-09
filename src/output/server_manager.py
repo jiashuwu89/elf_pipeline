@@ -1,9 +1,8 @@
 import logging
 
 import paramiko
-from util.credentials import HOST, PASSWORD, USERNAME
-
 from output.file_name_converter import FileNameConverter
+from util.credentials import HOST, PASSWORD, USERNAME
 
 # TODO: Logging in separate file
 

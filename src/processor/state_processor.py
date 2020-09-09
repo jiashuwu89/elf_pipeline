@@ -11,7 +11,6 @@ from processor.science_processor import ScienceProcessor
 from util.constants import IDL_SCRIPT_VERSION, MISSION_DICT, STATE_CSV_DIR
 from util.science_utils import interpolate_attitude
 
-
 # TODO: Probe not defined many place
 
 
@@ -51,7 +50,7 @@ class StateProcessor(ScienceProcessor):
         Overrides default implementation
         """
         probe = processing_request.get_probe()
-        file_date = processing_request.date.strftime('%Y%m%d')
+        file_date = processing_request.date.strftime("%Y%m%d")
         fname = f"{probe}_l1_state_{self.state_type}_{file_date}_v01.cdf"
         return f"{self.save_directory}/{fname}"
 
@@ -211,9 +210,7 @@ class StateProcessor(ScienceProcessor):
                 seen.add(q.time)
                 temp_query_list.append(q)
             else:
-                self.log.debug(
-                    f"Attitude for {q.time} obtained on {q.insert_date}, but more recent solution exists"
-                )
+                self.log.debug(f"Attitude for {q.time} obtained on {q.insert_date}, but more recent solution exists")
         query_list = sorted(temp_query_list, key=lambda q: q.time)
 
         # Convert the queries into a dictionary format for easier access

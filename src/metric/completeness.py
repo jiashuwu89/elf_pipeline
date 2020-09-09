@@ -7,7 +7,6 @@ from abc import ABC
 from common import models
 from util.science_utils import s_if_plural
 
-
 # TODO: Remove IDPU_Type
 # TODO: Convert to Enum?
 
