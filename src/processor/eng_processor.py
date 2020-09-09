@@ -1,3 +1,9 @@
+"""Class to generate ENG files
+
+Classes:
+
+    EngProcessor
+"""
 import datetime as dt
 import statistics
 
@@ -5,13 +11,15 @@ import pandas as pd
 from spacepy import pycdf
 
 from common import models
-from processors.science_processor import ScienceProcessor
-from science_processing.information import SCIENCE_TYPES
+from processor.science_processor import ScienceProcessor
+from util.constants import SCIENCE_TYPES
+from util.science_utils import dt_to_tt2000
 from utils.db.downlinks import Downlinks
-from utils.exceptions import EmptyError
 
 
 class EngProcessor(ScienceProcessor):
+    """Class to generate ENG files"""
+
     def __init__(self, session, output_dir):
         super().__init__(self, session, output_dir, "eng")
         self.idpu_types = SCIENCE_TYPES[data_product]
@@ -21,7 +29,8 @@ class EngProcessor(ScienceProcessor):
             "idpu_time",
             "fgm_time",
             "epd_time",
-            "sips_time" "fc_avionics_temp_1",
+            "sips_time",
+            "fc_avionics_temp_1",
             "fc_avionics_temp_2",
             "fc_batt_temp_1",
             "fc_batt_temp_2",
@@ -53,14 +62,15 @@ class EngProcessor(ScienceProcessor):
         try:
             _, lv0_orig_df = super().gen_level_0(collection_time)
             return None, lv0_orig_df
-        except EmptyError:
+        except RuntimeError as e:
+            self.logger.warning(e)
             return None, pd.DataFrame()
 
     def process_level_0(self, df):
-        """ No processing necessary for ENG level 0 """
+        """No processing necessary for ENG level 0"""
         data_bytes = []
         for _, row in df.iterrows():
-            if row["data"] != None:
+            if row["data"] is not None:
                 data_bytes.append(bytes.fromhex(row["data"]))
             else:
                 data_bytes.append(None)
@@ -91,47 +101,47 @@ class EngProcessor(ScienceProcessor):
         if not fc_df.empty:
             final_df = pd.concat([final_df, fc_df], axis=0, ignore_index=True, sort=True)
         else:
-            self.log.debug("No FC Data")
+            self.logger.debug("No FC Data")
 
         bmon_df = eng_downlinks_manager.get_bmon_data()
         if not bmon_df.empty:
             final_df = pd.concat([final_df, bmon_df], axis=0, ignore_index=True, sort=True)
         else:
-            self.log.debug("No Battery Monitor Data")
+            self.logger.debug("No Battery Monitor Data")
 
         if final_df.empty:
-            raise EmptyError
+            raise RuntimeError("Empty df")
         return final_df
 
     def extract_data(self, data_type, data, idpu_time):
         """ Helper Function for Transform Level 0 """
+        if data_type < 14 or data_type > 16:
+            raise ValueError(f"⚠️ Should not have seen data type '{data_type}'")
         if data_type == 14:  # SIPS
             return {
-                "sips_time": self.dt_to_tt2000(idpu_time),
+                "sips_time": dt_to_tt2000(idpu_time),
                 "sips_5v0_current": int.from_bytes(data[6:8], "big"),
                 "sips_5v0_voltage": int.from_bytes(data[8:10], "big"),
                 "sips_input_current": int.from_bytes(data[10:12], "big"),
                 "sips_input_temp": int.from_bytes(data[12:14], "big"),
                 "sips_input_voltage": int.from_bytes(data[14:16], "big"),
             }
-        elif data_type == 15:  # EPD
+        if data_type == 15:  # EPD
             return {
-                "epd_time": self.dt_to_tt2000(idpu_time),
+                "epd_time": dt_to_tt2000(idpu_time),
                 "epd_biasl": int.from_bytes(data[0:2], "big"),
                 "epd_biash": int.from_bytes(data[2:4], "big"),
                 "epd_efe_temp": int.from_bytes(data[4:6], "big"),
             }
-        elif data_type == 16:  # FGM
+        if data_type == 16:  # FGM
             return {
-                "fgm_time": self.dt_to_tt2000(idpu_time),
+                "fgm_time": dt_to_tt2000(idpu_time),
                 "fgm_8_volt": int.from_bytes(data[0:2], "big"),  # status byte count 0
                 "fgm_sh_temp": int.from_bytes(data[6:8], "big"),  # status byte count 3
                 "fgm_3_3_volt": int.from_bytes(data[2:4], "big"),  # status byte count 1
                 "fgm_analog_ground": int.from_bytes(data[4:6], "big"),  # status byte count 2
                 "fgm_eu_temp": int.from_bytes(data[8:10], "big"),  # status byte count 4
             }
-        else:
-            raise ValueError("⚠️ Should not have seen data type '{}'".format(data_type))
 
     def process_level_1(self, df):
         pass

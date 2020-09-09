@@ -8,6 +8,7 @@ from common import models
 from request.downlink.downlink import Downlink
 from request.downlink.packet_info import PacketInfo
 from util import byte_tools
+from util.constants import COMPRESSED_TYPES
 
 # TODO: packet_id vs id Check
 
@@ -29,7 +30,7 @@ class DownlinkManager:
         msg = "Downlinks:\n" + "\n".join([str(d) for d in downlinks])
         self.logger.info(msg)
 
-    def calculate_new_downlinks(self, start_time, end_time):
+    def calculate_new_downlinks(self, mission_ids, start_time, end_time):
         """
         Calculate new science downlinks by scanning through the
         list of science packets received within a range of dates
@@ -40,7 +41,13 @@ class DownlinkManager:
         Returns:
             A list of downlinks
         """
-        # Store all Downlinks here
+        downlinks = []
+        for mission_id in mission_ids:
+            downlinks += self.calculate_new_downlinks_by_mission_id(mission_id, start_time, end_time)
+        return downlinks
+
+    def calculate_new_downlinks_by_mission_id(self, mission_id, start_time, end_time):
+        """All downlinks for a specific mission, between two times"""
         downlinks = []
 
         query = self.session.query(models.SciencePacket).filter(
@@ -106,7 +113,7 @@ class DownlinkManager:
             if science_packet.idpu_time:
 
                 # Compressed packet, and idpu_time changed: collection_time comes from the data
-                if science_packet.idpu_type in compressed_types and (
+                if science_packet.idpu_type in COMPRESSED_TYPES and (
                     (not prev_idpu_time) or prev_idpu_time != science_packet.idpu_time
                 ):
                     try:
@@ -114,13 +121,14 @@ class DownlinkManager:
                     except ValueError as e:
                         # Start a New Downlink if this seems to be a bad packet
                         self.log.warning(
-                            f"⚠️ New Downlink, skipping current packet (ID: {science_packet.id}) due to unreadable datetime {science_packet.data[:16]}: {e}"
+                            f"⚠️ New Downlink, skipping current packet (ID: {science_packet.id}) due to unreadable \
+                                datetime {science_packet.data[:16]}: {e}"
                         )
                         first_id = None
                         continue
 
                 # Not compressed packet: collection_time comes from filesystem
-                elif science_packet.idpu_type not in compressed_types:
+                elif science_packet.idpu_type not in COMPRESSED_TYPES:
                     collection_time = science_packet.idpu_time
 
                 idpu_time = science_packet.idpu_time

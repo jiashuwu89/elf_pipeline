@@ -17,8 +17,10 @@ Pipeline to process packets and generate CDFs.
 ## General TODOs
 - Types for all variables
 - Favor f-string over string concat, other string creation techniques
-- test -> tst
-- docs -> doc
+- Unify time notation to use only:
+  - Datetime (abbreviated dt)
+  - Date
+- Take out all hardcoded times/dates/deltas -> constants.py
 
 ## Contributors
 - Akhil Palla

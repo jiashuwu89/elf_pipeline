@@ -1,12 +1,18 @@
+"""Class to generate ENG files
+
+Classes:
+
+    FgmProcessor
+"""
 import datetime as dt
 
 import numpy as np
 import pandas as pd
 
-from processor.completeness import CompletenessUpdater, FgmCompletenessConfig
-from processor.idpu_processor import IdpuProcessor
+from metric.completeness import CompletenessUpdater, FgmCompletenessConfig
+from processor.idpu.idpu_processor import IdpuProcessor
 from util import byte_tools
-from util.constants import HUFFMAN_TABLE
+from util.compression_values import FGM_HUFFMAN
 from util.science_utils import hex_to_int
 
 # TODO: Hardcoded values -> Constants
@@ -37,10 +43,12 @@ class FgmProcessor(IdpuProcessor):
         # Checking for compressed and uncompressed data
         uncompressed = df["idpu_type"].isin([1, 17]).any()
         compressed = df["idpu_type"].isin([2, 18]).any()
+
         if uncompressed and compressed:
             self.log.warning("⚠️ Detected both compressed and uncompressed data. This should never happen...")
             return df[df["idpu_type"].isin([1, 17])]
-        elif compressed:
+
+        if compressed:
             df = self.decompress_df(df)
         elif uncompressed:
             df["sampling_rate"] = self.find_diff(df)
@@ -56,7 +64,6 @@ class FgmProcessor(IdpuProcessor):
             df = df[
                 ["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "10hz_mode", "packet_id"]
             ]
-
         else:
             self.log.warning("⚠️ Detected neither compressed nor uncompressed data.")
 
@@ -68,7 +75,7 @@ class FgmProcessor(IdpuProcessor):
         Used to help determine sampling rate
         """
         final = pd.DataFrame(columns=["sampling_rate"])
-        for idx, row in df.iloc[1:].iterrows():
+        for idx, _ in df.iloc[1:].iterrows():
             cur_time = df["idpu_time"].iloc[idx]
             prev_time = df["idpu_time"].iloc[idx - 1]
             cur_num = df["numerator"].iloc[idx]
@@ -133,7 +140,7 @@ class FgmProcessor(IdpuProcessor):
 
         # check for 10 hz    microseconds in 11 hz < time_gap < microseconds in 9 hz
         # technically it should be 125000 but just give it some leeway
-        elif (
+        if (
             dt.timedelta(microseconds=1 / 11 * 1e6) * multiplier
             <= time_gap
             <= dt.timedelta(microseconds=1 / 9 * 1e6) * multiplier
@@ -305,20 +312,13 @@ class FgmProcessor(IdpuProcessor):
     def drop_packets_by_freq(self, df):
         """ Returns a DataFrame with either 10 hz (fgs) or 80 hz (fgf) """
         if self.data_product_name == "fgf":
-            df = df[df["10hz_mode"] == False]
+            df = df[df["10hz_mode"] is False]
         elif self.data_product_name == "fgs":
-            df = df[df["10hz_mode"] == True]
+            df = df[df["10hz_mode"] is True]
         else:
             raise ValueError("Invalid data_product_name")
 
         return df
-
-    def get_huffman(self, bitstring):
-        b, bitstring = bitstring[0:1], bitstring[1:]
-        while b not in HUFFMAN_TABLE:
-            b, bitstring = b + bitstring[0:1], bitstring[1:]
-        val = HUFFMAN_TABLE[b]
-        return val, bitstring
 
     def merge_processed_dataframes(self, dataframes):
         """

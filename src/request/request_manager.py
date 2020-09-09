@@ -91,7 +91,7 @@ class RequestManager:
         def valid_downlink(downlink):
             return downlink.mission_id in mission_ids and downlink.idpu_type in data_products
 
-        calculated_dls = self.downlink_manager.calculate_new_downlinks(start_time, end_time)
+        calculated_dls = self.downlink_manager.calculate_new_downlinks(mission_ids, start_time, end_time)
         return [downlink for downlink in calculated_dls if valid_downlink(downlink)]
 
     def get_requests_from_downlinks(self, dl_list):
@@ -136,14 +136,69 @@ class RequestManager:
         self.logger.debug(f"Got {len(mrm_processing_requests)} MRM processing requests")
         return mrm_processing_requests
 
-    def get_eng_processing_requests(self):
+    def get_eng_processing_requests(self, mission_ids, start_time, end_time):
         """ENG files to create"""
-        eng_processing_requests = set()
+        categoricals = [
+            models.Categoricals.TMP_1,
+            models.Categoricals.TMP_2,
+            models.Categoricals.TMP_3,
+            models.Categoricals.TMP_4,
+            models.Categoricals.TMP_5,
+            models.Categoricals.TMP_6,
+        ]
+        categoricals_query = (
+            self.session.query(sqlalchemy.distinct(func.date(models.Categorical.timestamp)))
+            .filter(
+                models.Categorical.mission_id == 1,  # TODO: IS THIS A PROBLEM? replace with mission_id.in_(mission_ids)
+                models.Packet.timestamp >= start_time,
+                models.Packet.timestamp < end_time,
+                models.Categorical.name.in_(categoricals),
+            )
+            .join(models.Packet)
+        )
+        categoricals_requests = {  # TODO: replace res.mission_id and res.timestamp (res[0]) if necessary
+            ProcessingRequest(res.mission_id, "eng", res.timestamp.date()) for res in categoricals_query
+        }
+
+        bmon_query = (
+            self.session.query(sqlalchemy.distinct(func.date(models.BmonData.timestamp)))
+            .filter(models.Packet.timestamp >= start_time, models.Packet.timestamp < end_time)
+            .join(models.Packet)
+        )
+        bmon_requests = {ProcessingRequest(res.mission_id, "eng", res.timestamp.date()) for res in bmon_query}
+
+        eng_processing_requests = categoricals_requests.union(bmon_requests)
+
+        # TODO: s if plural
         self.logger.debug(f"Got {len(eng_processing_requests)} ENG processing requests")
         return eng_processing_requests
 
-    def get_state_processing_requests(self):
+    def get_state_processing_requests(self, mission_ids, start_time, end_time):
         """State files to create"""
         state_processing_requests = set()
+
+        # Always process certain days
+        for mission_id in mission_ids:
+            cur_day = start_time
+            while cur_day <= end_time:
+                state_processing_requests.add(ProcessingRequest(mission_id, "state", cur_day))
+                cur_day += dt.timedelta(days=1)
+
+        # Query to see what dates we picked up
+        query = self.session.query(sqlalchemy.distinct(func.date(models.CalculatedAttitude.time))).filter(
+            models.CalculatedAttitude.mission_id.in_(mission_ids),
+            models.CalculatedAttitude.insert_date >= start_time,
+            models.CalculatedAttitude.insert_date < end_time,
+        )
+
+        for res in query:
+            # Figure out which dates around each found attitude we must calculate
+            t = res.timestamp.date()
+            cur = t - dt.timedelta(days=5)
+            end_limit = t + dt.timedelta(days=5)
+            while cur <= end_limit:
+                state_processing_requests.add(ProcessingRequest(mission_id, "state", cur))
+                cur += dt.timedelta(days=1)
+
         self.logger.debug(f"Got {len(state_processing_requests)} State processing requests")
         return state_processing_requests

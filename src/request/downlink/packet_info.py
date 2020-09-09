@@ -1,4 +1,24 @@
+"""Definition of PacketInfo class"""
+
+
 class PacketInfo:
+    """Information about a single packet
+
+    Attributes
+    ----------
+    packet_id: int
+        id in the packets table??
+    id: int
+        id in the science_packets table??
+    idpu_time: dt.DateTime
+        IDPU Time
+    collection_time: dt.DateTime
+        Time at which the packet was collected
+
+    Methods
+    -------
+    """
+
     def __init__(self, packet_id, id, idpu_time, collection_time):
         self.packet_id = packet_id
         self.id = id  # ID in science_packets table

@@ -9,8 +9,8 @@ import numpy as np
 import pandas as pd
 from spacepy import pycdf
 
-from db import downlink_utils
-from db.downlink import DownlinkManager
+from util import downlink_utils
+from request.downlink.downlink_manager import DownlinkManager
 from libelfin.utils import compute_crc
 from processor.science_processor import ScienceProcessor
 from util.science_utils import dt_to_tt2000, s_if_plural

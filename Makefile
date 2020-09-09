@@ -1,5 +1,5 @@
 SRC=src
-TST=test
+TST=tst
 PYLINT_CONFIG=.pylintrc
 
 
