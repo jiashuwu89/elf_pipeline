@@ -17,7 +17,7 @@ from typing import List, Optional
 from dateutil.parser import parse as dateparser
 
 from common import db
-from db.request_manager import RequestManager
+from db.request_getter_manager import RequestGetterManager
 from output.exception_collector import ExceptionCollector
 from output.server_manager import ServerManager
 from processor.processor_manager import ProcessorManager
@@ -74,38 +74,31 @@ class Coordinator:
         self.email = self.email_necessary(args.no_email)
 
         # Initialize Pipeline Managers
-        self.request_manager = RequestManager(self.session, self.calculate, self.update_db)
+        self.request_manager = RequestGetterManager(self.session, self.calculate, self.update_db)
         self.processor_manager = ProcessorManager(self.session, self.exception_collector)
         self.server_manager = ServerManager()
 
-    def run_func(self):
+    def execute_pipeline(self):
         """Execute the pipeline"""
         try:
             # Extract
-            processing_requests = self.request_manager.get_processing_requests(
-                self.mission_ids,
-                self.data_products,  # TODO: Sort out product name vs idpu_type, not 1 to 1
-                self.times,
-                self.start_time,
-                self.end_time,
-                self.calculate,
-                self.update_db,
-            )
+            processing_requests = self.get_processing_requests()
 
             # Transform
-            if self.generate_files:
-                generated_files = self.processor_manager.generate_files(processing_requests)
+            generated_files = self.generate_files(processing_requests)
 
             # Load
-            if self.upload:
-                self.server_manager.transfer_files(generated_files)
+            self.transfer_files(generated_files)
 
         except Exception as e:
             traceback_msg = traceback.format_exc()
             self.exception_collector.record_exception(e, traceback_msg)
 
         if self.exception_collector.email_list:
+            self.log.info("🌦\tProblems detected, sending email notification")
             self.exception_collector.email()
+        else:
+            self.log.info("☀️\tPipeline completed successfully")
 
     def get_mission_ids(self, ela, elb, em3):
         """Determine which missions to process, defaulting to ELA and ELB only"""
@@ -142,7 +135,7 @@ class Coordinator:
 
     def get_data_products(self, products):
         if not products:
-            raise Exception("No products specified")
+            raise ValueError("No products specified")
         return products
 
     def downlink_calculation_necessary(self, times, calculate):
@@ -167,3 +160,41 @@ class Coordinator:
 
     def email_necessary(self, no_email):
         return not no_email
+
+    def get_processing_requests(self):
+        self.log.info("🌥\tGetting Processing Requests")
+        processing_requests = self.request_manager.get_processing_requests(
+            self.mission_ids,
+            self.data_products,  # TODO: Sort out product name vs idpu_type, not 1 to 1
+            self.times,
+            self.start_time,
+            self.end_time,
+            self.calculate,
+            self.update_db,
+        )
+        self.log.info(f"Got {len(processing_requests)} processing requests")
+        return processing_requests
+
+    def generate_files(self, processing_requests):
+        if not self.generate_files:
+            self.log.info("No files generated")
+            return []
+
+        self.log.info("⛅️\tGenerating Files")
+        generated_files = self.processor_manager.generate_files(processing_requests)
+        self.log.info(f"Generated {len(generated_files)} files")
+        self.log.info(generated_files)  # TODO: Clean this up
+
+        return generated_files
+
+    def transfer_files(self, generated_files):
+        if not self.upload:
+            self.log.info("No files transferred")
+            return
+
+        self.log.info("🌤\tUploading Files")
+        transferred_files_count = self.server_manager.transfer_files(generated_files)
+        self.log.info(f"Transferred {transferred_files_count} files")
+
+        if len(generated_files) != transferred_files_count:
+            raise RuntimeError(f"Transferred only {transferred_files_count}/{len(generated_files)} files")

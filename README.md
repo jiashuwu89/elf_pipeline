@@ -21,6 +21,8 @@ Pipeline to process packets and generate CDFs.
   - Datetime (abbreviated dt)
   - Date
 - Take out all hardcoded times/dates/deltas -> constants.py
+- "types" directory?
+  - Enums for values
 
 ## Contributors
 - Akhil Palla

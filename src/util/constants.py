@@ -7,71 +7,68 @@ a common location.
 
 Contents:
 - Items related to Data Products
-
+- Directory paths
 """
 import datetime as dt
 
+# TODO: Rename for clarity (specify if values are numbers or strings)
+# TODO: Separate into different files by category of constant (mission, data product, etc)
+
+# Missions
 MISSION_DICT = {1: "ela", 2: "elb", 3: "em3"}
 ALL_MISSIONS = [1, 2]
 
-MASTERCDF_DIR = "/home/elfin-esn/OPS/science/trunk/science_processing/mastercdf"
-
-# Lists of different groups of data products
+# Data Products
+ENG_PRODUCTS = ["eng"]
 EPD_PRODUCTS = ["epdef", "epdif", "epdes", "epdis"]
 FGM_PRODUCTS = ["fgf", "fgs"]
 MRM_PRODUCTS = ["mrma", "mrmi"]
-ENG_PRODUCTS = ["eng"]
 STATE_PRODUCTS = ["state"]
-
-# A Dictionary of MRM Types
-MRM_TYPES = {"mrma": "ACB", "mrmi": "IDPU"}
-
+IDPU_PRODUCTS = EPD_PRODUCTS + FGM_PRODUCTS + ENG_PRODUCTS
 ALL_PRODUCTS = EPD_PRODUCTS + FGM_PRODUCTS + ENG_PRODUCTS + MRM_PRODUCTS + STATE_PRODUCTS
 
-
-# A Dictionary holding Data Products by idpu_type
-# 4 and 6 (EPD) as well as 2 and 18 (FGM) are compressed
+# A Dictionary mapping IDPU type to products
 PACKET_MAP = {
-    # FGM
     1: ["fgs", "fgf"],
     2: ["fgs", "fgf"],
     17: ["fgs", "fgf"],
     18: ["fgs", "fgf"],
-    # EPD
     3: ["epdef"],
     4: ["epdef"],
     5: ["epdif"],
     6: ["epdif"],
     19: ["epdis"],
     20: ["epdes"],
-    # ENG
     14: ["eng"],
     15: ["eng"],
     16: ["eng"],
 }
 
-# A Dictionary holding idpu_type by Data Product
+# A Dictionary mapping products to IDPU type
 SCIENCE_TYPES = {
-    # FGM
-    "fgs": [1, 2],
-    "fgf": [17, 18],
-    # EPD
-    "epdef": [3, 4],  # 4 and 6 are compressed
-    "epdif": [5, 6],
-    "epdes": [20],  # Survey Mode is always compressed
-    "epdis": [19],  # IDPU types are flipped to make things more confusing
-    # ENG
     "eng": [14, 15, 16],  # 14: SIPS, 15: EPD, 16: FGM
+    "fgf": [17, 18],
+    "fgs": [1, 2],
+    "epdef": [3, 4],
+    "epdes": [20],
+    "epdif": [5, 6],
+    "epdis": [19],
 }
 
-# IDPU types of compressed data
+# A Dictionary of MRM Types
+MRM_TYPES = {"mrma": "ACB", "mrmi": "IDPU"}
+
+# IDPU types of compressed data, survey data
 COMPRESSED_TYPES = [2, 4, 6, 18, 19, 20]
+SURVEY_TYPES = [19, 20]
 
-
+# IDL
 IDL_SCRIPT_VERSION = 8
 
-LOOK_BEHIND_DELTA = dt.timedelta(hours=5)  # Begin search this far behind for packets
-
-DAILY_EMAIL_LIST = ["jcking1034@gmail.com"]
-
+# Directory Paths
 STATE_CSV_DIR = "/home/elfin-esn/state_data/"
+MASTERCDF_DIR = "/home/elfin-esn/OPS/science/trunk/science_processing/mastercdf"
+
+# Misc
+LOOK_BEHIND_DELTA = dt.timedelta(hours=5)  # Begin search this far behind for packets
+DAILY_EMAIL_LIST = ["jcking1034@gmail.com"]

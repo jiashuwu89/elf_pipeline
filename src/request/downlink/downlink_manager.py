@@ -35,7 +35,7 @@ class DownlinkManager:
         Calculate new science downlinks by scanning through the
         list of science packets received within a range of dates
 
-        - start_time and end_time by downlink time (called 'timestamp' in table)
+        - start_time and end_time are downlink times (called 'timestamp' in table)
         - All Mission IDs, any idpu types
 
         Returns:
@@ -62,8 +62,8 @@ class DownlinkManager:
         cur_packet_type = None
         first_collection_time = None
         last_collection_time = None
-        first_idpu_time = None  # idpu_time
-        last_idpu_time = None  # idpu_time
+        first_idpu_time = None
+        last_idpu_time = None
         first_id = None
         last_id = None
 
@@ -200,37 +200,8 @@ class DownlinkManager:
         self.session.flush()
         self.session.commit()
 
-    def get_downlinks(self, mission_ids, data_products, by, start_time, end_time):
-        """Method to find ranges of data to be processed
-
-        To be used primarily by RequestManager
-        """
-        if by == "downlink_time":
-            query = self.session.query(models.ScienceDownlink).filter(
-                models.ScienceDownlink.idpu_type.in_(data_products),
-                models.ScienceDownlink.mission_id.in_(mission_ids),
-                models.ScienceDownlink.first_time <= end_time,
-                models.ScienceDownlink.last_time >= start_time,
-            )
-        elif by == "collection_time":
-            query = self.session.query(models.ScienceDownlink).filter(
-                models.ScienceDownlink.idpu_type.in_(data_products),
-                models.ScienceDownlink.mission_id.in_(mission_ids),
-                models.ScienceDownlink.first_collection_time <= end_time,
-                models.ScienceDownlink.last_collection_time >= start_time,
-            )
-        else:
-            raise ValueError(f"Bad value for by: {by}")
-
-        downlinks = []
-        for q in query:  # Check first_packet/last_packet
-            first_packet_info = PacketInfo(None, q.first_packet, q.first_time, q.first_collection_time)
-            last_packet_info = PacketInfo(None, q.last_packet, q.last_time, q.last_collection_time)
-            downlinks.append(Downlink(q.mission_id, q.idpu_type, first_packet_info, last_packet_info))
-
-        return downlinks
-
     def get_downlinks(self, processing_request):
+        """Get Downlinks by collection time"""
         query = self.session.query(models.ScienceDownlink).filter(
             models.ScienceDownlink.mission_id == processing_request.mission_id,
             models.ScienceDownlink.idpu_type == processing_request.data_product,
@@ -240,7 +211,7 @@ class DownlinkManager:
 
         downlinks = []
 
-        for row in query:
+        for row in query:  # TODO: Check first_packet/last_packet
             # TODO: Bad Nones
             first_packet_info = PacketInfo(None, row.first_packet, row.first_time, row.first_collection_time)
             last_packet_info = PacketInfo(None, row.last_packet, row.last_time, row.last_collection_time)

@@ -134,7 +134,7 @@ class CLIHandler:
             self.logger.setLevel(logging.DEBUG)
 
         coordinator: Coordinator = Coordinator(args)
-        coordinator.run_func()
+        coordinator.execute_pipeline()
 
         elapsed_time: dt.timedelta = dt.datetime.utcnow() - start_time
         self.logger.info(f"🤠\tTotal run time: {str(elapsed_time)}\t🤠")
