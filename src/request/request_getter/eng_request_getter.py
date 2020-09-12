@@ -7,12 +7,9 @@ from request.request_getter.request_getter import RequestGetter
 
 
 class EngRequestGetter(RequestGetter):
-    def __init__(self, session):
-        super().__init__(session)
-
-    def get(self, start_time, end_time):
-        categoricals_requests = self.get_categoricals_requests(start_time, end_time)
-        bmon_requests = self.get_bmon_requests(start_time, end_time)
+    def get(self, pipeline_query):
+        categoricals_requests = self.get_categoricals_requests(pipeline_query.start_time, pipeline_query.end_time)
+        bmon_requests = self.get_bmon_requests(pipeline_query.start_time, pipeline_query.end_time)
 
         eng_processing_requests = categoricals_requests.union(bmon_requests)
 

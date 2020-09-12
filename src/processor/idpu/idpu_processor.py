@@ -16,7 +16,7 @@ from util import downlink_utils
 from util.science_utils import dt_to_tt2000, s_if_plural
 
 
-class IDPUProcessor(ScienceProcessor):
+class IdpuProcessor(ScienceProcessor):
     def __init__(self, session, output_dir, processor_name):
         super().__init__(session, output_dir, processor_name)
         # TODO: CompletenessUpdater in fgm and epd
@@ -166,13 +166,13 @@ class IDPUProcessor(ScienceProcessor):
         m_idpu_type = first_dl.idpu_type
         m_first_time = first_dl.first_packet_info.idpu_time
         m_last_time = first_dl.last_packet_info.idpu_time
-        m_df = self.downlink_manager.get_formatted_df(first_dl)
+        m_df = self.downlink_manager.get_df_from_downlink(first_dl)
 
         for _, downlink in enumerate(downlinks[1:]):
             idpu_type = downlink.idpu_type
             first_time = downlink.first_packet_info.idpu_time
             last_time = downlink.last_packet_info.idpu_time
-            df = self.downlink_manager.get_formatted_df(downlink)
+            df = self.downlink_manager.get_df_from_downlink(downlink)
 
             # Merge if we have found a good offset (downlink overlaps with the current one and packet type matches)
             offset = downlink_utils.calculate_offset(m_df, df)

@@ -3,10 +3,11 @@ from abc import ABC, abstractmethod
 
 
 class RequestGetter(ABC):
-    def __init__(self, session):
-        self.session = session
+    def __init__(self, pipeline_config):
         self.logger = logging.getLogger(self.__class__.__name__)
 
+        self.pipeline_config = pipeline_config
+
     @abstractmethod
-    def get(start_time, end_time):
+    def get(self, start_time, end_time):
         pass

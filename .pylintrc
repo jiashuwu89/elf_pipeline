@@ -1,7 +1,10 @@
 [MESSAGES CONTROL]
 disable=invalid-name,
         logging-fstring-interpolation,
-        fixme
+        fixme,
+        missing-module-docstring,
+        missing-class-docstring,
+        missing-function-docstring
 
 [FORMAT]
 max-line-length=120

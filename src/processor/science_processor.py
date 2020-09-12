@@ -1,15 +1,11 @@
-import datetime as dt
 import logging
 import os
 from abc import ABC, abstractmethod
 
-import pandas as pd
 from spacepy import pycdf
 
 from db.downlink import DownlinkManager
-from util.completeness import CompletenessConfig
-from util.constants import MASTERCDF_DIR, MISSION_DICT
-from util.science_utils import dt_to_tt2000, s_if_plural
+from util.constants import MASTERCDF_DIR
 
 
 class ScienceProcessor(ABC):

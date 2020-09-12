@@ -5,25 +5,69 @@ These tasks are:
     - (Transform) Creation of new files
     - (Load) Uploading of new files, and reporting errors
 """
-
-
-import datetime as dt
 import logging
-import os
-import tempfile
 import traceback
-from typing import List, Optional
+from abc import ABC
 
-from dateutil.parser import parse as dateparser
-
-from common import db
-from db.request_getter_manager import RequestGetterManager
 from output.exception_collector import ExceptionCollector
 from output.server_manager import ServerManager
 from processor.processor_manager import ProcessorManager
-from util.constants import ALL_MISSIONS, DAILY_EMAIL_LIST
+from request.request_getter_manager import RequestGetterManager
+from util.constants import DAILY_EMAIL_LIST
 
 # TODO: self.times should be an enum
+
+
+class PipelineConfig(ABC):
+    @property
+    def session(self):
+        raise NotImplementedError
+
+    @property
+    def calculate(self):
+        raise NotImplementedError
+
+    @property
+    def update_db(self):
+        raise NotImplementedError
+
+    @property
+    def generate_files(self):
+        raise NotImplementedError
+
+    @property
+    def output_dir(self):
+        raise NotImplementedError
+
+    @property
+    def upload(self):
+        raise NotImplementedError
+
+    @property
+    def email(self):
+        raise NotImplementedError
+
+
+class PipelineQuery(ABC):
+    @property  # TODO: use this strategy in all ABCs
+    def mission_ids(self):
+        raise NotImplementedError
+
+    @property
+    def data_products(self):
+        raise NotImplementedError
+
+    @property
+    def times(self):
+        raise NotImplementedError
+
+    @property
+    def start_time(self):
+        raise NotImplementedError
+
+    @property
+    def end_time(self):
+        raise NotImplementedError
 
 
 class Coordinator:
@@ -53,36 +97,22 @@ class Coordinator:
         Email notifications if exceptions occurred during processing
     """
 
-    def __init__(self, args):
+    def __init__(self, pipeline_config):
         self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
         self.exception_collector = ExceptionCollector(DAILY_EMAIL_LIST)
 
-        # Initialize DB connection
-        if db.SESSIONMAKER is None:
-            db.connect("production")
-        self.session = db.SESSIONMAKER()
-
-        # Initialize parameters/options from command line
-        self.mission_ids = self.get_mission_ids(args.ela, args.elb, args.em3)
-        self.times, self.start_time, self.end_time = self.get_times(args.func, args.d, args.c)
-        self.data_products = self.get_data_products(args.products)
-        self.calculate = self.downlink_calculation_necessary(self.times, args.calculate)
-        self.update_db = self.downlink_upload_necessary(args.func, args.calculate)
-        self.generate_files = self.file_generation_necessary(args.func)
-        self.output_dir = self.get_output_dir(args.output_dir)
-        self.upload = self.upload_necessary(args.no_upload, args.generate_files)
-        self.email = self.email_necessary(args.no_email)
+        self.pipeline_config = pipeline_config
 
         # Initialize Pipeline Managers
-        self.request_manager = RequestGetterManager(self.session, self.calculate, self.update_db)
-        self.processor_manager = ProcessorManager(self.session, self.exception_collector)
+        self.request_getter_manager = RequestGetterManager(pipeline_config)
+        self.processor_manager = ProcessorManager(pipeline_config.session, self.exception_collector)
         self.server_manager = ServerManager()
 
-    def execute_pipeline(self):
+    def execute_pipeline(self, pipeline_query):
         """Execute the pipeline"""
         try:
             # Extract
-            processing_requests = self.get_processing_requests()
+            processing_requests = self.get_processing_requests(pipeline_query)
 
             # Transform
             generated_files = self.generate_files(processing_requests)
@@ -94,107 +124,38 @@ class Coordinator:
             traceback_msg = traceback.format_exc()
             self.exception_collector.record_exception(e, traceback_msg)
 
-        if self.exception_collector.email_list:
-            self.log.info("🌦\tProblems detected, sending email notification")
+        if self.exception_collector.email_list and self.pipeline_config.email:
+            self.logger.info("🌦\tProblems detected, sending email notification")
             self.exception_collector.email()
         else:
-            self.log.info("☀️\tPipeline completed successfully")
+            self.logger.info("☀️\tPipeline completed successfully")
 
-    def get_mission_ids(self, ela, elb, em3):
-        """Determine which missions to process, defaulting to ELA and ELB only"""
-        mission_ids = []
-
-        if ela:
-            mission_ids.append(1)
-        if elb:
-            mission_ids.append(2)
-        if em3:
-            mission_ids.append(3)
-        if len(mission_ids) == 0:
-            self.logger.info("No missions specified, defaulting to ELA and ELB")
-            mission_ids = ALL_MISSIONS.copy()
-
-        return mission_ids
-
-    def get_times(self, func, d, c):
-        if func == "run_daily":
-            times = "downlink"
-            end_time = dt.datetime(*dt.datetime.utcnow().timetuple()[:4])
-            start_time = end_time - dt.timedelta(hours=5)
-        elif d:
-            times = "downlink"
-            start_time = dateparser(d[0], tzinfos=0)
-            end_time = dateparser(d[1], tzinfos=0)
-        elif c:
-            times = "collection"
-            start_time = dateparser(c[0], tzinfos=0)
-            end_time = dateparser(c[1], tzinfos=0)
-        else:
-            raise RuntimeError("Need either downlink time or collection time range")
-        return (times, start_time, end_time)
-
-    def get_data_products(self, products):
-        if not products:
-            raise ValueError("No products specified")
-        return products
-
-    def downlink_calculation_necessary(self, times, calculate):
-        return times == "downlink" or calculate in ["yes", "nodb"]
-
-    def downlink_upload_necessary(self, func, calculate):
-        return func == "run_daily" or calculate == "yes"
-
-    def file_generation_necessary(self, func):
-        return func in ["run_daily", "run_dump"]
-
-    def get_output_dir(self, output_dir):
-        if output_dir and not os.path.isdir(output_dir):
-            raise ValueError(f"Bad Output Directory: {output_dir}")
-        else:
-            output_dir = tempfile.mkdtemp()
-            self.log.debug(f"Temporary output directory created: {output_dir}")
-        return output_dir
-
-    def upload_necessary(self, no_upload, generate_files):
-        return not no_upload and generate_files
-
-    def email_necessary(self, no_email):
-        return not no_email
-
-    def get_processing_requests(self):
-        self.log.info("🌥\tGetting Processing Requests")
-        processing_requests = self.request_manager.get_processing_requests(
-            self.mission_ids,
-            self.data_products,  # TODO: Sort out product name vs idpu_type, not 1 to 1
-            self.times,
-            self.start_time,
-            self.end_time,
-            self.calculate,
-            self.update_db,
-        )
-        self.log.info(f"Got {len(processing_requests)} processing requests")
+    def get_processing_requests(self, pipeline_query):
+        self.logger.info("🌥\tGetting Processing Requests")
+        processing_requests = self.request_getter_manager.get_processing_requests(pipeline_query)
+        self.logger.info(f"Got {len(processing_requests)} processing requests")
         return processing_requests
 
     def generate_files(self, processing_requests):
         if not self.generate_files:
-            self.log.info("No files generated")
+            self.logger.info("No files generated")
             return []
 
-        self.log.info("⛅️\tGenerating Files")
+        self.logger.info("⛅️\tGenerating Files")
         generated_files = self.processor_manager.generate_files(processing_requests)
-        self.log.info(f"Generated {len(generated_files)} files")
-        self.log.info(generated_files)  # TODO: Clean this up
+        self.logger.info(f"Generated {len(generated_files)} files")
+        self.logger.info(generated_files)  # TODO: Clean this up
 
         return generated_files
 
     def transfer_files(self, generated_files):
-        if not self.upload:
-            self.log.info("No files transferred")
+        if not self.pipeline_config.upload:
+            self.logger.info("No files transferred")
             return
 
-        self.log.info("🌤\tUploading Files")
+        self.logger.info("🌤\tUploading Files")
         transferred_files_count = self.server_manager.transfer_files(generated_files)
-        self.log.info(f"Transferred {transferred_files_count} files")
+        self.logger.info(f"Transferred {transferred_files_count} files")
 
         if len(generated_files) != transferred_files_count:
             raise RuntimeError(f"Transferred only {transferred_files_count}/{len(generated_files)} files")

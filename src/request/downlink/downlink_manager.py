@@ -20,17 +20,41 @@ from util.constants import COMPRESSED_TYPES
 class DownlinkManager:
     """A class that provides utilities involving downlinks"""
 
-    def __init__(self, session, update_db):
+    def __init__(self, pipeline_config):
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.session = session
-        self.update_db = update_db
+        self.session = pipeline_config.session
+        self.update_db = pipeline_config.update_db
 
     def print_downlinks(self, downlinks):
         """Prints the collection of downlinks given, in a formatted fashion"""
         msg = "Downlinks:\n" + "\n".join([str(d) for d in downlinks])
         self.logger.info(msg)
 
-    def calculate_new_downlinks(self, mission_ids, start_time, end_time):
+    def get_downlinks_by_collection_time(self, query):
+        """
+        Fetch all science downlinks whose collection data overlaps with range of dates
+
+        Returns:
+            A list of downlinks, of the format
+            (mission_id, packet_type, first_time, last_time, denom,
+            first_id, last_id, first collection time, last collection time)
+        """
+        sql_query = self.session.query(models.ScienceDownlink).filter(
+            models.ScienceDownlink.idpu_type.in_(query.data_products),
+            models.ScienceDownlink.mission_id.in_(query.mission_ids),
+            models.ScienceDownlink.first_collection_time <= query.end_time,
+            models.ScienceDownlink.last_collection_time >= query.start_time,
+        )
+
+        downlinks = []
+        for dl in sql_query:
+            first_packet_info = PacketInfo(None, dl.first_packet, dl.first_time, dl.first_collection_time)
+            last_packet_info = PacketInfo(None, dl.last_packet, dl.last_time, dl.last_collection_time)
+            downlinks.append(Downlink(dl.mission_id, dl.idpu_type, first_packet_info, last_packet_info))
+
+        return downlinks
+
+    def get_downlinks_by_downlink_time(self, query):
         """
         Calculate new science downlinks by scanning through the
         list of science packets received within a range of dates
@@ -42,10 +66,11 @@ class DownlinkManager:
             A list of downlinks
         """
         downlinks = []
-        for mission_id in mission_ids:
-            downlinks += self.calculate_new_downlinks_by_mission_id(mission_id, start_time, end_time)
+        for mission_id in query.mission_ids:
+            downlinks += self.calculate_new_downlinks_by_mission_id(mission_id, query.start_time, query.end_time)
         return downlinks
 
+    # HELPER FOR get_downlinks_by_downlink_time, should be private
     def calculate_new_downlinks_by_mission_id(self, mission_id, start_time, end_time):
         """All downlinks for a specific mission, between two times"""
         downlinks = []
@@ -162,6 +187,7 @@ class DownlinkManager:
 
         return downlinks
 
+    # HELPER FOR get_downlinks_by_downlink_time, should be private
     def upload_downlink_entries(self, downlinks):
         """
         Uploads a list of downlink entries to the database as
@@ -200,8 +226,8 @@ class DownlinkManager:
         self.session.flush()
         self.session.commit()
 
-    def get_downlinks(self, processing_request):
-        """Get Downlinks by collection time"""
+    def get_relevant_downlinks(self, processing_request):
+        """Get Downlinks that are relevant to the processing request"""
         query = self.session.query(models.ScienceDownlink).filter(
             models.ScienceDownlink.mission_id == processing_request.mission_id,
             models.ScienceDownlink.idpu_type == processing_request.data_product,
@@ -223,7 +249,7 @@ class DownlinkManager:
 
         return downlinks
 
-    def get_formatted_df(self, downlink) -> pd.DataFrame:
+    def get_df_from_downlink(self, downlink) -> pd.DataFrame:
         """
         This function takes in a downlink, and returns a DataFrame corresponding to the processed data.
         It gets the data, fixes the data, then formats it
