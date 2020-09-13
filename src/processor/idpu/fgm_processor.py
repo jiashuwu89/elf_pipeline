@@ -23,7 +23,7 @@ class FgmProcessor(IdpuProcessor):
     def __init__(self, pipeline_config):
         super().__init__(pipeline_config)
 
-        self.completeness_updater = CompletenessUpdater(FgmCompletenessConfig)
+        self.completeness_updater = CompletenessUpdater(pipeline_config.session, FgmCompletenessConfig)
 
     def process_rejoined_data(self, df):
         """
@@ -224,7 +224,7 @@ class FgmProcessor(IdpuProcessor):
                 # https://elfin-dev1.igpp.ucla.edu/repos/eng/FPGA/elfin_ns8/idpu_em/source/branches/akhil_branch/embedded/idpu_3
                 if signb == "11":
                     self.logger.debug(
-                        f"⚠️\tProblem with Sign: Got 11, skipping packet at idpu_time {row['idpu_time']}, numerator {row['numerator']}"
+                        f"⚠️\tGot sign bits 11, skip pkt at idpu_time={row['idpu_time']} numerator={row['numerator']}"
                     )
                     break
                 sign = -1 if signb == "01" else 1

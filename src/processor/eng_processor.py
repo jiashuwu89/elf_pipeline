@@ -117,8 +117,7 @@ class EngProcessor(ScienceProcessor):
 
     def extract_data(self, data_type, data, idpu_time):
         """ Helper Function for Transform Level 0 """
-        if data_type < 14 or data_type > 16:
-            raise ValueError(f"⚠️ Should not have seen data type '{data_type}'")
+        self.logger.debug(f"Data type {data_type} is good? {data_type in (14, 15, 16)}")
         if data_type == 14:  # SIPS
             return {
                 "sips_time": dt_to_tt2000(idpu_time),
@@ -144,6 +143,7 @@ class EngProcessor(ScienceProcessor):
                 "fgm_analog_ground": int.from_bytes(data[4:6], "big"),  # status byte count 2
                 "fgm_eu_temp": int.from_bytes(data[8:10], "big"),  # status byte count 4
             }
+        raise ValueError(f"⚠️ \tWanted data type 14, 15, 16; instead got {data_type}")
 
     def process_level_1(self, df):
         pass

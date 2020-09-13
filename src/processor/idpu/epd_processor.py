@@ -16,11 +16,13 @@ import datetime as dt
 
 import pandas as pd
 
-from metric.completeness import CompletenessUpdater, EpdCompletenessConfig
+from data_type.completeness_config import (EpdeCompletenessConfig,
+                                           EpdiCompletenessConfig)
+from metric.completeness import CompletenessUpdater
 from processor.idpu.idpu_processor import IdpuProcessor
-from science_processing.information import EPD_HUFFMAN, EPD_LOSSY_VALS
-from utils import byte_tools
-from utils.constants import EPD_CALIBRATION_DIR
+from util import byte_tools
+from util.compression_values import EPD_HUFFMAN, EPD_LOSSY_VALS
+from util.constants import EPD_CALIBRATION_DIR
 
 # EPD_ENERGIES = [[50., 70., 110., 160., 210., 270., 345., 430., 630., 900., 1300., 1800., 2500., 3000., 3850., 4500.]]
 
@@ -29,7 +31,8 @@ class EpdProcessor(IdpuProcessor):
     def __init__(self, pipeline_config):
         super().__init__(pipeline_config)
 
-        self.completeness_updater = CompletenessUpdater(EpdCompletenessConfig)
+        self.epde_completeness_updater = CompletenessUpdater(pipeline_config.session, EpdeCompletenessConfig)
+        self.epdi_completeness_updater = CompletenessUpdater(pipeline_config.session, EpdiCompletenessConfig)
 
     def process_rejoined_data(self, df):
         """
@@ -46,12 +49,13 @@ class EpdProcessor(IdpuProcessor):
 
         if uncompressed + compressed + survey > 1:
             raise ValueError("⚠️ Detected more than one kind of EPD data (uncompressed, compressed, survey).")
-        elif uncompressed:
+
+        if uncompressed:
             df = self.update_uncompressed_df(df)
         elif compressed:
-            df = self.decompress_df(df=df, num_sectors=16)
+            df = self.decompress_df(df=df, num_sectors=16, table=EPD_HUFFMAN)
         elif survey:
-            df = self.decompress_df(df=df, num_sectors=4)
+            df = self.decompress_df(df=df, num_sectors=4, table=EPD_HUFFMAN)
         else:
             self.logger.warning("⚠️ Detected neither compressed nor uncompressed nor survey data.")
 
@@ -59,6 +63,7 @@ class EpdProcessor(IdpuProcessor):
 
     def update_uncompressed_df(self, df):
         """ For a dataframe of uncompressed data, update the idpu_time field to None if appropriate """
+        self.logger.debug("Updating a dataframe of uncompressed EPD data")
         df["idpu_time"] = (
             df["data"]
             .apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
@@ -67,7 +72,7 @@ class EpdProcessor(IdpuProcessor):
 
         return df
 
-    def decompress_df(self, df, num_sectors, table=EPD_HUFFMAN):
+    def decompress_df(self, df, num_sectors, table):
         """
         Decompresses a DataFrame of compressed packets
 
@@ -117,8 +122,7 @@ class EpdProcessor(IdpuProcessor):
         packet_num = find_first_header(data)
         if packet_num is None:  # no frames, so nothing to be done
             return lv0_df
-        else:
-            self.logger.debug(f"The first header is at {packet_num}")
+        self.logger.debug(f"The first header is at {packet_num}")
 
         # lossy_vals holds the table from information.py which holds possible values
         # lossy_idx is used nowhere else, and marker is used to determine if a packet is a header
@@ -144,10 +148,9 @@ class EpdProcessor(IdpuProcessor):
                 increment_by = find_first_header(data.iloc[packet_num:])
                 if increment_by is None:
                     break
-                else:
-                    packet_num += increment_by
-                    self.logger.debug(f"Jumped to header at {packet_num}, jumping over {increment_by} packets")
-                    needs_header = True
+                packet_num += increment_by
+                self.logger.debug(f"Jumped to header at {packet_num}, jumping over {increment_by} packets")
+                needs_header = True
 
             # Getting data from packet, and looking for contextual info (timestamp, spin per)
             cur_data = data.iloc[packet_num]
@@ -227,11 +230,10 @@ class EpdProcessor(IdpuProcessor):
                 # If we've determined that we can't use this packet, don't add it to the returned DF
                 if needs_header:
                     continue
-                else:
-                    num_packets_without_header += 1
+                num_packets_without_header += 1
 
             # Append the period (found from either the header or non-header packet) to lv0_df
-            period_df = self.format_period_to_lv0_df(measured_values, lossy_vals, spin_period_bytes, timestamp_bytes)
+            period_df = self.format_period_to_l0_df(measured_values, lossy_vals, spin_period_bytes, timestamp_bytes)
             if not period_df.empty:
                 period_df["mission_id"] = df.iloc[packet_num]["mission_id"]
                 period_df["idpu_type"] = df.iloc[packet_num]["idpu_type"]
@@ -251,7 +253,7 @@ class EpdProcessor(IdpuProcessor):
             ["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "packet_id"]
         ].reset_index(drop=True)
 
-    def format_period_to_lv0_df(self, measured_values, lossy_vals, spin_period_bytes, collection_time_bytes):
+    def format_period_to_l0_df(self, measured_values, lossy_vals, spin_period_bytes, collection_time_bytes):
         """
         Using the indices found, as well as the table of 255 values, find the values
         for a period, and return it as a DataFrame. Basically, this is used to create new
@@ -261,11 +263,12 @@ class EpdProcessor(IdpuProcessor):
         loss_val_idx is one of the indices that were found from the compressed packets
         lossy_val is the value found using lossy_vals and lossy_val_idx
         """
+        self.logger.debug("Formatting period to level 0 df")
 
         # Add the time
         bytes_data = spin_period_bytes + collection_time_bytes
         num_sectors = len(measured_values) / 16
-        if num_sectors != 4 and num_sectors != 16:
+        if num_sectors not in (4, 16):  # TODO: make into enum?
             raise ValueError(f"Bad Number of Sectors: {num_sectors}")
 
         num_bins = 0
@@ -322,11 +325,10 @@ class EpdProcessor(IdpuProcessor):
             """
             if self.data_product_name[-1] == "f":
                 return 16
-            elif self.data_product_name[-1] == "s":
+            if self.data_product_name[-1] == "s":
                 self.logger.warning("Survey Mode handling is still in progress")
                 return 4
-            else:
-                raise ValueError(f"Bad data product name: {self.data_product_name}")
+            raise ValueError(f"Bad data product name: {self.data_product_name}")
 
         def get_context(data):
             """
@@ -464,7 +466,7 @@ class EpdProcessor(IdpuProcessor):
                     break
 
         if categories_filled != 3:
-            self.logger.warn("Issues with Inserting Energy Information!!")
+            self.logger.warning("Issues with Inserting Energy Information!!")
 
     def get_completeness_updater(self):
         return self.completeness_updater
