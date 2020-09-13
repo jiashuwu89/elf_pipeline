@@ -1,0 +1,488 @@
+"""
+This class processes level 0 and level 1 epdef, epdes, epdif, and epdis
+and builds upon the science processor class.
+
+The science processor class handles pulling data from the database
+as well as inputting data into the CSV's. The epd_processor class
+handles decompression of epd, filtering of data based on collection
+frequency, and formatting of epd related data into a database.
+
+All collected data should be brought in as pandas Dataframes for
+this class to work correctly
+"""
+# TODO: This is just copied from the original epd_processor.py. Needs to be refactored
+
+import datetime as dt
+
+import pandas as pd
+
+from processor.idpu.idpu_processor import IdpuProcessor
+from science_processing.information import (EPD_HUFFMAN, EPD_LOSSY_VALS,
+                                            SCIENCE_TYPES)
+from utils import byte_tools
+
+# EPD_ENERGIES = [[50., 70., 110., 160., 210., 270., 345., 430., 630., 900., 1300., 1800., 2500., 3000., 3850., 4500.]]
+
+
+class EpdProcessor(IdpuProcessor):
+    def __init__(self, mission_id, data_product, db_session=None, save_directory=""):
+        super().__init__(mission_id, data_product, db_session, save_directory)
+
+        self.idpu_types = SCIENCE_TYPES[data_product]
+
+        data_product_type = "p" + data_product[-2:]
+        self.cdf_fields_l1 = {
+            data_product_type: "data",
+            data_product_type + "_time": "idpu_time",
+            data_product_type + "_sectnum": "sec_num",
+            data_product_type + "_spinper": "spin_period",
+        }
+
+    def gen_level_0(self, collection_time):
+        fname, lv0_orig_df = super().gen_level_0(collection_time)
+
+        # Completeness
+        lv0_df = lv0_orig_df.copy()
+        lv0_df = lv0_df[["idpu_time", "data"]].drop_duplicates().dropna()
+        lv0_df_times = lv0_df["idpu_time"]
+        self.update_completeness_table(lv0_df_times)  # TODO: Change EPD to EPDE or EPDI
+
+        return fname, lv0_orig_df
+
+    def process_level_0(self, df):
+        """
+        Given an EPD dataframe...
+        - If uncompressed data, go to update_uncompressed_df
+        - If compressed data, decompress the data
+        - Otherwise, something went wrong
+        """
+
+        types = df["idpu_type"].values
+        uncompressed = 3 in types or 5 in types
+        compressed = 4 in types or 6 in types
+        survey = 19 in types or 20 in types
+
+        if uncompressed + compressed + survey > 1:
+            raise ValueError(
+                f"⚠️ Detected more than one kind of EPD data (uncompressed, "
+                + "compressed, survey). This should never happen..."
+            )
+        elif uncompressed:
+            df = self.update_uncompressed_df(df)
+        elif compressed:
+            df = self.decompress_df(df=df, num_sectors=16)
+        elif survey:
+            df = self.decompress_df(df=df, num_sectors=4)
+        else:
+            self.log.warning(f"⚠️ Detected neither compressed nor uncompressed nor survey data.")
+
+        return df
+
+    def update_uncompressed_df(self, df):
+        """ For a dataframe of uncompressed data, update the idpu_time field to None if appropriate """
+        df["idpu_time"] = (
+            df["data"]
+            .apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
+            .apply(lambda x: byte_tools.raw_idpu_bytes_to_datetime(x[2:10]) if x else None)
+        )
+
+        return df
+
+    def decompress_df(self, df, num_sectors, table=EPD_HUFFMAN):
+        """
+        Decompresses a DataFrame of compressed packets
+
+        How EPD Compression Works:
+        - Each sector has 16 bins associated with it (0 - 15)
+        - One period is 16 sectors
+        - Each packet corresponds to one period
+        - Think of packets in groups of 10:
+            - 1 Header packet, which holds the actual values
+            - 9 Non-header packets, which don't store the actual values but the change
+            that needs to be applied to the previous packet in order to get the value
+            (ex. if the actual value is 5, and the previous value is 3, then 2 will be stored)
+        - For ALL packets, these 'delta' values aren't actually stored :O
+            - The sign is either + or -, which is stored for NON-HEADER packets.
+            - There is a table of 255 values. Instead of storing the actual values or deltas
+            (depending on if it's a header or non-header), ALL PACKETS hold the indices of 
+            the closest values.
+            - These indexes are further reduced in size through Huffman Compression
+            - Find the table and the Huffman Compression decoder in parse_log.py
+        """
+
+        def find_lossy_idx(data_packet_in_bytes):
+            return data_packet_in_bytes[10] - 0xAA
+
+        def find_first_header(data):
+            packet_num = 0
+            while packet_num < data.shape[0]:
+                if data.iloc[packet_num] is None or data.iloc[packet_num][10] & 0xA0 != 0xA0:
+                    packet_num += 1
+                else:
+                    return packet_num
+            return None  # If went out of bounds, just return None
+
+        # Prepare data
+        data = df["data"].apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
+
+        # lv0_df:           holds finished periods
+        # period_df:        holds period that is currently being 'worked on'
+        # measured values:  For one period, hold value from Huffman table and later is put into period_df
+        lv0_df = pd.DataFrame(
+            columns=["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "packet_id"]
+        )
+        period_df = pd.DataFrame()
+        measured_values = [None] * 16 * num_sectors
+
+        # Find the first header, which is the packet number where the loop starts
+        packet_num = find_first_header(data)
+        if packet_num is None:  # no frames, so nothing to be done
+            return lv0_df
+        else:
+            self.log.debug(f"The first header is at {packet_num}")
+
+        # lossy_vals holds the table from information.py which holds possible values
+        # lossy_idx is used nowhere else, and marker is used to determine if a packet is a header
+        lossy_idx = find_lossy_idx(data.iloc[packet_num])
+        lossy_vals = EPD_LOSSY_VALS[lossy_idx]
+        marker = 0xAA + lossy_idx
+        # self.log.debug(f"Lossy idx is {lossy_idx}, marker {hex(marker)}")
+
+        # Flags used in loop
+        num_packets_without_header = 0  # Packet 'counter' (After getting header, it is set to 0 again)
+        needs_header = True  # Initially True to avoid the warning (logically should be false,
+        # but this should not change anything functionally)
+
+        # Going through the data
+        while packet_num < data.shape[0]:
+            # Checking for empty packet within sector
+            if not data.iloc[packet_num]:
+                self.log.debug(f"empty packet: {packet_num}")
+                needs_header = True
+
+            # Try to get next header, if not found just break because the loop is over
+            if needs_header or num_packets_without_header >= 9:
+                increment_by = find_first_header(data.iloc[packet_num:])
+                if increment_by == None:
+                    break
+                else:
+                    packet_num += increment_by
+                    self.log.debug(f"Jumped to header at {packet_num}, jumping over {increment_by} packets")
+                    needs_header = True
+
+            # Getting data from packet, and looking for contextual info (timestamp, spin per)
+            cur_data = data.iloc[packet_num]
+            timestamp_bytes = cur_data[:8]
+            spin_period_bytes = cur_data[8:10]
+
+            # Now, there's two cases:
+
+            # 1. This packet is a header (reference frame)
+            if cur_data[10] == marker:
+                if not needs_header and packet_num != 0:
+                    self.log.warning(f"⚠️ Weird, needs_header was false (packet ID {packet_num})")
+
+                cur_data = cur_data[11:]  # Already stored timestamp and spin per, not interested in them
+
+                # Check that we have all 256 reference bins
+                if len(cur_data) == 16 * num_sectors:
+                    needs_header = False  # Clear flags
+                    num_packets_without_header = 0  # Clear flags
+
+                    # Set measured_values
+                    for ind, val in enumerate(cur_data):
+                        measured_values[ind] = val
+
+                # If not enough/too many reference bins, don't add to the returned DF
+                else:
+                    self.log.warning(f"⚠️ Not a full header at {packet_num}, length is only {len(cur_data)}")
+                    needs_header = True
+                    packet_num += 1
+                    continue  # TODO: handle false headers
+
+            # 2. This is a non-header (not a reference frame)
+            # Getting each of the 256 values in the period
+            # If the packet is bad, just don't use it. Cases handled are:
+            #   - Bad sign (bitstring doesn't start with 00 or 01)
+            #   - Couldn't read/convert the values, possibly because parsing the data failed
+            #   - Index used to access the Huffman table is out of bounds (ex. <0 or >255)
+            else:
+                if needs_header:
+                    raise ValueError(f"Needed header at {packet_num}, but this shouldn't happen!")
+
+                bitstring = byte_tools.bin_string(cur_data[10:])
+
+                for value_ind in range(16 * num_sectors):
+                    # Determine sign using the beginning of the bitstring
+                    if bitstring[:2] == "01":
+                        sign = -1
+                    elif bitstring[:2] == "00":
+                        sign = 1
+                    else:
+                        self.log.warning(f"⚠️ Bad Sign: {bitstring[:2]}, ind: {value_ind}, packet {packet_num}")
+                        needs_header = True
+                        break
+
+                    # Modifying the previous value by the calculated difference
+                    try:
+                        delta1, bitstring = byte_tools.get_huffman(bitstring[2:], table)
+                        delta2, bitstring = byte_tools.get_huffman(bitstring, table)
+                        measured_values[value_ind] += sign * ((delta1 << 4) + delta2)
+                    except IndexError as e:
+                        self.log.warning(
+                            f"⚠️ Not enough bytes to determine the decompressed version: {e}, packet {packet_num}"
+                        )
+                        needs_header = True
+                        break
+
+                # Check for bad values, create warning if there are
+                bad_in_m_val = [
+                    (i, measured_values[i]) for i in range(16 * num_sectors) if not 0 <= measured_values[i] <= 255
+                ]
+                if bad_in_m_val and not needs_header:
+                    self.log.warning(f"⚠️ Found bad values in measured_values for packet {packet_num} : {bad_in_m_val}")
+                    needs_header = True
+
+                # If we've determined that we can't use this packet, don't add it to the returned DF
+                if needs_header:
+                    continue
+                else:
+                    num_packets_without_header += 1
+
+            # Append the period (found from either the header or non-header packet) to lv0_df
+            period_df = self.format_period_to_lv0_df(measured_values, lossy_vals, spin_period_bytes, timestamp_bytes)
+            if not period_df.empty:
+                period_df["mission_id"] = df.iloc[packet_num]["mission_id"]
+                period_df["idpu_type"] = df.iloc[packet_num]["idpu_type"]
+                period_df["numerator"] = df.iloc[packet_num]["numerator"]
+                period_df["denominator"] = df.iloc[packet_num]["denominator"]
+                period_df["packet_id"] = [
+                    df.iloc[packet_num]["packet_id"] for _ in range(period_df.shape[0])
+                ]  # TODO: This line is very slow
+
+                lv0_df = lv0_df.append(period_df, sort=True)
+                period_df = pd.DataFrame()
+
+            # Once a new row of data has been added, look at the next packet
+            packet_num += 1
+
+        return lv0_df[
+            ["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "packet_id"]
+        ].reset_index(drop=True)
+
+    def format_period_to_lv0_df(self, measured_values, lossy_vals, spin_period_bytes, collection_time_bytes):
+        """
+        Using the indices found, as well as the table of 255 values, find the values
+        for a period, and return it as a DataFrame. Basically, this is used to create new
+        'uncompressed' packets that get added to the level 0 DataFrame
+
+        lossy_vals is the table of 255 potential values
+        loss_val_idx is one of the indices that were found from the compressed packets
+        lossy_val is the value found using lossy_vals and lossy_val_idx
+        """
+
+        # Add the time
+        bytes_data = spin_period_bytes + collection_time_bytes
+        num_sectors = len(measured_values) / 16
+        if num_sectors != 4 and num_sectors != 16:
+            raise ValueError(f"Bad Number of Sectors: {num_sectors}")
+
+        num_bins = 0
+        sector_num = 0x0F
+        bytes_data += bytes([sector_num])
+
+        for loss_val_idx in measured_values:
+
+            # If the sector is complete, then increment the sector_num and prepare for a new sector
+            if num_bins == 16:
+                sector_num += 0x10 if num_sectors == 16 else 0x40
+                bytes_data += bytes([sector_num])
+                num_bins = 0
+
+            lossy_val = lossy_vals[loss_val_idx]
+            bytes_data += byte_tools.get_two_unsigned_bytes(lossy_val & 0xFFFF)  # least significant word first
+            bytes_data += byte_tools.get_two_unsigned_bytes(lossy_val >> 16)  # most significant word next
+            num_bins += 1
+
+        data = bytes_data.hex()
+
+        period_df = pd.DataFrame(
+            data={"idpu_time": byte_tools.raw_idpu_bytes_to_datetime(collection_time_bytes), "data": data}, index=[0]
+        )
+        return period_df
+
+    def transform_level_0(self, df, collection_date):
+        """
+        Does the necessary processing on a level 0 df to create a level 1 dataframe
+
+        NOTE: collection_date is an unused parameter for EPD's transform_level_0, but
+        it could be used in other processors (so don't delete it)
+        """
+        level1_df = self.parse_periods(df)
+        level1_df = self.format_for_cdf(level1_df)
+
+        return level1_df
+
+    def parse_periods(self, df):
+        """
+        Parse EPD bin readings into a pandas DataFrame
+        Tasks:
+        - Loop through each row, each is a full revolution
+            - convert data to bytes using function, then read in bins 0-15 for sectors 0-f
+        - return same DataFrame structure as before
+        """
+
+        def calculate_num_sectors(data):
+            """
+            Determine the number of sectors
+            TODO: The way this works could be much better, but it was written befor survey mode
+            was fully supported. The formula for num_sectors could be (data[20:] / 16) - 1, but
+            not completely sure
+            """
+            if self.data_product_name[-1] == "f":
+                return 16
+            elif self.data_product_name[-1] == "s":
+                self.log.warning("Survey Mode handling is still in progress")
+                return 4
+            else:
+                raise ValueError(f"Bad data product name: {self.data_product_name}")
+
+        def get_context(data):
+            """
+            For a given row of data, finds (from parsing the data) and returns a tuple of:
+            (spin period, time, and data for bins)
+            """
+            data = str(data)
+            spin_period = int(data[0:4], 16)
+            time_bytes = bytes.fromhex(data[4:20])
+            bin_data = bytes.fromhex(data[20:])
+            return spin_period, byte_tools.raw_idpu_bytes_to_datetime(time_bytes), bin_data
+
+        def calculate_center_times_for_period(spin_period, time_captured, num_sectors):
+            """ Interpolates center times for in between sectors and converts to tt2000 """
+            seconds_per_sector = dt.timedelta(seconds=(spin_period / 80) / 16)
+            center_time_offset = seconds_per_sector / 2
+            return [
+                (time_captured + seconds_per_sector * i + center_time_offset) for i in range(0, 16, 16 // num_sectors)
+            ]
+
+        relevant_df = df[["idpu_time", "data"]]
+        bins = [[] for i in range(16)]
+        all_sec_num = []
+        all_idpu_times = []
+        all_spin_periods = []
+
+        num_sectors = calculate_num_sectors(df.iloc[0]["data"])
+
+        for _, row in relevant_df.iterrows():
+            cur_spin_period, cur_time_captured, bin_data = get_context(row["data"])
+            all_spin_periods.extend([cur_spin_period for i in range(num_sectors)])
+            times_for_period = calculate_center_times_for_period(cur_spin_period, cur_time_captured, num_sectors)
+            all_idpu_times.extend(times_for_period)
+
+            for i in range(0, 16, 16 // num_sectors):
+                all_sec_num.append(i)
+                for j in range(1, 65, 4):
+                    bins[j // 4].append(
+                        (bin_data[j] << 8) + (bin_data[j + 1]) + (bin_data[j + 2] << 24) + (bin_data[j + 3] << 16)
+                    )
+                bin_data = bin_data[65:]
+
+        return pd.DataFrame(
+            {
+                "idpu_time": all_idpu_times,
+                "spin_period": all_spin_periods,
+                "sec_num": all_sec_num,
+                "bin00": bins[0],
+                "bin01": bins[1],
+                "bin02": bins[2],
+                "bin03": bins[3],
+                "bin04": bins[4],
+                "bin05": bins[5],
+                "bin06": bins[6],
+                "bin07": bins[7],
+                "bin08": bins[8],
+                "bin09": bins[9],
+                "bin10": bins[10],
+                "bin11": bins[11],
+                "bin12": bins[12],
+                "bin13": bins[13],
+                "bin14": bins[14],
+                "bin15": bins[15],
+            }
+        )
+
+    def format_for_cdf(self, df):
+        """ Gets the columns corresponding to the bins, in preparation for the CDF """
+        df["data"] = df[
+            [
+                "bin00",
+                "bin01",
+                "bin02",
+                "bin03",
+                "bin04",
+                "bin05",
+                "bin06",
+                "bin07",
+                "bin08",
+                "bin09",
+                "bin10",
+                "bin11",
+                "bin12",
+                "bin13",
+                "bin14",
+                "bin15",
+            ]
+        ].values.tolist()
+        return df
+
+    def process_level_2(self, df):
+        pass
+
+    #####################
+    # Utility Functions #
+    #####################
+    def fill_CDF(self, level, cdf, df):
+        """ Same as base class's fill_CDF except this function also includes EPD energies """
+        super().fill_CDF(level, cdf, df)
+
+        prefix = self.probe_name + "_p" + self.data_product_name[-2:]
+        e_or_i = self.data_product_name[-2:-1]
+
+        fname = (
+            f"/home/elfin-esn/OPS/science/trunk/science_processing/calibration/{self.probe_name}_cal_epd{e_or_i}.txt"
+        )
+        with open(fname, "r") as f:
+            lines = f.readlines()
+
+            idx = 0
+            categories_filled = 0
+            while idx < len(lines):
+                current = lines[idx]
+
+                if "ebins_logmean:" in current:
+                    energies_midpoint = [float(lines[i].split()[0]) for i in range(idx + 1, idx + 17)]
+                    cdf[prefix + "_energies_mean"] = energies_midpoint
+
+                    idx += 17
+                    categories_filled += 1
+
+                elif "ebins_minmax:" in current:
+                    minmax = [lines[i].split() for i in range(idx + 1, idx + 17)]
+                    min_list = [float(i[0][:-1]) for i in minmax]
+                    max_list = [float(i[1]) for i in minmax]
+
+                    cdf[prefix + "_energies_min"] = min_list
+                    cdf[prefix + "_energies_max"] = max_list
+
+                    idx += 17
+                    categories_filled += 2
+
+                else:
+                    idx += 1
+
+                if categories_filled == 3:
+                    break
+
+        if categories_filled != 3:
+            self.log.warn("Issues with Inserting Energy Information!!")

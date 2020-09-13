@@ -7,7 +7,6 @@ These tasks are:
 """
 import logging
 import traceback
-from abc import ABC
 
 from output.exception_collector import ExceptionCollector
 from output.server_manager import ServerManager
@@ -18,58 +17,7 @@ from util.constants import DAILY_EMAIL_LIST
 # TODO: self.times should be an enum
 
 
-class PipelineConfig(ABC):
-    @property
-    def session(self):
-        raise NotImplementedError
-
-    @property
-    def calculate(self):
-        raise NotImplementedError
-
-    @property
-    def update_db(self):
-        raise NotImplementedError
-
-    @property
-    def generate_files(self):
-        raise NotImplementedError
-
-    @property
-    def output_dir(self):
-        raise NotImplementedError
-
-    @property
-    def upload(self):
-        raise NotImplementedError
-
-    @property
-    def email(self):
-        raise NotImplementedError
-
-
-class PipelineQuery(ABC):
-    @property  # TODO: use this strategy in all ABCs
-    def mission_ids(self):
-        raise NotImplementedError
-
-    @property
-    def data_products(self):
-        raise NotImplementedError
-
-    @property
-    def times(self):
-        raise NotImplementedError
-
-    @property
-    def start_time(self):
-        raise NotImplementedError
-
-    @property
-    def end_time(self):
-        raise NotImplementedError
-
-
+# TODO: Eliminate Pipeline query
 class Coordinator:
     """Coordinator class to coordinate the pipeline.
 

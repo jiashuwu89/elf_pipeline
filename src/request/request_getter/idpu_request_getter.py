@@ -1,7 +1,7 @@
 import datetime as dt
 
-from request.downlink.downlink_manager import DownlinkManager
-from request.processing_request import ProcessingRequest
+from request.downlink_manager import DownlinkManager
+from types.processing_request import ProcessingRequest
 from request.request_getter.request_getter import RequestGetter
 from util.constants import IDPU_TYPES, SCIENCE_TYPES
 

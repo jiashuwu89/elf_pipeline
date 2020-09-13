@@ -13,7 +13,9 @@ from dateutil.parser import parse as dateparser
 
 import util.constants
 from common import db
-from coordinator import Coordinator, PipelineConfig, PipelineQuery
+from coordinator import Coordinator
+from types.pipeline_config import PipelineConfig
+from types.pipeline_query import PipelineQuery
 from util.constants import ALL_MISSIONS, LOOK_BEHIND_DELTA
 
 # Logging Init
