@@ -20,8 +20,10 @@ from utils.db.downlinks import Downlinks
 class EngProcessor(ScienceProcessor):
     """Class to generate ENG files"""
 
-    def __init__(self, session, output_dir):
-        super().__init__(self, session, output_dir, "eng")
+    def __init__(self, pipeline_config):
+        super().__init__(self, pipeline_config)
+
+        # TODO: Fix this (see fgm or epd processors)
         self.idpu_types = SCIENCE_TYPES[data_product]
 
         self.eng_fields = [

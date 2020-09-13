@@ -9,7 +9,8 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 
-from metric.completeness import CompletenessUpdater, FgmCompletenessConfig
+from data_type.completeness_config import FgmCompletenessConfig
+from metric.completeness import CompletenessUpdater
 from processor.idpu.idpu_processor import IdpuProcessor
 from util import byte_tools
 from util.compression_values import FGM_HUFFMAN
@@ -19,11 +20,8 @@ from util.science_utils import hex_to_int
 
 
 class FgmProcessor(IdpuProcessor):
-    def __init__(self, session, output_dir, processor_name):
-        super().__init__(session, output_dir, processor_name)
-
-        # TODO: Fix this
-        self.cdf_fields = {data_product: "data", data_product + "_time": "idpu_time"}
+    def __init__(self, pipeline_config):
+        super().__init__(pipeline_config)
 
         self.completeness_updater = CompletenessUpdater(FgmCompletenessConfig)
 
@@ -45,7 +43,7 @@ class FgmProcessor(IdpuProcessor):
         compressed = df["idpu_type"].isin([2, 18]).any()
 
         if uncompressed and compressed:
-            self.log.warning("⚠️ Detected both compressed and uncompressed data. This should never happen...")
+            self.logger.warning("⚠️ Detected both compressed and uncompressed data. This should never happen...")
             return df[df["idpu_type"].isin([1, 17])]
 
         if compressed:
@@ -65,7 +63,7 @@ class FgmProcessor(IdpuProcessor):
                 ["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "10hz_mode", "packet_id"]
             ]
         else:
-            self.log.warning("⚠️ Detected neither compressed nor uncompressed data.")
+            self.logger.warning("⚠️ Detected neither compressed nor uncompressed data.")
 
         return df
 
@@ -86,7 +84,7 @@ class FgmProcessor(IdpuProcessor):
         final = pd.concat([first, final])
         return final
 
-    def transform_level_0(self, df, collection_date):
+    def transform_l0_df(self, df, collection_date):
         """
         Does the necessary processing on a level 0 df to create a level 1 df
         ** collection_date is unused
@@ -225,7 +223,7 @@ class FgmProcessor(IdpuProcessor):
                 # necessary, and want to view the idpu_code, the link is:
                 # https://elfin-dev1.igpp.ucla.edu/repos/eng/FPGA/elfin_ns8/idpu_em/source/branches/akhil_branch/embedded/idpu_3
                 if signb == "11":
-                    self.log.debug(
+                    self.logger.debug(
                         f"⚠️\tProblem with Sign: Got 11, skipping packet at idpu_time {row['idpu_time']}, numerator {row['numerator']}"
                     )
                     break
@@ -240,7 +238,7 @@ class FgmProcessor(IdpuProcessor):
                     bs = bs[8:]
 
                 except IndexError:
-                    self.log.warning("⚠️ Unable to decompress correctly")
+                    self.logger.warning("⚠️ Unable to decompress correctly")
                     continue
 
                 # Apparently something changed in late March 2019?
@@ -346,3 +344,10 @@ class FgmProcessor(IdpuProcessor):
         df = df[["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "10hz_mode", "packet_id"]]
 
         return df.reset_index()
+
+    def get_completeness_updater(self):
+        return self.completeness_updater
+
+    def get_cdf_fields(self, processing_request):
+        data_product = processing_request.data_product
+        return {data_product: "data", data_product + "_time": "idpu_time"}

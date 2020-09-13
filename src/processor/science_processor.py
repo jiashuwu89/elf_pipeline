@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 from spacepy import pycdf
 
-from db.downlink import DownlinkManager
+from db.downlink import DownlinkManager  # TODO: Split Downlink Manager
 from util.constants import MASTERCDF_DIR
 
 
@@ -14,13 +14,13 @@ class ScienceProcessor(ABC):
     Implements some basic functionalities common to all data products.
     """
 
-    def __init__(self, session, output_dir, processor_name):
+    def __init__(self, pipeline_config):
         self.logger = logging.getLogger(self.__class__.__name__)
 
-        self.session = session
-        self.output_dir = output_dir
+        self.session = pipeline_config.session
+        self.output_dir = pipeline_config.output_dir
 
-        self.downlink_manager = DownlinkManager(session)
+        self.downlink_manager = DownlinkManager(self.session)
 
     @abstractmethod
     def generate_files(self, processing_request):
@@ -28,8 +28,8 @@ class ScienceProcessor(ABC):
 
     def make_filename(self, processing_request, level, size=None):
         """Constructs the appropriate filename for a L0/L1/L2 file, and returns the full path (level is int)"""
-
-        fname = f"{processing_request.get_probe()}_l{level}_{processing_request.data_product}_{processing_request.date.strftime('%Y%m%d')}"
+        formatted_date = processing_request.date.strftime("%Y%m%d")
+        fname = f"{processing_request.get_probe()}_l{level}_{processing_request.data_product}_{formatted_date}"
         if level == 0:
             if size is None:
                 raise ValueError("No size given for level 0 naming")
@@ -42,9 +42,11 @@ class ScienceProcessor(ABC):
 
     def create_cdf(self, fname):
         """
-        Gets or creates a CDF with the desired fname. If existing path is specified, it would check to see if the correct CDF exists.
+        Gets or creates a CDF with the desired fname. If existing path is
+        specified, it would check to see if the correct CDF exists.
         If it does not exist, a new cdf will be created with the master cdf.
-            fname - a string that includes the  target file path along with the target file name of the desired file.
+            fname - a string that includes the  target file path along with
+            the target file name of the desired file.
                 The file name is of the data product format used.
         """
         fname_parts = fname.split("/")[-1].split("_")

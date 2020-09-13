@@ -11,18 +11,17 @@ from spacepy import pycdf
 
 from libelfin.utils import compute_crc
 from processor.science_processor import ScienceProcessor
-from request.downlink.downlink_manager import DownlinkManager
+from request.downlink_manager import DownlinkManager
 from util import downlink_utils
 from util.science_utils import dt_to_tt2000, s_if_plural
 
 
 class IdpuProcessor(ScienceProcessor):
-    def __init__(self, session, output_dir, processor_name):
-        super().__init__(session, output_dir, processor_name)
-        # TODO: CompletenessUpdater in fgm and epd
+    def __init__(self, pipeline_config):
+        super().__init__(pipeline_config)
         self.cdf_fields = []
 
-        self.downlink_manager = DownlinkManager(session)
+        self.downlink_manager = DownlinkManager(pipeline_config.session)
 
     def generate_files(self, processing_request):
         l0_file_name, l0_df = self.generate_l0_products(processing_request)
@@ -33,6 +32,7 @@ class IdpuProcessor(ScienceProcessor):
     def generate_l0_products(self, processing_request):
         self.logger.info(">>> Generating Level 0 Products...")
         l0_df = self.generate_l0_df(processing_request)
+        self.update_completeness_table(l0_df)
         l0_file_name = self.generate_l0_file(processing_request, l0_df.copy())
         return l0_file_name, l0_df
 
@@ -63,13 +63,26 @@ class IdpuProcessor(ScienceProcessor):
         self.logger.info("✔️ Done processing Level 0 packets")
 
         self.logger.info("Final merge...")
-        df = self.merge_processed_dataframes(dfs)
+        df = self.merge_processed_dataframes(dfs, processing_request.idpu_types)
         self.logger.info("✔️ Done with final merge")
 
         if df.empty:
             raise RuntimeError(f"Final Dataframe is empty: {str(processing_request)}")
 
         return df
+
+    def update_completeness_table(self, l0_df):
+        self.logger.info("Updating completeness table")
+        df = l0_df.copy()
+        df = df[["idpu_time", "data"]].drop_duplicates().dropna()
+        df_times = df["idpu_time"]
+
+        completeness_updater = self.get_completeness_updater()
+        completeness_updater.update_completeness_table(df_times)  # TODO: Change EPD to EPDE or EPDI
+
+    @abstractmethod
+    def get_completeness_updater(self):
+        pass
 
     def generate_l0_file(self, processing_request, l0_df):
         # Filter fields and duplicates
@@ -110,7 +123,7 @@ class IdpuProcessor(ScienceProcessor):
             l0_df = self.generate_l0_df(processing_request.date)
 
         # Allow derived class to transform data
-        l1_df = self.transform_l0(l0_df, processing_request.date)
+        l1_df = self.transform_l0_df(l0_df, processing_request.date)
 
         # Timestamp conversion
         try:
@@ -128,13 +141,13 @@ class IdpuProcessor(ScienceProcessor):
         return l1_df
 
     @abstractmethod
-    def transform_l0(self, l0_df, collection_date):
+    def transform_l0_df(self, l0_df, collection_date):
         pass
 
     def generate_l1_file(self, processing_request, l1_df):
-        fname = self.make_filename(1, processing_request.date)
-        cdf = self.create_CDF(fname, l1_df)
-        self.fill_cdf(1, cdf, l1_df)
+        fname = self.make_filename(processing_request, 1)
+        cdf = self.create_cdf(fname, l1_df)
+        self.fill_cdf(processing_request, cdf, l1_df)
         cdf.close()
 
         return fname, l1_df
@@ -229,9 +242,10 @@ class IdpuProcessor(ScienceProcessor):
 
             current_length = len(cur_data)
 
+            # TODO: make sure this is ok (see orig implementation)
             # Making sure this frame has a header
             if compute_crc(0xFF, cur_frame[1:12]) != cur_frame[12]:
-                self.logger.debug(f"Dropping idx={idx}: Probably not a header - {e}\n")
+                self.logger.debug(f"Dropping idx={idx}: Probably not a header\n")
                 missing_numerators.append(numerator)
                 idx += 1
                 continue
@@ -280,11 +294,11 @@ class IdpuProcessor(ScienceProcessor):
 
         return final_df[["timestamp", "mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data"]]
 
+    @abstractmethod
     def process_rejoined_data(self, df):
-        """Override if necessary (ex. to perform decompression)"""
-        return df
+        pass
 
-    def merge_processed_dataframes(self, dataframes):
+    def merge_processed_dataframes(self, dataframes, idpu_types):
         """
         Given a list of dataframes of identical format (decompressed/raw, level 0),
         merge them in a way such that duplicate frames are removed.
@@ -292,9 +306,10 @@ class IdpuProcessor(ScienceProcessor):
         Preference is given in the same order as which IDPU_TYPEs
         appear in the list self.idpu_types.
         """
+        self.logger.debug("Merging processed dataframes")
         df = pd.concat(dataframes)
 
-        df["idpu_type"] = df["idpu_type"].astype("category").cat.set_categories(self.idpu_types, ordered=True)
+        df["idpu_type"] = df["idpu_type"].astype("category").cat.set_categories(idpu_types, ordered=True)
         df = df.dropna(subset=["data", "idpu_time"])
         df = df.sort_values(["idpu_time", "idpu_type"])
 
@@ -304,7 +319,7 @@ class IdpuProcessor(ScienceProcessor):
 
         return df.reset_index()
 
-    def fill_cdf(self, probe_name, df, cdf):
+    def fill_cdf(self, processing_request, df, cdf):
         """ Inserts data from df into a CDF file
 
         Parameters
@@ -312,9 +327,9 @@ class IdpuProcessor(ScienceProcessor):
         df
         cdf
         """
-        for key in self.cdf_fields:
+        for key in self.get_cdf_fields(processing_request):
             df_field_name = self.cdf_fields[key]
-            cdf_field_name = f"{probe_name}_{key}"
+            cdf_field_name = f"{processing_request.probe}_{key}"
 
             if cdf_field_name in cdf.keys() and df_field_name in df.columns:
                 data = df[df_field_name].values
@@ -323,3 +338,7 @@ class IdpuProcessor(ScienceProcessor):
                     data = np.stack(data)
 
                 cdf[cdf_field_name] = data
+
+    @abstractmethod
+    def get_cdf_fields(self, processing_request):
+        pass

@@ -16,40 +16,22 @@ import datetime as dt
 
 import pandas as pd
 
+from metric.completeness import CompletenessUpdater, EpdCompletenessConfig
 from processor.idpu.idpu_processor import IdpuProcessor
-from science_processing.information import (EPD_HUFFMAN, EPD_LOSSY_VALS,
-                                            SCIENCE_TYPES)
+from science_processing.information import EPD_HUFFMAN, EPD_LOSSY_VALS
 from utils import byte_tools
+from utils.constants import EPD_CALIBRATION_DIR
 
 # EPD_ENERGIES = [[50., 70., 110., 160., 210., 270., 345., 430., 630., 900., 1300., 1800., 2500., 3000., 3850., 4500.]]
 
 
 class EpdProcessor(IdpuProcessor):
-    def __init__(self, mission_id, data_product, db_session=None, save_directory=""):
-        super().__init__(mission_id, data_product, db_session, save_directory)
+    def __init__(self, pipeline_config):
+        super().__init__(pipeline_config)
 
-        self.idpu_types = SCIENCE_TYPES[data_product]
+        self.completeness_updater = CompletenessUpdater(EpdCompletenessConfig)
 
-        data_product_type = "p" + data_product[-2:]
-        self.cdf_fields_l1 = {
-            data_product_type: "data",
-            data_product_type + "_time": "idpu_time",
-            data_product_type + "_sectnum": "sec_num",
-            data_product_type + "_spinper": "spin_period",
-        }
-
-    def gen_level_0(self, collection_time):
-        fname, lv0_orig_df = super().gen_level_0(collection_time)
-
-        # Completeness
-        lv0_df = lv0_orig_df.copy()
-        lv0_df = lv0_df[["idpu_time", "data"]].drop_duplicates().dropna()
-        lv0_df_times = lv0_df["idpu_time"]
-        self.update_completeness_table(lv0_df_times)  # TODO: Change EPD to EPDE or EPDI
-
-        return fname, lv0_orig_df
-
-    def process_level_0(self, df):
+    def process_rejoined_data(self, df):
         """
         Given an EPD dataframe...
         - If uncompressed data, go to update_uncompressed_df
@@ -63,10 +45,7 @@ class EpdProcessor(IdpuProcessor):
         survey = 19 in types or 20 in types
 
         if uncompressed + compressed + survey > 1:
-            raise ValueError(
-                f"⚠️ Detected more than one kind of EPD data (uncompressed, "
-                + "compressed, survey). This should never happen..."
-            )
+            raise ValueError("⚠️ Detected more than one kind of EPD data (uncompressed, compressed, survey).")
         elif uncompressed:
             df = self.update_uncompressed_df(df)
         elif compressed:
@@ -74,7 +53,7 @@ class EpdProcessor(IdpuProcessor):
         elif survey:
             df = self.decompress_df(df=df, num_sectors=4)
         else:
-            self.log.warning(f"⚠️ Detected neither compressed nor uncompressed nor survey data.")
+            self.logger.warning("⚠️ Detected neither compressed nor uncompressed nor survey data.")
 
         return df
 
@@ -104,7 +83,7 @@ class EpdProcessor(IdpuProcessor):
         - For ALL packets, these 'delta' values aren't actually stored :O
             - The sign is either + or -, which is stored for NON-HEADER packets.
             - There is a table of 255 values. Instead of storing the actual values or deltas
-            (depending on if it's a header or non-header), ALL PACKETS hold the indices of 
+            (depending on if it's a header or non-header), ALL PACKETS hold the indices of
             the closest values.
             - These indexes are further reduced in size through Huffman Compression
             - Find the table and the Huffman Compression decoder in parse_log.py
@@ -139,14 +118,14 @@ class EpdProcessor(IdpuProcessor):
         if packet_num is None:  # no frames, so nothing to be done
             return lv0_df
         else:
-            self.log.debug(f"The first header is at {packet_num}")
+            self.logger.debug(f"The first header is at {packet_num}")
 
         # lossy_vals holds the table from information.py which holds possible values
         # lossy_idx is used nowhere else, and marker is used to determine if a packet is a header
         lossy_idx = find_lossy_idx(data.iloc[packet_num])
         lossy_vals = EPD_LOSSY_VALS[lossy_idx]
         marker = 0xAA + lossy_idx
-        # self.log.debug(f"Lossy idx is {lossy_idx}, marker {hex(marker)}")
+        # self.logger.debug(f"Lossy idx is {lossy_idx}, marker {hex(marker)}")
 
         # Flags used in loop
         num_packets_without_header = 0  # Packet 'counter' (After getting header, it is set to 0 again)
@@ -157,17 +136,17 @@ class EpdProcessor(IdpuProcessor):
         while packet_num < data.shape[0]:
             # Checking for empty packet within sector
             if not data.iloc[packet_num]:
-                self.log.debug(f"empty packet: {packet_num}")
+                self.logger.debug(f"empty packet: {packet_num}")
                 needs_header = True
 
             # Try to get next header, if not found just break because the loop is over
             if needs_header or num_packets_without_header >= 9:
                 increment_by = find_first_header(data.iloc[packet_num:])
-                if increment_by == None:
+                if increment_by is None:
                     break
                 else:
                     packet_num += increment_by
-                    self.log.debug(f"Jumped to header at {packet_num}, jumping over {increment_by} packets")
+                    self.logger.debug(f"Jumped to header at {packet_num}, jumping over {increment_by} packets")
                     needs_header = True
 
             # Getting data from packet, and looking for contextual info (timestamp, spin per)
@@ -180,7 +159,7 @@ class EpdProcessor(IdpuProcessor):
             # 1. This packet is a header (reference frame)
             if cur_data[10] == marker:
                 if not needs_header and packet_num != 0:
-                    self.log.warning(f"⚠️ Weird, needs_header was false (packet ID {packet_num})")
+                    self.logger.warning(f"⚠️ Weird, needs_header was false (packet ID {packet_num})")
 
                 cur_data = cur_data[11:]  # Already stored timestamp and spin per, not interested in them
 
@@ -195,7 +174,7 @@ class EpdProcessor(IdpuProcessor):
 
                 # If not enough/too many reference bins, don't add to the returned DF
                 else:
-                    self.log.warning(f"⚠️ Not a full header at {packet_num}, length is only {len(cur_data)}")
+                    self.logger.warning(f"⚠️ Not a full header at {packet_num}, length is only {len(cur_data)}")
                     needs_header = True
                     packet_num += 1
                     continue  # TODO: handle false headers
@@ -219,7 +198,7 @@ class EpdProcessor(IdpuProcessor):
                     elif bitstring[:2] == "00":
                         sign = 1
                     else:
-                        self.log.warning(f"⚠️ Bad Sign: {bitstring[:2]}, ind: {value_ind}, packet {packet_num}")
+                        self.logger.warning(f"⚠️ Bad Sign: {bitstring[:2]}, ind: {value_ind}, packet {packet_num}")
                         needs_header = True
                         break
 
@@ -229,7 +208,7 @@ class EpdProcessor(IdpuProcessor):
                         delta2, bitstring = byte_tools.get_huffman(bitstring, table)
                         measured_values[value_ind] += sign * ((delta1 << 4) + delta2)
                     except IndexError as e:
-                        self.log.warning(
+                        self.logger.warning(
                             f"⚠️ Not enough bytes to determine the decompressed version: {e}, packet {packet_num}"
                         )
                         needs_header = True
@@ -240,7 +219,9 @@ class EpdProcessor(IdpuProcessor):
                     (i, measured_values[i]) for i in range(16 * num_sectors) if not 0 <= measured_values[i] <= 255
                 ]
                 if bad_in_m_val and not needs_header:
-                    self.log.warning(f"⚠️ Found bad values in measured_values for packet {packet_num} : {bad_in_m_val}")
+                    self.logger.warning(
+                        f"⚠️ Found bad values in measured_values for packet {packet_num} : {bad_in_m_val}"
+                    )
                     needs_header = True
 
                 # If we've determined that we can't use this packet, don't add it to the returned DF
@@ -311,7 +292,7 @@ class EpdProcessor(IdpuProcessor):
         )
         return period_df
 
-    def transform_level_0(self, df, collection_date):
+    def transform_l0_df(self, df, collection_date):
         """
         Does the necessary processing on a level 0 df to create a level 1 dataframe
 
@@ -342,7 +323,7 @@ class EpdProcessor(IdpuProcessor):
             if self.data_product_name[-1] == "f":
                 return 16
             elif self.data_product_name[-1] == "s":
-                self.log.warning("Survey Mode handling is still in progress")
+                self.logger.warning("Survey Mode handling is still in progress")
                 return 4
             else:
                 raise ValueError(f"Bad data product name: {self.data_product_name}")
@@ -442,16 +423,14 @@ class EpdProcessor(IdpuProcessor):
     #####################
     # Utility Functions #
     #####################
-    def fill_CDF(self, level, cdf, df):
+    def fill_cdf(self, processing_request, cdf, l1_df):
         """ Same as base class's fill_CDF except this function also includes EPD energies """
-        super().fill_CDF(level, cdf, df)
+        super().fill_CDF(processing_request, cdf, l1_df)
 
-        prefix = self.probe_name + "_p" + self.data_product_name[-2:]
-        e_or_i = self.data_product_name[-2:-1]
+        prefix = f"{processing_request}_p{processing_request.data_product[-2:]}"
+        e_or_i = processing_request.data_product[-2:-1]
 
-        fname = (
-            f"/home/elfin-esn/OPS/science/trunk/science_processing/calibration/{self.probe_name}_cal_epd{e_or_i}.txt"
-        )
+        fname = f"{EPD_CALIBRATION_DIR}/{self.probe_name}_cal_epd{e_or_i}.txt"
         with open(fname, "r") as f:
             lines = f.readlines()
 
@@ -462,7 +441,7 @@ class EpdProcessor(IdpuProcessor):
 
                 if "ebins_logmean:" in current:
                     energies_midpoint = [float(lines[i].split()[0]) for i in range(idx + 1, idx + 17)]
-                    cdf[prefix + "_energies_mean"] = energies_midpoint
+                    cdf[f"{prefix}_energies_mean"] = energies_midpoint
 
                     idx += 17
                     categories_filled += 1
@@ -472,8 +451,8 @@ class EpdProcessor(IdpuProcessor):
                     min_list = [float(i[0][:-1]) for i in minmax]
                     max_list = [float(i[1]) for i in minmax]
 
-                    cdf[prefix + "_energies_min"] = min_list
-                    cdf[prefix + "_energies_max"] = max_list
+                    cdf[f"{prefix}_energies_min"] = min_list
+                    cdf[f"{prefix}_energies_max"] = max_list
 
                     idx += 17
                     categories_filled += 2
@@ -485,4 +464,16 @@ class EpdProcessor(IdpuProcessor):
                     break
 
         if categories_filled != 3:
-            self.log.warn("Issues with Inserting Energy Information!!")
+            self.logger.warn("Issues with Inserting Energy Information!!")
+
+    def get_completeness_updater(self):
+        return self.completeness_updater
+
+    def get_cdf_fields(self, processing_request):
+        data_product_type = f"p{processing_request.data_product[-2:]}"
+        return {
+            data_product_type: "data",
+            data_product_type + "_time": "idpu_time",
+            data_product_type + "_sectnum": "sec_num",
+            data_product_type + "_spinper": "spin_period",
+        }

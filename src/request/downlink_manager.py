@@ -5,8 +5,8 @@ import logging
 import pandas as pd
 
 from common import models
-from request.downlink.downlink import Downlink
-from request.downlink.packet_info import PacketInfo
+from data_type.downlink import Downlink
+from data_type.packet_info import PacketInfo
 from util import byte_tools
 from util.constants import COMPRESSED_TYPES
 
@@ -145,7 +145,7 @@ class DownlinkManager:
                         collection_time = byte_tools.raw_idpu_bytes_to_datetime(bytes.fromhex(science_packet.data[:16]))
                     except ValueError as e:
                         # Start a New Downlink if this seems to be a bad packet
-                        self.log.warning(
+                        self.logger.warning(
                             f"⚠️ New Downlink, skipping current packet (ID: {science_packet.id}) due to unreadable \
                                 datetime {science_packet.data[:16]}: {e}"
                         )

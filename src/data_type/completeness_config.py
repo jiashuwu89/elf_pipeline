@@ -1,5 +1,5 @@
-from abc import ABC
 import datetime as dt
+from abc import ABC
 
 
 class CompletenessConfig(ABC):

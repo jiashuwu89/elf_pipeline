@@ -9,5 +9,5 @@ class RequestGetter(ABC):
         self.pipeline_config = pipeline_config
 
     @abstractmethod
-    def get(self, start_time, end_time):
+    def get(self, pipeline_query):
         pass

@@ -53,7 +53,7 @@ class Coordinator:
 
         # Initialize Pipeline Managers
         self.request_getter_manager = RequestGetterManager(pipeline_config)
-        self.processor_manager = ProcessorManager(pipeline_config.session, self.exception_collector)
+        self.processor_manager = ProcessorManager(pipeline_config, self.exception_collector)
         self.server_manager = ServerManager()
 
     def execute_pipeline(self, pipeline_query):

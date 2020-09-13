@@ -13,7 +13,7 @@ from util.science_utils import s_if_plural
 
 class CompletenessUpdater:
     def __init__(self, session, completeness_config):
-        self.session = self.session
+        self.session = session
         self.completeness_config = completeness_config
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -36,7 +36,7 @@ class CompletenessUpdater:
         for i in range(1, times.shape[0]):
             cur_time = times.iloc[i]
             if cur_time - prev_time > dt.timedelta(minutes=20):
-                szs.append([x for x in sz])
+                szs.append(sz.copy())
                 sz = [cur_time]
             else:
                 sz.append(cur_time)

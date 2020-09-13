@@ -1,9 +1,9 @@
 import datetime as dt
 
+from data_type.processing_request import ProcessingRequest
 from request.downlink_manager import DownlinkManager
-from types.processing_request import ProcessingRequest
 from request.request_getter.request_getter import RequestGetter
-from util.constants import IDPU_TYPES, SCIENCE_TYPES
+from util.constants import IDPU_PRODUCTS, PACKET_MAP, SCIENCE_TYPES
 
 
 class IdpuRequestGetter(RequestGetter):
@@ -28,7 +28,7 @@ class IdpuRequestGetter(RequestGetter):
         """
         idpu_products = set()
         for product in pipeline_query.data_products:
-            if product in IDPU_TYPES:
+            if product in IDPU_PRODUCTS:
                 idpu_products.update(SCIENCE_TYPES[product])
         if not idpu_products:
             return set()
@@ -65,13 +65,18 @@ class IdpuRequestGetter(RequestGetter):
         delta = dt.timedelta(days=1)
 
         general_processing_requests = set()
-        for dl in dl_list:
-            start_date = dl.first_collection_time.date()
-            end_date = dl.last_collection_time.date()
-            while start_date <= end_date:
-                pr = ProcessingRequest(dl.mission_id, dl.data_product, start_date)
-                general_processing_requests.add(pr)
-                start_date += delta
+        for (
+            dl
+        ) in (
+            dl_list
+        ):  # TODO: Replace dl.idpu_type with data type (should not be int, should be str, such as 2 becomes fgm)
+            for data_product in PACKET_MAP[dl.idpu_type]:
+                start_date = dl.first_collection_time.date()
+                end_date = dl.last_collection_time.date()
+                while start_date <= end_date:
+                    pr = ProcessingRequest(dl.mission_id, data_product, start_date)
+                    general_processing_requests.add(pr)
+                    start_date += delta
 
         self.logger.debug(f"Got {len(general_processing_requests)} requests from downlinks")
         return general_processing_requests

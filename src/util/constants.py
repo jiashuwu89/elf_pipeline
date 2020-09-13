@@ -68,6 +68,8 @@ IDL_SCRIPT_VERSION = 8
 # Directory Paths
 STATE_CSV_DIR = "/home/elfin-esn/state_data/"
 MASTERCDF_DIR = "/home/elfin-esn/OPS/science/trunk/science_processing/mastercdf"
+EPD_CALIBRATION_DIR = "/home/elfin-esn/OPS/science/trunk/science_processing/calibration"
+SERVER_BASE_DIR = "/themis/data/elfin"
 
 # Misc
 LOOK_BEHIND_DELTA = dt.timedelta(hours=5)  # Begin search this far behind for packets

@@ -2,7 +2,7 @@ import sqlalchemy
 from sqlalchemy.sql import func
 
 from common import models
-from types.processing_request import ProcessingRequest
+from data_type.processing_request import ProcessingRequest
 from request.request_getter.request_getter import RequestGetter
 
 

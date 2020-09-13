@@ -4,7 +4,10 @@ disable=invalid-name,
         fixme,
         missing-module-docstring,
         missing-class-docstring,
-        missing-function-docstring
+        missing-function-docstring,
+        broad-except,
+        bad-continuation,
+        too-few-public-methods
 
 [FORMAT]
 max-line-length=120

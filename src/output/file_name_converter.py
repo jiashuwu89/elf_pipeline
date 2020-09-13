@@ -1,10 +1,14 @@
 """Maybe this is over-engineering, maybe it is not"""
+import logging
+
+from util.constants import SERVER_BASE_DIR
 
 
 class FileNameConverter:
     """Convert local file names to server file names for transferring"""
 
     def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.data_product_paths = {
             "eng": ["eng", "eng"],
             "epde": ["epd", "epd"],
@@ -39,10 +43,11 @@ class FileNameConverter:
             mission, level, _, data_type, _ = file_name.split("_")
             data_type = "state_" + data_type
 
+        self.logger.debug(f"Path {file_path} -> file={file_name} mission={mission} level={level} data_type={data_type}")
         return FileInfo(file_name, mission, int(level[-1]), data_type)
 
     def get_dest(self, file_info):
-        return f"/themis/data/elfin/\
+        return f"{SERVER_BASE_DIR}/\
             {file_info.mission}/\
             {file_info.level}/\
             {self.data_product_paths[file_info.data_type][file_info.level]}/\

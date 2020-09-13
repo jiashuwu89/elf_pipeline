@@ -1,7 +1,6 @@
 """The ProcessorManager assigns file-generation tasks to processors"""
 import traceback
 
-from output.exception_collector import ExceptionCollector
 from processor.eng_processor import EngProcessor
 from processor.idpu.epd_processor import EpdProcessor
 from processor.idpu.fgm_processor import FgmProcessor
@@ -12,8 +11,8 @@ from processor.state_processor import StateProcessor
 class ProcessorManager:
     """A class to generate files using processors, given processing requests."""
 
-    def __init__(self, session, exception_collector):
-        self.session = session
+    def __init__(self, pipeline_config, exception_collector):
+        self.pipeline_config = pipeline_config
         self.processors = self.init_processors()
         self.exception_collector = exception_collector
 
@@ -33,9 +32,9 @@ class ProcessorManager:
     def init_processors(self):
         """Creates a dict mapping data product name to processor"""
         return {
-            "eng": EngProcessor(),
-            "epd": EpdProcessor(),
-            "fgm": FgmProcessor(),
-            "mrm": MrmProcessor(),
-            "state": StateProcessor(),
+            "eng": EngProcessor(self.pipeline_config),
+            "epd": EpdProcessor(self.pipeline_config),
+            "fgm": FgmProcessor(self.pipeline_config),
+            "mrm": MrmProcessor(self.pipeline_config),
+            "state": StateProcessor(self.pipeline_config),
         }

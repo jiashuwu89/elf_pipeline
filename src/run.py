@@ -14,8 +14,8 @@ from dateutil.parser import parse as dateparser
 import util.constants
 from common import db
 from coordinator import Coordinator
-from types.pipeline_config import PipelineConfig
-from types.pipeline_query import PipelineQuery
+from data_type.pipeline_config import PipelineConfig
+from data_type.pipeline_query import PipelineQuery
 from util.constants import ALL_MISSIONS, LOOK_BEHIND_DELTA
 
 # Logging Init
@@ -55,9 +55,8 @@ class ArgparsePipelineConfig(PipelineConfig):
     def get_output_dir(output_dir):
         if output_dir and not os.path.isdir(output_dir):
             raise ValueError(f"Bad Output Directory: {output_dir}")
-        else:
-            output_dir = tempfile.mkdtemp()
-        return output_dir
+
+        return tempfile.mkdtemp()
 
     @staticmethod
     def upload_necessary(no_upload, generate_files):
@@ -70,6 +69,8 @@ class ArgparsePipelineConfig(PipelineConfig):
 
 class ArgparsePipelineQuery(PipelineQuery):
     def __init__(self, args):
+        self.logger = logging.getLogger(self.__class__.__name__)
+
         self.mission_ids = self.get_mission_ids(args.ela, args.elb, args.em3)
         self.data_products = self.get_data_products(args.products)
         self.times, self.start_time, self.end_time = self.get_times(args.func, args.d, args.c)

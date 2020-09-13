@@ -1,6 +1,6 @@
 """Defines a class to describe a processing job that must be performed."""
 
-from util.constants import MISSION_DICT
+from util.constants import MISSION_DICT, SCIENCE_TYPES
 
 
 class ProcessingRequest:
@@ -39,3 +39,7 @@ class ProcessingRequest:
     def probe(self):
         """Gives the probe (ex. ELA, ELB, EM3)"""
         return MISSION_DICT[self.mission_id]
+
+    @property
+    def idpu_types(self):
+        return SCIENCE_TYPES.get(self.data_product, [])  # TODO: if not in SCIENCE_TYPES, returning [] is ok?

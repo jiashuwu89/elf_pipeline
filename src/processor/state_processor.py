@@ -6,6 +6,7 @@ import pandas as pd
 from astropy import coordinates as a_c
 from astropy.time import Time
 from spacepy import pycdf
+from sqlalchemy import desc
 
 from common import models
 from processor.science_processor import ScienceProcessor
@@ -16,8 +17,8 @@ from util.science_utils import interpolate_attitude
 class StateProcessor(ScienceProcessor):
     """The processor of State data"""
 
-    def __init__(self, session, output_dir):
-        super().__init__(session, output_dir, "state")
+    def __init__(self, pipeline_config):
+        super().__init__(pipeline_config)
 
         self.state_type = "defn"
         self.nan_df = pd.DataFrame()  # Holds nan_df if it needs to be reused (useful mostly for dumps)
@@ -91,6 +92,7 @@ class StateProcessor(ScienceProcessor):
         return df.loc[(df.index >= date) & (df.index < date + dt.timedelta(days=1))]
 
     def update_cdf_with_csv_df(self, probe, csv_df, cdf):
+        self.logger.debug("Updating State CDF with position and velocity data")
         cdf_df = pd.DataFrame()
         cdf_df[f"{probe}_state_time"] = csv_df.index.values
         cdf_df[f"{probe}_state_time"] = cdf_df[f"{probe}_state_time"].apply(pycdf.lib.datetime_to_tt2000)
@@ -305,7 +307,7 @@ class StateProcessor(ScienceProcessor):
         if att_df.shape[0] != 60 * 24:
             raise ValueError(f"attitude DataFrame is the wrong shape (expected 1440): {att_df.shape[0]}")
         if vel_pos_df.shape[0] != 60 * 24:
-            msg = f"Bad velocity and position DataFrame, reducing attitude DataFrame from 60 * 24 = 1440 min/day to: {vel_pos_df.shape[0]}"
+            msg = f"Bad velocity and position df, reducing attitude df from 1440 min/day to: {vel_pos_df.shape[0]}"
             self.logger.warning(msg)
 
             # TODO: Email Warning
