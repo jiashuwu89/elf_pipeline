@@ -27,7 +27,7 @@ class EngRequestGetter(RequestGetter):
             models.Categoricals.TMP_6,
         ]
         categoricals_query = (
-            self.session.query(sqlalchemy.distinct(func.date(models.Categorical.timestamp)))
+            self.pipeline_config.session.query(sqlalchemy.distinct(func.date(models.Categorical.timestamp)))
             .filter(
                 models.Categorical.mission_id == 1,  # TODO: IS THIS A PROBLEM? replace with mission_id.in_(mission_ids)
                 models.Packet.timestamp >= start_time,
@@ -42,7 +42,7 @@ class EngRequestGetter(RequestGetter):
 
     def get_bmon_requests(self, start_time, end_time):
         bmon_query = (
-            self.session.query(sqlalchemy.distinct(func.date(models.BmonData.timestamp)))
+            self.pipeline_config.session.query(sqlalchemy.distinct(func.date(models.BmonData.timestamp)))
             .filter(models.Packet.timestamp >= start_time, models.Packet.timestamp < end_time)
             .join(models.Packet)
         )

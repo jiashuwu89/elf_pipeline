@@ -11,10 +11,10 @@ import pandas as pd
 from spacepy import pycdf
 
 from common import models
+from data_type.downlinks import Downlinks
 from processor.science_processor import ScienceProcessor
 from util.constants import SCIENCE_TYPES
 from util.science_utils import dt_to_tt2000
-from utils.db.downlinks import Downlinks
 
 
 class EngProcessor(ScienceProcessor):
@@ -70,6 +70,7 @@ class EngProcessor(ScienceProcessor):
 
     def process_level_0(self, df):
         """No processing necessary for ENG level 0"""
+        self.logger.debug("Processing level 0")
         data_bytes = []
         for _, row in df.iterrows():
             if row["data"] is not None:

@@ -32,7 +32,7 @@ class IdpuProcessor(ScienceProcessor):
     def generate_l0_products(self, processing_request):
         self.logger.info(">>> Generating Level 0 Products...")
         l0_df = self.generate_l0_df(processing_request)
-        self.update_completeness_table(l0_df)
+        self.update_completeness_table(processing_request, l0_df)
         l0_file_name = self.generate_l0_file(processing_request, l0_df.copy())
         return l0_file_name, l0_df
 
@@ -55,11 +55,11 @@ class IdpuProcessor(ScienceProcessor):
         self.logger.info(f"✔️ Merged to {len(merged_dfs)} downlink{s_if_plural(merged_dfs)}")
 
         self.logger.info("Rejoining frames into packets...")
-        rejoined_dfs = [self.rejoin_data(df) for df in merged_dfs]
+        rejoined_dfs = [self.rejoin_data(processing_request, df) for df in merged_dfs]
         self.logger.info("✔️ Done rejoining frames")
 
         self.logger.info("Processing Level 0 packets...")
-        dfs = [self.process_rejoined_data(df) for df in rejoined_dfs]
+        dfs = [self.process_rejoined_data(processing_request, df) for df in rejoined_dfs]
         self.logger.info("✔️ Done processing Level 0 packets")
 
         self.logger.info("Final merge...")
@@ -71,17 +71,17 @@ class IdpuProcessor(ScienceProcessor):
 
         return df
 
-    def update_completeness_table(self, l0_df):
+    def update_completeness_table(self, processing_request, l0_df):
         self.logger.info("Updating completeness table")
         df = l0_df.copy()
         df = df[["idpu_time", "data"]].drop_duplicates().dropna()
         df_times = df["idpu_time"]
 
-        completeness_updater = self.get_completeness_updater()
+        completeness_updater = self.get_completeness_updater(processing_request)
         completeness_updater.update_completeness_table(df_times)  # TODO: Change EPD to EPDE or EPDI
 
     @abstractmethod
-    def get_completeness_updater(self):
+    def get_completeness_updater(self, processing_request):
         pass
 
     def generate_l0_file(self, processing_request, l0_df):
@@ -123,7 +123,7 @@ class IdpuProcessor(ScienceProcessor):
             l0_df = self.generate_l0_df(processing_request.date)
 
         # Allow derived class to transform data
-        l1_df = self.transform_l0_df(l0_df, processing_request.date)
+        l1_df = self.transform_l0_df(processing_request, l0_df)
 
         # Timestamp conversion
         try:
@@ -141,12 +141,12 @@ class IdpuProcessor(ScienceProcessor):
         return l1_df
 
     @abstractmethod
-    def transform_l0_df(self, l0_df, collection_date):
+    def transform_l0_df(self, processing_request, l0_df):
         pass
 
     def generate_l1_file(self, processing_request, l1_df):
         fname = self.make_filename(processing_request, 1)
-        cdf = self.create_cdf(fname, l1_df)
+        cdf = self.create_cdf(fname)
         self.fill_cdf(processing_request, cdf, l1_df)
         cdf.close()
 
@@ -203,7 +203,7 @@ class IdpuProcessor(ScienceProcessor):
 
         return merged_downlinks
 
-    def rejoin_data(self, d):
+    def rejoin_data(self, processing_request, d):
         """
         Converts a dataframe of frames received from ELFIN into a dataframe of
         packets onboard the MSP's filesystem. This involves identifying the length
@@ -276,7 +276,7 @@ class IdpuProcessor(ScienceProcessor):
 
         missing_frames = {
             "id": None,
-            "mission_id": self.mission_id,
+            "mission_id": processing_request.mission_id,
             "idpu_type": idpu_type,
             "idpu_time": None,
             "data": None,
@@ -295,10 +295,10 @@ class IdpuProcessor(ScienceProcessor):
         return final_df[["timestamp", "mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data"]]
 
     @abstractmethod
-    def process_rejoined_data(self, df):
+    def process_rejoined_data(self, processing_request, df):
         pass
 
-    def merge_processed_dataframes(self, dataframes, idpu_types):
+    def merge_processed_dataframes(self, dfs, idpu_types):
         """
         Given a list of dataframes of identical format (decompressed/raw, level 0),
         merge them in a way such that duplicate frames are removed.
@@ -307,7 +307,7 @@ class IdpuProcessor(ScienceProcessor):
         appear in the list self.idpu_types.
         """
         self.logger.debug("Merging processed dataframes")
-        df = pd.concat(dataframes)
+        df = pd.concat(dfs)
 
         df["idpu_type"] = df["idpu_type"].astype("category").cat.set_categories(idpu_types, ordered=True)
         df = df.dropna(subset=["data", "idpu_time"])

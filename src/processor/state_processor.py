@@ -27,16 +27,16 @@ class StateProcessor(ScienceProcessor):
         """Generate L1 state file for processing_request"""
         probe = processing_request.probe
 
-        cdf_fname = self.make_filename(processing_request)
+        cdf_fname = self.make_filename(processing_request, 1)
         cdf = self.create_cdf(cdf_fname)
 
         csv_df = self.combine_state_csvs(processing_request.date)
         self.update_cdf_with_csv_df(probe, csv_df, cdf)  # time, position, and velocity
 
-        self.update_cdf_with_sun(probe, processing_request.date, cdf)  # Sun/Shadow Variable
+        self.update_cdf_with_sun(processing_request, cdf)  # Sun/Shadow Variable
 
         # Inserting Attitude and Sun Calculations, if possible
-        att_df = self.get_attitude(processing_request.date)
+        att_df = self.get_attitude(processing_request)
         if not att_df.empty:
             self.update_cdf_with_att_df(probe, att_df, cdf)
             self.update_cdf_with_sun_calculations(probe, csv_df, att_df, processing_request.date, cdf)
@@ -48,20 +48,20 @@ class StateProcessor(ScienceProcessor):
         cdf.close()
         return [cdf_fname]
 
-    def make_filename(self, processing_request):
+    def make_filename(self, processing_request, level, size=None):
         """Constructs the appropriate filename for a L1 file, and returns the full path
 
         Overrides default implementation
         """
         probe = processing_request.probe
         file_date = processing_request.date.strftime("%Y%m%d")
-        fname = f"{probe}_l1_state_{self.state_type}_{file_date}_v01.cdf"
-        return f"{self.save_directory}/{fname}"
+        fname = f"{probe}_l{level}_state_{self.state_type}_{file_date}_v01.cdf"
+        return f"{self.output_dir}/{fname}"
 
-    def create_cdf(self, cdf_fname):
+    def create_cdf(self, fname):
         datestr_run = dt.datetime.utcnow().strftime("%04Y-%02m-%02d")
 
-        cdf = super().create_cdf(cdf_fname)
+        cdf = super().create_cdf(fname)
         cdf.attrs["Generation_date"] = datestr_run
         cdf.attrs["MODS"] = "Rev- " + datestr_run
 
@@ -72,7 +72,7 @@ class StateProcessor(ScienceProcessor):
 
         df = None
         for d in [date - dt.timedelta(days=1), date]:
-            cdf_fname = self.make_filename(level=1, collection_date=d)
+            cdf_fname = self.make_filename(level=1, collection_date=d)  # TODO: FIx this
             csv_fname = STATE_CSV_DIR + cdf_fname.split("/")[-1].rstrip(".cdf") + ".csv"
 
             try:
@@ -91,6 +91,26 @@ class StateProcessor(ScienceProcessor):
 
         return df.loc[(df.index >= date) & (df.index < date + dt.timedelta(days=1))]
 
+    def read_state_csv(self, csv_fname):
+        """Read the state vectors CSV produced by STK."""
+
+        self.log.debug(f"Reading {csv_fname}")
+        csv_state = pd.read_csv(csv_fname)
+
+        df = pd.DataFrame(columns=["time", "pos_gei", "vel_gei"])
+        df["time"] = csv_state["Time (UTCG)"].apply(lambda x: dt.datetime.strptime(x, "%d %b %Y %H:%M:%S.%f"))
+
+        pos_gei = np.asarray([csv_state["x (km)"], csv_state["y (km)"], csv_state["z (km)"]], dtype=np.float32)
+        vel_gei = np.asarray(
+            [csv_state["vx (km/sec)"], csv_state["vy (km/sec)"], csv_state["vz (km/sec)"]], dtype=np.float32
+        )
+
+        df["pos_gei"] = pos_gei.T.tolist()
+        df["vel_gei"] = vel_gei.T.tolist()
+        df = df.set_index("time")
+
+        return df
+
     def update_cdf_with_csv_df(self, probe, csv_df, cdf):
         self.logger.debug("Updating State CDF with position and velocity data")
         cdf_df = pd.DataFrame()
@@ -101,12 +121,12 @@ class StateProcessor(ScienceProcessor):
         for k in cdf_df.keys():
             cdf[k] = cdf_df[k].values.tolist()
 
-    def update_cdf_with_sun(self, probe, date, cdf):
+    def update_cdf_with_sun(self, processing_request, cdf):
         """
         Each 1 represents the satellite being 'in sun'
         Each 0 refers to umbra or penumbra
         """
-        end_time = date + dt.timedelta(seconds=86399)
+        end_time = processing_request.date + dt.timedelta(seconds=86399)
 
         # Query for sun events in the Events table
         query = (
@@ -114,19 +134,19 @@ class StateProcessor(ScienceProcessor):
             .filter(
                 models.Event.type_id == 3,
                 models.Event.start_time < end_time,
-                models.Event.stop_time > start_time,
+                models.Event.stop_time > processing_request.date,  # TODO: make sure date is right time
                 models.Event.mission_id == self.mission_id,
             )
             .order_by(desc(models.Event.id))
         )  # Larger ID -> More Recent -> More Accurate
         if query.count() == 0:
-            self.logger.warning(f"No Sun Data between {date} and {end_time}")
-            cdf[probe + "_sun"] = pd.Series()
+            self.logger.warning(f"No Sun Data between {processing_request.date} and {end_time}")
+            cdf[f"{processing_request.probe}_sun"] = pd.Series()
             return
 
         # Initialize DataFrame to store times and corresponding 'sun value' which defaults to 0
         final_df = pd.DataFrame(columns=["time", "_sun"])
-        final_df["time"] = [start_time + dt.timedelta(seconds=i) for i in range(86400)]
+        final_df["time"] = [processing_request.date + dt.timedelta(seconds=i) for i in range(86400)]
         final_df["_sun"] = 0
 
         # Update Ranges in the DataFrame that are 'in sun'
@@ -137,9 +157,9 @@ class StateProcessor(ScienceProcessor):
                 continue
             selection = 1  # Check this
 
-        cdf[probe + "_sun"] = final_df["_sun"]
+        cdf[f"{processing_request.probe}_sun"] = final_df["_sun"]
 
-    def get_attitude(self, start_time):
+    def get_attitude(self, processing_request):
         """
         For each minute in the day beginning on [start_time], find the attitude solution
         or the closest solution (up to 30 days difference).
@@ -168,19 +188,19 @@ class StateProcessor(ScienceProcessor):
 
         # Preparing the final DF that is ultimately returned (Solution date is tt2000)
         final_df = pd.DataFrame(columns=["time", "time_dt", "solution_date", "X", "Y", "Z", "uncertainty"])
-        final_df["time_dt"] = [start_time + dt.timedelta(minutes=i) for i in range(60 * 24)]
+        final_df["time_dt"] = [processing_request.date + dt.timedelta(minutes=i) for i in range(60 * 24)]
         final_df["time"] = final_df["time_dt"].apply(pycdf.lib.datetime_to_tt2000)
 
         # Query for solutions
-        end_time = start_time + dt.timedelta(seconds=86399)
-        first_possible_time = start_time - dt.timedelta(days=30)
+        end_time = processing_request.date + dt.timedelta(seconds=86399)
+        first_possible_time = processing_request.date - dt.timedelta(days=30)
         last_possible_time = end_time + dt.timedelta(days=30)
         query = (
             self.session.query(models.CalculatedAttitude)
             .filter(
                 models.CalculatedAttitude.time >= first_possible_time,
                 models.CalculatedAttitude.time <= last_possible_time,
-                models.CalculatedAttitude.mission_id == self.mission_id,
+                models.CalculatedAttitude.mission_id == processing_request.mission_id,
                 models.CalculatedAttitude.idl_script_version == IDL_SCRIPT_VERSION,
             )
             .order_by(models.CalculatedAttitude.time)
@@ -193,7 +213,7 @@ class StateProcessor(ScienceProcessor):
         found_first = False
         for q in query:
             if not found_first and q.time <= end_time:
-                if q.time >= start_time:
+                if q.time >= processing_request.date:
                     found_first = True
                     query_list.append(q)
                 else:

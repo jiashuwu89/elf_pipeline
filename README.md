@@ -23,6 +23,16 @@ Pipeline to process packets and generate CDFs.
 - Take out all hardcoded times/dates/deltas -> constants.py
 - "types" directory?
   - Enums for values
+- Increase Testing
+
+# Long Term
+- Standardize the passing of pipeline_config/processing_request vs members of these objects
+- Style guide
+  - Appropriate abbreviations
+- Completeness done on the level of science_processor, not idpu_processor + mrm_processor?
+- Increase Metrics
+  - Timing things with a timing decorator?
+- Utilize Prefect
 
 ## Contributors
 - Akhil Palla

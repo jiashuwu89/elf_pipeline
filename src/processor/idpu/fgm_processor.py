@@ -18,6 +18,8 @@ from util.science_utils import hex_to_int
 
 # TODO: Hardcoded values -> Constants
 
+# TODO: remove packet_id
+
 
 class FgmProcessor(IdpuProcessor):
     def __init__(self, pipeline_config):
@@ -25,7 +27,7 @@ class FgmProcessor(IdpuProcessor):
 
         self.completeness_updater = CompletenessUpdater(pipeline_config.session, FgmCompletenessConfig)
 
-    def process_rejoined_data(self, df):
+    def process_rejoined_data(self, processing_request, df):
         """
         Return a dataframe corresponding to correctly formatted data products
         df of query from database.
@@ -47,7 +49,7 @@ class FgmProcessor(IdpuProcessor):
             return df[df["idpu_type"].isin([1, 17])]
 
         if compressed:
-            df = self.decompress_df(df)
+            df = self.decompress_df(processing_request, df)
         elif uncompressed:
             df["sampling_rate"] = self.find_diff(df)
 
@@ -58,7 +60,7 @@ class FgmProcessor(IdpuProcessor):
                 to_add.append((self.check_sampling_rate(to_check, compressed=False)))
 
             df["10hz_mode"] = to_add
-            df = self.drop_packets_by_freq(df)
+            df = self.drop_packets_by_freq(processing_request, df)
             df = df[
                 ["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "10hz_mode", "packet_id"]
             ]
@@ -72,6 +74,7 @@ class FgmProcessor(IdpuProcessor):
         Helper Function to find the time difference between two packets
         Used to help determine sampling rate
         """
+        self.logger.debug("Finding diff")
         final = pd.DataFrame(columns=["sampling_rate"])
         for idx, _ in df.iloc[1:].iterrows():
             cur_time = df["idpu_time"].iloc[idx]
@@ -84,28 +87,28 @@ class FgmProcessor(IdpuProcessor):
         final = pd.concat([first, final])
         return final
 
-    def transform_l0_df(self, df, collection_date):
+    def transform_l0_df(self, processing_request, l0_df):
         """
         Does the necessary processing on a level 0 df to create a level 1 df
         ** collection_date is unused
         """
-        level1 = {
-            "idpu_type": df["idpu_type"],
-            "idpu_time": df["idpu_time"],
-            "ax1": df.data.str.slice(0, 6).apply(hex_to_int),
-            "ax2": df.data.str.slice(6, 12).apply(hex_to_int),
-            "ax3": df.data.str.slice(12, 18).apply(hex_to_int),
-            "status": df.data.str.slice(18, 24).apply(hex_to_int),
-            "packet_id": df["packet_id"],
+        l1 = {
+            "idpu_type": l0_df["idpu_type"],
+            "idpu_time": l0_df["idpu_time"],
+            "ax1": l0_df.data.str.slice(0, 6).apply(hex_to_int),
+            "ax2": l0_df.data.str.slice(6, 12).apply(hex_to_int),
+            "ax3": l0_df.data.str.slice(12, 18).apply(hex_to_int),
+            "status": l0_df.data.str.slice(18, 24).apply(hex_to_int),
+            "packet_id": l0_df["packet_id"],
         }
 
-        level1_df = pd.DataFrame(level1)
-        level1_df["ax1"] = level1_df["ax1"].astype(np.float32)
-        level1_df["ax2"] = level1_df["ax2"].astype(np.float32)
-        level1_df["ax3"] = level1_df["ax3"].astype(np.float32)
-        level1_df["data"] = level1_df[["ax1", "ax2", "ax3"]].values.tolist()
+        l1_df = pd.DataFrame(l1)
+        l1_df["ax1"] = l1_df["ax1"].astype(np.float32)
+        l1_df["ax2"] = l1_df["ax2"].astype(np.float32)
+        l1_df["ax3"] = l1_df["ax3"].astype(np.float32)
+        l1_df["data"] = l1_df[["ax1", "ax2", "ax3"]].values.tolist()
 
-        return level1_df
+        return l1_df
 
     def process_level_2(self, df):
         pass
@@ -127,6 +130,7 @@ class FgmProcessor(IdpuProcessor):
         compressed is 10 decompressed packets per packet, so expect 1/freq*10 per compressed packet
         """
         multiplier = 10 if compressed else 1
+        self.logger.debug(f"When checking sampling rate, using multiplier={multiplier}")
 
         # check for 80 hz    microseconds in 81 hz < time_gap < microseconds in 79 hz
         if (
@@ -147,7 +151,7 @@ class FgmProcessor(IdpuProcessor):
 
         return None
 
-    def decompress_df(self, df):
+    def decompress_df(self, processing_request, df):
         """
         Decompresses a compressed df,
         returns a DataFrame of the data as though it were never compressed
@@ -293,7 +297,7 @@ class FgmProcessor(IdpuProcessor):
         # Forming the final DF, preparing it (keep the correct frequency), then returning it
         df = pd.DataFrame(
             data={
-                "mission_id": self.mission_id,
+                "mission_id": processing_request.mission_id,
                 "idpu_type": new_ptypes,
                 "idpu_time": new_time,
                 "numerator": orig_num,
@@ -303,22 +307,25 @@ class FgmProcessor(IdpuProcessor):
                 "10hz_mode": track10hz,
             }
         )
-        df = self.drop_packets_by_freq(df)
+        df = self.drop_packets_by_freq(processing_request, df)
 
         return df
 
-    def drop_packets_by_freq(self, df):
+    def drop_packets_by_freq(self, processing_request, df):
         """ Returns a DataFrame with either 10 hz (fgs) or 80 hz (fgf) """
-        if self.data_product_name == "fgf":
+        # TODO: ENUM
+        if processing_request.data_product == "fgf":
+            self.logger.debug("DataFrame contains fgf data")
             df = df[df["10hz_mode"] is False]
-        elif self.data_product_name == "fgs":
+        elif processing_request.data_product == "fgs":
+            self.logger.debug("DataFrame contains fgs data")
             df = df[df["10hz_mode"] is True]
         else:
             raise ValueError("Invalid data_product_name")
 
         return df
 
-    def merge_processed_dataframes(self, dataframes):
+    def merge_processed_dataframes(self, dfs, idpu_types):
         """
         FGM-specific version of merge_processed_dataframes (Times are rounded to
         nearest millisecond to determine if packets are the same)
@@ -331,8 +338,8 @@ class FgmProcessor(IdpuProcessor):
         self.idpu_types
         """
 
-        df = pd.concat(dataframes)
-        df["idpu_type"] = df["idpu_type"].astype("category").cat.set_categories(self.idpu_types, ordered=True)
+        df = pd.concat(dfs)
+        df["idpu_type"] = df["idpu_type"].astype("category").cat.set_categories(idpu_types, ordered=True)
 
         df = df.dropna(subset=["data", "idpu_time"])
         df = df.sort_values(["idpu_time", "idpu_type"])
@@ -345,7 +352,7 @@ class FgmProcessor(IdpuProcessor):
 
         return df.reset_index()
 
-    def get_completeness_updater(self):
+    def get_completeness_updater(self, processing_request):
         return self.completeness_updater
 
     def get_cdf_fields(self, processing_request):

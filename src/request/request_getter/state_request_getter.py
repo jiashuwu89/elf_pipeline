@@ -13,6 +13,7 @@ class StateRequestGetter(RequestGetter):
         state_processing_requests = set()
 
         # Always process certain days
+        mission_id = None
         for mission_id in pipeline_query.mission_ids:
             cur_day = pipeline_query.start_time
             while cur_day <= pipeline_query.end_time:
@@ -20,7 +21,9 @@ class StateRequestGetter(RequestGetter):
                 cur_day += dt.timedelta(days=1)
 
         # Query to see what dates we picked up
-        query = self.session.query(sqlalchemy.distinct(func.date(models.CalculatedAttitude.time))).filter(
+        query = self.pipeline_config.session.query(
+            sqlalchemy.distinct(func.date(models.CalculatedAttitude.time))
+        ).filter(
             models.CalculatedAttitude.mission_id.in_(pipeline_query.mission_ids),
             models.CalculatedAttitude.insert_date >= pipeline_query.start_time,
             models.CalculatedAttitude.insert_date < pipeline_query.end_time,

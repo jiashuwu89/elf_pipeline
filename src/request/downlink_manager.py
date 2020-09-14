@@ -16,6 +16,10 @@ from util.constants import COMPRESSED_TYPES
 
 # TODO: Group of DLs should be a set, not a list?
 
+# TODO: Where can this be relocated to?
+
+# TODO: Separate into Downlink Creator and Downlink getter
+
 
 class DownlinkManager:
     """A class that provides utilities involving downlinks"""
@@ -180,9 +184,7 @@ class DownlinkManager:
         downlinks.sort(key=lambda x: x.idpu_type)
 
         if self.update_db:
-            self.logger.info(
-                f"Updating DB with the calculated Downlinks:\n{self.downlink_manager.print_downlinks(downlinks)}"
-            )
+            self.logger.info(f"Updating DB with the calculated Downlinks:\n{self.print_downlinks(downlinks)}")
             self.upload_downlink_entries(downlinks)
 
         return downlinks

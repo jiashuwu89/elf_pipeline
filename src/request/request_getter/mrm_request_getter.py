@@ -16,7 +16,7 @@ class MrmRequestGetter(RequestGetter):
             return set()
 
         sql_query = (
-            self.session.query(sqlalchemy.distinct(func.date(models.MRM.timestamp)))
+            self.pipeline_config.session.query(sqlalchemy.distinct(func.date(models.MRM.timestamp)))
             .filter(
                 models.Packet.mission_id.in_(pipeline_query.mission_ids),
                 models.Packet.timestamp >= pipeline_query.start_time,

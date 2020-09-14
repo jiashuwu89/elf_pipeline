@@ -5,7 +5,8 @@ import pandas as pd
 from spacepy import pycdf
 
 from common import models
-from metric.completeness import CompletenessUpdater, MrmCompletenessConfig
+from data_type.completeness_config import MrmCompletenessConfig
+from metric.completeness import CompletenessUpdater
 from processor.science_processor import ScienceProcessor
 from util.constants import MRM_TYPES
 
@@ -19,7 +20,7 @@ class MrmProcessor(ScienceProcessor):
     def __init__(self, pipeline_config):
         super().__init__(pipeline_config)
 
-        self.completeness_updater = CompletenessUpdater(MrmCompletenessConfig)
+        self.completeness_updater = CompletenessUpdater(pipeline_config.session, MrmCompletenessConfig)
 
     def generate_files(self, processing_request):
         """Generates a level 1 MRM file, given a processing request."""
@@ -35,7 +36,7 @@ class MrmProcessor(ScienceProcessor):
         self.completeness_updater.update_completeness_table(mrm_df["timestamp"])
 
         # Create CDF
-        cdf_fname = self.make_filename(level=1, collection_date=processing_request.date)
+        cdf_fname = self.make_filename(processing_request, level=1)
         cdf = self.create_cdf(cdf_fname)
 
         # Fill CDF

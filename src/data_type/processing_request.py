@@ -9,7 +9,7 @@ class ProcessingRequest:
     def __init__(self, mission_id, data_product, date):
         """Constructor for ProcessingRequest class.
         mission_id = 1, 2, 3
-        data_product (SHOULD BE NUMBER)
+        data_product (SHOULD BE STRING)
         date = date for which to generate file (ex. 2020-08-05)
         """
         self.mission_id = mission_id

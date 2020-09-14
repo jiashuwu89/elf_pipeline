@@ -4,7 +4,8 @@ from abc import ABC, abstractmethod
 
 from spacepy import pycdf
 
-from db.downlink import DownlinkManager  # TODO: Split Downlink Manager
+from request.downlink_manager import \
+    DownlinkManager  # TODO: Split Downlink Manager
 from util.constants import MASTERCDF_DIR
 
 
@@ -40,6 +41,7 @@ class ScienceProcessor(ABC):
             raise ValueError(f"Invalid Level: {level}")
         return f"{self.output_dir}/{fname}"
 
+    # TODO: Rename to indicate that an EMPTY cdf will be created to be filled in
     def create_cdf(self, fname):
         """
         Gets or creates a CDF with the desired fname. If existing path is
@@ -58,5 +60,6 @@ class ScienceProcessor(ABC):
             os.remove(fname)
 
         master_cdf = f"{MASTERCDF_DIR}/{probe}_{level_str}_{idpu_type}_00000000_v01.cdf"
+        self.logger.debug(f"Creating cdf using mastercdf {master_cdf}")
 
         return pycdf.CDF(fname, master_cdf)

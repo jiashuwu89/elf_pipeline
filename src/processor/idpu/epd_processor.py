@@ -34,7 +34,7 @@ class EpdProcessor(IdpuProcessor):
         self.epde_completeness_updater = CompletenessUpdater(pipeline_config.session, EpdeCompletenessConfig)
         self.epdi_completeness_updater = CompletenessUpdater(pipeline_config.session, EpdiCompletenessConfig)
 
-    def process_rejoined_data(self, df):
+    def process_rejoined_data(self, processing_request, df):
         """
         Given an EPD dataframe...
         - If uncompressed data, go to update_uncompressed_df
@@ -295,19 +295,19 @@ class EpdProcessor(IdpuProcessor):
         )
         return period_df
 
-    def transform_l0_df(self, df, collection_date):
+    def transform_l0_df(self, processing_request, l0_df):
         """
         Does the necessary processing on a level 0 df to create a level 1 dataframe
 
         NOTE: collection_date is an unused parameter for EPD's transform_level_0, but
         it could be used in other processors (so don't delete it)
         """
-        level1_df = self.parse_periods(df)
-        level1_df = self.format_for_cdf(level1_df)
+        l1_df = self.parse_periods(processing_request, l0_df)
+        l1_df = self.format_for_cdf(l1_df)
 
-        return level1_df
+        return l1_df
 
-    def parse_periods(self, df):
+    def parse_periods(self, processing_request, df):
         """
         Parse EPD bin readings into a pandas DataFrame
         Tasks:
@@ -315,20 +315,6 @@ class EpdProcessor(IdpuProcessor):
             - convert data to bytes using function, then read in bins 0-15 for sectors 0-f
         - return same DataFrame structure as before
         """
-
-        def calculate_num_sectors(data):
-            """
-            Determine the number of sectors
-            TODO: The way this works could be much better, but it was written befor survey mode
-            was fully supported. The formula for num_sectors could be (data[20:] / 16) - 1, but
-            not completely sure
-            """
-            if self.data_product_name[-1] == "f":
-                return 16
-            if self.data_product_name[-1] == "s":
-                self.logger.warning("Survey Mode handling is still in progress")
-                return 4
-            raise ValueError(f"Bad data product name: {self.data_product_name}")
 
         def get_context(data):
             """
@@ -355,7 +341,18 @@ class EpdProcessor(IdpuProcessor):
         all_idpu_times = []
         all_spin_periods = []
 
-        num_sectors = calculate_num_sectors(df.iloc[0]["data"])
+        # Determine the number of sectors
+        # TODO: The way this works could be much better, but it was written befor survey mode
+        # was fully supported. The formula for num_sectors could be (data[20:] / 16) - 1, but
+        # not completely sure
+        # TODO: make into function "Determine f or s"
+        if processing_request.data_product[-1] == "f":
+            num_sectors = 16
+        elif processing_request.data_product[-1] == "s":
+            self.logger.warning("Survey Mode handling is still in progress")
+            num_sectors = 4
+        else:
+            raise ValueError(f"Bad data product name: {processing_request.data_product}")
 
         for _, row in relevant_df.iterrows():
             cur_spin_period, cur_time_captured, bin_data = get_context(row["data"])
@@ -397,6 +394,7 @@ class EpdProcessor(IdpuProcessor):
 
     def format_for_cdf(self, df):
         """ Gets the columns corresponding to the bins, in preparation for the CDF """
+        self.logger.debug("Format EPD df for CDF")
         df["data"] = df[
             [
                 "bin00",
@@ -425,15 +423,14 @@ class EpdProcessor(IdpuProcessor):
     #####################
     # Utility Functions #
     #####################
-    def fill_cdf(self, processing_request, cdf, l1_df):
+    def fill_cdf(self, processing_request, df, cdf):
         """ Same as base class's fill_CDF except this function also includes EPD energies """
-        super().fill_CDF(processing_request, cdf, l1_df)
+        super().fill_cdf(processing_request, df, cdf)
 
         prefix = f"{processing_request}_p{processing_request.data_product[-2:]}"
         e_or_i = processing_request.data_product[-2:-1]
 
-        fname = f"{EPD_CALIBRATION_DIR}/{self.probe_name}_cal_epd{e_or_i}.txt"
-        with open(fname, "r") as f:
+        with open(f"{EPD_CALIBRATION_DIR}/{processing_request.probe}_cal_epd{e_or_i}.txt", "r") as f:
             lines = f.readlines()
 
             idx = 0
@@ -468,8 +465,12 @@ class EpdProcessor(IdpuProcessor):
         if categories_filled != 3:
             self.logger.warning("Issues with Inserting Energy Information!!")
 
-    def get_completeness_updater(self):
-        return self.completeness_updater
+    def get_completeness_updater(self, processing_request):
+        if processing_request.data_product[-2] == "e":
+            return self.epde_completeness_updater
+        if processing_request.data_product[-2] == "i":
+            return self.epdi_completeness_updater
+        raise ValueError(f"Bad data_product: {processing_request.data_product}")
 
     def get_cdf_fields(self, processing_request):
         data_product_type = f"p{processing_request.data_product[-2:]}"
