@@ -11,7 +11,7 @@ import pandas as pd
 from spacepy import pycdf
 
 from common import models
-from data_type.downlinks import Downlinks
+from data_type.downlink import Downlinks
 from processor.science_processor import ScienceProcessor
 from util.constants import SCIENCE_TYPES
 from util.science_utils import dt_to_tt2000
@@ -21,7 +21,7 @@ class EngProcessor(ScienceProcessor):
     """Class to generate ENG files"""
 
     def __init__(self, pipeline_config):
-        super().__init__(self, pipeline_config)
+        super().__init__(pipeline_config)
 
         # TODO: Fix this (see fgm or epd processors)
         self.idpu_types = SCIENCE_TYPES[data_product]
@@ -58,6 +58,10 @@ class EngProcessor(ScienceProcessor):
         self.cdf_fields_l1 = {}
         for field in self.eng_fields:
             self.cdf_fields_l1[field] = field
+
+    def generate_files(self, processing_request):
+        # TODO: Fill this in
+        pass
 
     def gen_level_0(self, collection_time):
         """ Try to generate level 0, but return empty df if it fails (to keep processing) """

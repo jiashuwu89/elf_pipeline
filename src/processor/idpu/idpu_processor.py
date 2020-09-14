@@ -320,7 +320,7 @@ class IdpuProcessor(ScienceProcessor):
         return df.reset_index()
 
     def fill_cdf(self, processing_request, df, cdf):
-        """ Inserts data from df into a CDF file
+        """Inserts data from df into a CDF file
 
         Parameters
         ==========

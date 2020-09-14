@@ -94,7 +94,7 @@ class StateProcessor(ScienceProcessor):
     def read_state_csv(self, csv_fname):
         """Read the state vectors CSV produced by STK."""
 
-        self.log.debug(f"Reading {csv_fname}")
+        self.logger.debug(f"Reading {csv_fname}")
         csv_state = pd.read_csv(csv_fname)
 
         df = pd.DataFrame(columns=["time", "pos_gei", "vel_gei"])
@@ -135,7 +135,7 @@ class StateProcessor(ScienceProcessor):
                 models.Event.type_id == 3,
                 models.Event.start_time < end_time,
                 models.Event.stop_time > processing_request.date,  # TODO: make sure date is right time
-                models.Event.mission_id == self.mission_id,
+                models.Event.mission_id == processing_request.mission_id,
             )
             .order_by(desc(models.Event.id))
         )  # Larger ID -> More Recent -> More Accurate

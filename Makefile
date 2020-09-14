@@ -47,7 +47,7 @@ doc:
 
 todo:
 	@echo "⭐ Finding TODOs ⭐"
-	grep --color=always -Iirn "todo" $(SRC)
+	grep --color=always -Iirn "todo" $(SRC) | sed "s/    //g"
 
 help:
 	@echo "⭐ Available Targets ⭐"

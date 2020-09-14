@@ -1,8 +1,8 @@
 import datetime as dt
 
-import pytest
 from spacepy import pycdf
 
+import pytest
 from src.processor import completeness
 
 
