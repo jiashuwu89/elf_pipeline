@@ -32,12 +32,21 @@ class ArgparsePipelineConfig(PipelineConfig):
         self.session = db.SESSIONMAKER()
 
         # Initialize parameters/options from command line
-        self.calculate = self.downlink_calculation_necessary(self.times, args.calculate)
+        times = self.get_times(args.func, args.d, args.c)
+        self.calculate = self.downlink_calculation_necessary(times, args.calculate)
         self.update_db = self.downlink_upload_necessary(args.func, args.calculate)
         self.generate_files = self.file_generation_necessary(args.func)
         self.output_dir = self.get_output_dir(args.output_dir)
         self.upload = self.upload_necessary(args.no_upload, args.generate_files)
         self.email = self.email_necessary(args.no_email)
+
+    @staticmethod
+    def get_times(func, d, c):
+        if func == "run_daily" or d:
+            return "downlink"
+        elif c:
+            return "collection"
+        raise ValueError("Couldn't determine value for times")
 
     @staticmethod
     def downlink_calculation_necessary(times, calculate):
@@ -53,9 +62,10 @@ class ArgparsePipelineConfig(PipelineConfig):
 
     @staticmethod
     def get_output_dir(output_dir):
-        if output_dir and not os.path.isdir(output_dir):
-            raise ValueError(f"Bad Output Directory: {output_dir}")
-
+        if output_dir:
+            if not os.path.isdir(output_dir):
+                raise ValueError(f"Bad Output Directory: {output_dir}")
+            return output_dir
         return tempfile.mkdtemp()
 
     @staticmethod
@@ -75,7 +85,8 @@ class ArgparsePipelineQuery(PipelineQuery):
         self.data_products = self.get_data_products(args.products)
         self.times, self.start_time, self.end_time = self.get_times(args.func, args.d, args.c)
 
-    def get_mission_ids(self, ela, elb, em3):
+    @staticmethod
+    def get_mission_ids(ela, elb, em3):
         """Determine which missions to process, defaulting to ELA and ELB only"""
         mission_ids = []
 
@@ -86,7 +97,6 @@ class ArgparsePipelineQuery(PipelineQuery):
         if em3:
             mission_ids.append(3)
         if len(mission_ids) == 0:
-            self.logger.info("No missions specified, defaulting to ELA and ELB")
             mission_ids = ALL_MISSIONS.copy()
 
         return mission_ids

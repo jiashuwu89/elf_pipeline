@@ -39,7 +39,7 @@ class StateProcessor(ScienceProcessor):
         att_df = self.get_attitude(processing_request)
         if not att_df.empty:
             self.update_cdf_with_att_df(probe, att_df, cdf)
-            self.update_cdf_with_sun_calculations(probe, csv_df, att_df, processing_request.date, cdf)
+            self.update_cdf_with_sun_calculations(probe, csv_df, att_df, cdf)
         else:
             # Fill appropriate columns with NaN - Vassilis's request
             self.logger.warning(f"No attitude data found for {processing_request.date} (searched 30 days before/after)")
@@ -289,12 +289,13 @@ class StateProcessor(ScienceProcessor):
         return final_df
 
     def update_cdf_with_att_df(self, probe, att_df, cdf):
+        self.logger.debug("Updating CDF with attitude dataframe")
         cdf[probe + "_att_time"] = att_df["time"]
         cdf[probe + "_att_solution_date"] = att_df["solution_date"]
         cdf[probe + "_att_gei"] = att_df[["X", "Y", "Z"]].values
         cdf[probe + "_att_uncertainty"] = att_df["uncertainty"].values
 
-    def update_cdf_with_sun_calculations(self, probe, vel_pos_df, att_df, start_time, cdf):
+    def update_cdf_with_sun_calculations(self, probe, vel_pos_df, att_df, cdf):
         """Function to calculate sun angle and orbnorm angle (in degrees)
 
         1. Prepare DataFrames

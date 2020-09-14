@@ -3,6 +3,8 @@ TST=tst
 PYLINT_CONFIG=.pylintrc
 LINE_LENGTH=120
 
+# TODO: Add poetry stuff
+
 
 .PHONY: all format check-style test doc
 
