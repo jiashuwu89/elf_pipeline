@@ -25,6 +25,15 @@ Pipeline to process packets and generate CDFs.
   - Enums for values
 - Increase Testing
 
+## Tests to write (in order of easiest to hardest)
+- byte_tools
+- data_type
+- output
+- metric
+- processor
+- request
+- downlink_utils
+
 # Long Term
 - Standardize the passing of pipeline_config/processing_request vs members of these objects
 - Style guide

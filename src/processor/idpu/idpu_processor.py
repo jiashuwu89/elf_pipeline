@@ -7,9 +7,9 @@ from abc import abstractmethod
 
 import numpy as np
 import pandas as pd
+from elfin.libelfin.utils import compute_crc
 from spacepy import pycdf
 
-from libelfin.utils import compute_crc
 from processor.science_processor import ScienceProcessor
 from request.downlink_manager import DownlinkManager
 from util import downlink_utils

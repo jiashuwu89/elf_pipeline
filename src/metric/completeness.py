@@ -4,7 +4,8 @@ import logging
 import math
 import statistics
 
-from common import models
+from elfin.common import models
+
 from util.science_utils import s_if_plural
 
 # TODO: Remove IDPU_Type

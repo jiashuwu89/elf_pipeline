@@ -1,10 +1,14 @@
 """Contains definition of class to record and report errors that occur"""
 import logging
+import pprint
 import smtplib
+import sys
 import time
 
 from util.credentials import EMAIL_PASSWORD, EMAIL_USERNAME
 from util.science_utils import s_if_plural
+
+pprint.pprint(sys.path)
 
 
 class ExceptionCollector:

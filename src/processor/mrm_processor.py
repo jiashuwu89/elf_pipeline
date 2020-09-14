@@ -2,9 +2,9 @@
 import datetime as dt
 
 import pandas as pd
+from elfin.common import models
 from spacepy import pycdf
 
-from common import models
 from data_type.completeness_config import MrmCompletenessConfig
 from metric.completeness import CompletenessUpdater
 from processor.science_processor import ScienceProcessor

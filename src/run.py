@@ -10,13 +10,12 @@ import os
 import tempfile
 
 from dateutil.parser import parse as dateparser
+from elfin.common import db
 
-import util.constants
-from common import db
 from coordinator import Coordinator
 from data_type.pipeline_config import PipelineConfig
 from data_type.pipeline_query import PipelineQuery
-from util.constants import ALL_MISSIONS, LOOK_BEHIND_DELTA
+from util.constants import ALL_MISSIONS, ALL_PRODUCTS, LOOK_BEHIND_DELTA
 
 # Logging Init
 LOG_FORMAT: str = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
@@ -50,7 +49,7 @@ class ArgparsePipelineConfig(PipelineConfig):
 
     @staticmethod
     def downlink_calculation_necessary(times, calculate):
-        return times == "downlink" or calculate in ["yes", "nodb"]
+        return times == "downlink"  # TODO: This probably isn't needed: or calculate in ["yes", "nodb"]
 
     @staticmethod
     def downlink_upload_necessary(func, calculate):
@@ -179,8 +178,8 @@ class CLIHandler:
             help="process data belonging to PRODUCTS",
             action="store",
             nargs="+",
-            choices=util.constants.ALL_PRODUCTS,
-            default=util.constants.ALL_PRODUCTS,
+            choices=ALL_PRODUCTS,
+            default=ALL_PRODUCTS,
             metavar="PRODUCTS",
         )
 

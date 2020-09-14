@@ -3,8 +3,8 @@ import datetime as dt
 import logging
 
 import pandas as pd
+from elfin.common import models
 
-from common import models
 from data_type.downlink import Downlink
 from data_type.packet_info import PacketInfo
 from util import byte_tools
@@ -58,7 +58,7 @@ class DownlinkManager:
 
         return downlinks
 
-    def get_downlinks_by_downlink_time(self, query):
+    def get_downlinks_by_downlink_time(self, pipeline_query):
         """
         Calculate new science downlinks by scanning through the
         list of science packets received within a range of dates
@@ -70,9 +70,11 @@ class DownlinkManager:
             A list of downlinks
         """
         downlinks = []
-        for mission_id in query.mission_ids:
-            downlinks += self.calculate_new_downlinks_by_mission_id(mission_id, query.start_time, query.end_time)
-        return downlinks
+        for mission_id in pipeline_query.mission_ids:
+            downlinks += self.calculate_new_downlinks_by_mission_id(
+                mission_id, pipeline_query.start_time, pipeline_query.end_time
+            )
+        return [dl for dl in downlinks if dl.idpu_type in pipeline_query.data_products]
 
     # HELPER FOR get_downlinks_by_downlink_time, should be private
     def calculate_new_downlinks_by_mission_id(self, mission_id, start_time, end_time):

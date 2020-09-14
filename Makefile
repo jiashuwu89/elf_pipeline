@@ -2,6 +2,7 @@ SRC=src
 TST=tst
 PYLINT_CONFIG=.pylintrc
 LINE_LENGTH=120
+PR=poetry run
 
 # TODO: Add poetry stuff
 
@@ -14,22 +15,22 @@ all: format check-style test doc
 
 format:
 	@echo "⭐ Formatting ⭐";
-	black --line-length $(LINE_LENGTH) $(SRC);
-	isort -rc $(SRC);
-	black --line-length $(LINE_LENGTH) $(TST);
-	isort -rc $(TST);
+	$(PR) black --line-length $(LINE_LENGTH) $(SRC) \
+	&& isort -rc $(SRC) \
+	&& black --line-length $(LINE_LENGTH) $(TST) \
+	&& isort -rc $(TST);
 
 # TODO: Vulture broken in prospector right now
 # TODO: mypy?
 check-style:
 	@echo "⭐ Checking Style ⭐"
-	prospector 	--strictness medium \
+	$(PR) prospector 	--strictness medium \
 				--max-line-length $(LINE_LENGTH) \
 				--with-tool vulture \
 				--without-tool pep257 \
 				--pylint-config-file $(PYLINT_CONFIG) \
-				$(SRC);
-	prospector 	--strictness high \
+				$(SRC) \
+	 && prospector 	--strictness high \
 				--max-line-length $(LINE_LENGTH) \
 				--with-tool vulture \
 				--without-tool pep257 \
@@ -38,13 +39,14 @@ check-style:
 
 test:
 	@echo "⭐ Performing Tests ⭐"
-	coverage run --source=$(SRC) -m pytest test;
+	PYTHONPATH=$(SRC) && $(PR) coverage run --source=$(SRC) -m pytest;
 	@echo "⭐ Checking Code Coverage ⭐"
-	coverage report --fail-under=80;
+	PYTHONPATH=$(SRC) && $(PR) coverage report --fail-under=80;
+	@echo "⭐ Resetting PYTHONPATH"
 
 doc:
 	@echo "⭐ Generating Documentation ⭐"
-	sphinx-apidoc -f -o doc/source/pages/ $(SRC);
+	$(PR) sphinx-apidoc -f -o doc/source/pages/ $(SRC);
 	cd docs && make html;
 
 todo:

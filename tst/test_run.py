@@ -1,5 +1,6 @@
 import pytest
-from src.run import ArgparsePipelineConfig, ArgparsePipelineQuery
+
+from run import ArgparsePipelineConfig, ArgparsePipelineQuery
 
 
 class TestArgparsePipelineConfig:

@@ -8,10 +8,10 @@ import datetime as dt
 import statistics
 
 import pandas as pd
+from elfin.common import models
 from spacepy import pycdf
 
-from common import models
-from data_type.downlink import Downlinks
+from data_type.downlink import Downlink
 from processor.science_processor import ScienceProcessor
 from util.constants import SCIENCE_TYPES
 from util.science_utils import dt_to_tt2000
@@ -157,7 +157,7 @@ class EngProcessor(ScienceProcessor):
         pass
 
 
-class EngDownlinkManager(Downlinks):
+class EngDownlinkManager(Downlink):
     def __init__(self, mission_id, start, end, session=None):
         super().__init__(session)
         self.mission_id = mission_id

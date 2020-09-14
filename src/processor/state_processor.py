@@ -5,10 +5,10 @@ import numpy as np
 import pandas as pd
 from astropy import coordinates as a_c
 from astropy.time import Time
+from elfin.common import models
 from spacepy import pycdf
 from sqlalchemy import desc
 
-from common import models
 from processor.science_processor import ScienceProcessor
 from util.constants import IDL_SCRIPT_VERSION, STATE_CSV_DIR
 from util.science_utils import interpolate_attitude

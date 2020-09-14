@@ -1,5 +1,5 @@
 """Utilities to operate on data in the form of bytes"""
-import libelfin.utils as _utils
+import elfin.libelfin.utils as _utils
 
 
 def little_e_to_big_e(data):

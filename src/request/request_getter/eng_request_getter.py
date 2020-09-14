@@ -1,7 +1,7 @@
 import sqlalchemy
+from elfin.common import models
 from sqlalchemy.sql import func
 
-from common import models
 from data_type.processing_request import ProcessingRequest
 from request.request_getter.request_getter import RequestGetter
 

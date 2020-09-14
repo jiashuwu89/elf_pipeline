@@ -34,7 +34,7 @@ class IdpuRequestGetter(RequestGetter):
             return set()
 
         if pipeline_query.times == "downlink":
-            dl_list = self.get_filtered_downlinks(pipeline_query)
+            dl_list = self.downlink_manager.get_downlinks_by_downlink_time(pipeline_query)
         elif pipeline_query.times == "collection":  # TODO: Fix this
             dl_list = self.downlink_manager.get_downlinks_by_collection_time(pipeline_query)
         else:
@@ -42,17 +42,6 @@ class IdpuRequestGetter(RequestGetter):
 
         self.logger.info(f"Obtained Downlinks:\n{self.downlink_manager.print_downlinks(dl_list)}")
         return self.get_requests_from_downlinks(dl_list)
-
-    def get_filtered_downlinks(self, pipeline_query):
-        """Calculate Downlinks (by downlink time) with desired mission ids and idpu types"""
-
-        def valid_downlink(downlink):
-            return (
-                downlink.mission_id in pipeline_query.mission_ids and downlink.idpu_type in pipeline_query.data_products
-            )
-
-        calculated_dls = self.downlink_manager.get_downlinks_by_downlink_time(pipeline_query)
-        return [downlink for downlink in calculated_dls if valid_downlink(downlink)]
 
     def get_requests_from_downlinks(self, dl_list):
         """Helper Function for get_general_processing_requests

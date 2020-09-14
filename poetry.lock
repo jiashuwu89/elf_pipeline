@@ -39,6 +39,29 @@ version = "4.0.1.post1"
 docs = ["sphinx-astropy"]
 
 [[package]]
+category = "main"
+description = "Atomic file writes."
+marker = "sys_platform == \"win32\""
+name = "atomicwrites"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "1.4.0"
+
+[[package]]
+category = "main"
+description = "Classes Without Boilerplate"
+name = "attrs"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "20.2.0"
+
+[package.extras]
+dev = ["coverage (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "sphinx", "sphinx-rtd-theme", "pre-commit"]
+docs = ["sphinx", "sphinx-rtd-theme", "zope.interface"]
+tests = ["coverage (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface"]
+tests_no_zope = ["coverage (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six"]
+
+[[package]]
 category = "dev"
 description = "Internationalization utilities"
 name = "babel"
@@ -79,6 +102,25 @@ six = ">=1.4.1"
 [package.extras]
 tests = ["pytest (>=3.2.1,<3.3.0 || >3.3.0)"]
 typecheck = ["mypy"]
+
+[[package]]
+category = "main"
+description = "The bidirectional mapping library for Python."
+name = "bidict"
+optional = false
+python-versions = ">=3"
+version = "0.19.0"
+
+[package.extras]
+coverage = ["coverage (<5)", "pytest-cov (<3)"]
+dev = ["setuptools-scm (<4)", "Sphinx (<3)", "docutils (0.15.2)", "hypothesis (<5)", "py (<2)", "pytest (<6)", "pytest-benchmark (>=3.2.0,<4)", "sortedcollections (<2)", "sortedcontainers (<3)", "coverage (<5)", "pytest-cov (<3)", "flake8 (<3.8)", "pydocstyle (<3.1)", "pylint (2.4.3)", "astroid (2.3.2)", "pre-commit (<2)", "tox (<4)"]
+docs = ["Sphinx (<3)", "docutils (0.15.2)"]
+flake8 = ["flake8 (<3.8)"]
+lint = ["flake8 (<3.8)", "pydocstyle (<3.1)", "pylint (2.4.3)", "astroid (2.3.2)"]
+pydocstyle = ["pydocstyle (<3.1)"]
+pylint = ["pylint (2.4.3)", "astroid (2.3.2)"]
+sphinx = ["Sphinx (<3)", "docutils (0.15.2)"]
+test = ["hypothesis (<5)", "py (<2)", "pytest (<6)", "pytest-benchmark (>=3.2.0,<4)", "sortedcollections (<2)", "sortedcontainers (<3)", "Sphinx (<3)", "docutils (0.15.2)"]
 
 [[package]]
 category = "dev"
@@ -138,7 +180,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 version = "7.1.2"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Cross-platform colored terminal text."
 marker = "sys_platform == \"win32\" or platform_system == \"Windows\""
 name = "colorama"
@@ -177,6 +219,17 @@ ssh = ["bcrypt (>=3.1.5)"]
 test = ["pytest (>=3.6.0,<3.9.0 || >3.9.0,<3.9.1 || >3.9.1,<3.9.2 || >3.9.2)", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,<3.79.2 || >3.79.2)"]
 
 [[package]]
+category = "main"
+description = "Curio - Concurrent I/O"
+name = "curio"
+optional = false
+python-versions = "*"
+version = "0.8"
+
+[package.extras]
+test = ["pytest", "sphinx"]
+
+[[package]]
 category = "dev"
 description = "Docutils -- Python Documentation Utilities"
 name = "docutils"
@@ -191,6 +244,27 @@ name = "dodgy"
 optional = false
 python-versions = "*"
 version = "0.2.1"
+
+[[package]]
+category = "main"
+description = "ELFIN OPS libraries"
+name = "elfin-ops-libs"
+optional = false
+python-versions = ">=3.6,<4.0"
+version = "1.9.5"
+
+[package.dependencies]
+bidict = ">=0.19.0,<0.20.0"
+curio = "0.8"
+inflection = ">=0.5.0,<0.6.0"
+pymysql = ">=0.10.0,<0.11.0"
+pyyaml = ">=5.3.1,<6.0.0"
+sqlalchemy = ">=1.3.18,<2.0.0"
+
+[package.source]
+reference = "elfin"  # This name will be used in the configuration to retreive the proper credentials
+type = "legacy"
+url = "http://git.elfin.ucla/api/v4/projects/5/packages/pypi/simple"
 
 [[package]]
 category = "dev"
@@ -266,6 +340,22 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "1.2.0"
 
 [[package]]
+category = "main"
+description = "A port of Ruby on Rails inflector to Python"
+name = "inflection"
+optional = false
+python-versions = ">=3.5"
+version = "0.5.1"
+
+[[package]]
+category = "main"
+description = "iniconfig: brain-dead simple config-ini parsing"
+name = "iniconfig"
+optional = false
+python-versions = "*"
+version = "1.0.1"
+
+[[package]]
 category = "dev"
 description = "A Python utility / library to sort Python imports."
 name = "isort"
@@ -318,6 +408,14 @@ python-versions = "*"
 version = "0.6.1"
 
 [[package]]
+category = "main"
+description = "More routines for operating on iterables, beyond itertools"
+name = "more-itertools"
+optional = false
+python-versions = ">=3.5"
+version = "8.5.0"
+
+[[package]]
 category = "dev"
 description = "Optional static typing for Python"
 name = "mypy"
@@ -350,7 +448,7 @@ python-versions = ">=3.6"
 version = "1.19.2"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Core utilities for Python packages"
 name = "packaging"
 optional = false
@@ -432,6 +530,17 @@ python-versions = "*"
 version = "2.6.7"
 
 [[package]]
+category = "main"
+description = "plugin and hook calling mechanisms for python"
+name = "pluggy"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "0.13.1"
+
+[package.extras]
+dev = ["pre-commit", "tox"]
+
+[[package]]
 category = "dev"
 description = "Prospector: python static analysis tool"
 name = "prospector"
@@ -483,6 +592,14 @@ with_frosted = ["frosted (>=1.4.1)"]
 with_mypy = ["mypy (>=0.600)"]
 with_pyroma = ["pyroma (>=2.4)"]
 with_vulture = ["vulture (>=1.5)"]
+
+[[package]]
+category = "main"
+description = "library with cross-python path, ini-parsing, io, code, log facilities"
+name = "py"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "1.9.0"
 
 [[package]]
 category = "dev"
@@ -595,6 +712,18 @@ pylint = ">=1.7"
 
 [[package]]
 category = "main"
+description = "Pure Python MySQL Driver"
+name = "pymysql"
+optional = false
+python-versions = "*"
+version = "0.10.1"
+
+[package.extras]
+ed25519 = ["PyNaCl (>=1.4.0)"]
+rsa = ["cryptography"]
+
+[[package]]
+category = "main"
 description = "Python binding to the Networking and Cryptography (NaCl) library"
 name = "pynacl"
 optional = false
@@ -610,7 +739,7 @@ docs = ["sphinx (>=1.6.5)", "sphinx-rtd-theme"]
 tests = ["pytest (>=3.2.1,<3.3.0 || >3.3.0)", "hypothesis (>=3.27.0)"]
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Python parsing module"
 name = "pyparsing"
 optional = false
@@ -632,6 +761,29 @@ setuptools = "*"
 
 [[package]]
 category = "main"
+description = "pytest: simple powerful testing with Python"
+name = "pytest"
+optional = false
+python-versions = ">=3.5"
+version = "6.0.2"
+
+[package.dependencies]
+atomicwrites = ">=1.0"
+attrs = ">=17.4.0"
+colorama = "*"
+iniconfig = "*"
+more-itertools = ">=4.0.0"
+packaging = "*"
+pluggy = ">=0.12,<1.0"
+py = ">=1.8.2"
+toml = "*"
+
+[package.extras]
+checkqa_mypy = ["mypy (0.780)"]
+testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xmlschema"]
+
+[[package]]
+category = "main"
 description = "Extensions to the standard Python datetime module"
 name = "python-dateutil"
 optional = false
@@ -650,7 +802,7 @@ python-versions = "*"
 version = "2020.1"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "YAML parser and emitter for Python"
 name = "pyyaml"
 optional = false
@@ -872,7 +1024,7 @@ version = "3.2.2"
 pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Python Library for Tom's Obvious, Minimal Language"
 name = "toml"
 optional = false
@@ -928,7 +1080,7 @@ python-versions = "*"
 version = "1.12.1"
 
 [metadata]
-content-hash = "669fe622cb43efd492589977185d59e7c319ae582e386325534a2a73ec086e63"
+content-hash = "d982919a644b860fe4cd4b4de064fbec06fe0998cfa0b03ad112fde32ecbf8a8"
 lock-version = "1.0"
 python-versions = "^3.8"
 
@@ -963,6 +1115,14 @@ astropy = [
     {file = "astropy-4.0.1.post1-cp38-cp38-win_amd64.whl", hash = "sha256:6a3ea22bde401bf7da1ae1174a010352ce08f900c512893e0d3a6286b1f2863d"},
     {file = "astropy-4.0.1.post1.tar.gz", hash = "sha256:5c304a6c1845ca426e7bc319412b0363fccb4928cb4ba59298acd1918eec44b5"},
 ]
+atomicwrites = [
+    {file = "atomicwrites-1.4.0-py2.py3-none-any.whl", hash = "sha256:6d1784dea7c0c8d4a5172b6c620f40b6e4cbfdf96d783691f2e1302a7b88e197"},
+    {file = "atomicwrites-1.4.0.tar.gz", hash = "sha256:ae70396ad1a434f9c7046fd2dd196fc04b12f9e91ffb859164193be8b6168a7a"},
+]
+attrs = [
+    {file = "attrs-20.2.0-py2.py3-none-any.whl", hash = "sha256:fce7fc47dfc976152e82d53ff92fa0407700c21acd20886a13777a0d20e655dc"},
+    {file = "attrs-20.2.0.tar.gz", hash = "sha256:26b54ddbbb9ee1d34d5d3668dd37d6cf74990ab23c828c2888dccdceee395594"},
+]
 babel = [
     {file = "Babel-2.8.0-py2.py3-none-any.whl", hash = "sha256:d670ea0b10f8b723672d3a6abeb87b565b244da220d76b4dba1b66269ec152d4"},
     {file = "Babel-2.8.0.tar.gz", hash = "sha256:1aac2ae2d0d8ea368fa90906567f5c08463d98ade155c0c4bfedd6a0f7160e38"},
@@ -979,6 +1139,10 @@ bcrypt = [
     {file = "bcrypt-3.2.0-cp36-abi3-win32.whl", hash = "sha256:a67fb841b35c28a59cebed05fbd3e80eea26e6d75851f0574a9273c80f3e9b55"},
     {file = "bcrypt-3.2.0-cp36-abi3-win_amd64.whl", hash = "sha256:81fec756feff5b6818ea7ab031205e1d323d8943d237303baca2c5f9c7846f34"},
     {file = "bcrypt-3.2.0.tar.gz", hash = "sha256:5b93c1726e50a93a033c36e5ca7fdcd29a5c7395af50a6892f5d9e7c6cfbfb29"},
+]
+bidict = [
+    {file = "bidict-0.19.0-py2.py3-none-any.whl", hash = "sha256:754756ef233b3c71984b185b7028fdd6f402382e84c9d3e89b0b866d40dd5d45"},
+    {file = "bidict-0.19.0.tar.gz", hash = "sha256:ef7461a18fb4a6f3ccaa73f43ffe2e98661fba4b43b647ec7886b3298c8e9187"},
 ]
 black = [
     {file = "black-20.8b1-py3-none-any.whl", hash = "sha256:70b62ef1527c950db59062cda342ea224d772abdf6adc58b86a45421bab20a6b"},
@@ -1090,6 +1254,9 @@ cryptography = [
     {file = "cryptography-3.1-cp38-cp38-win_amd64.whl", hash = "sha256:548b0818e88792318dc137d8b1ec82a0ab0af96c7f0603a00bb94f896fbf5e10"},
     {file = "cryptography-3.1.tar.gz", hash = "sha256:26409a473cc6278e4c90f782cd5968ebad04d3911ed1c402fc86908c17633e08"},
 ]
+curio = [
+    {file = "curio-0.8.tar.gz", hash = "sha256:db370ae50a924a7f72b4d023a51443a870f64daa26b2c713b45a38e08fcf216f"},
+]
 docutils = [
     {file = "docutils-0.16-py2.py3-none-any.whl", hash = "sha256:0c5b78adfbf7762415433f5515cd5c9e762339e23369dbe8000d84a4bf4ab3af"},
     {file = "docutils-0.16.tar.gz", hash = "sha256:c2de3a60e9e7d07be26b7f2b00ca0309c207e06c100f9cc2a94931fc75a478fc"},
@@ -1097,6 +1264,9 @@ docutils = [
 dodgy = [
     {file = "dodgy-0.2.1-py3-none-any.whl", hash = "sha256:51f54c0fd886fa3854387f354b19f429d38c04f984f38bc572558b703c0542a6"},
     {file = "dodgy-0.2.1.tar.gz", hash = "sha256:28323cbfc9352139fdd3d316fa17f325cc0e9ac74438cbba51d70f9b48f86c3a"},
+]
+elfin-ops-libs = [
+    {file = "elfin_ops_libs-1.9.5-py3-none-any.whl", hash = "sha256:023fb370d7d4ba3d1996e7d636132e21861701657a1cf58230abc5a2610387f3"},
 ]
 flake8 = [
     {file = "flake8-3.8.3-py2.py3-none-any.whl", hash = "sha256:15e351d19611c887e482fb960eae4d44845013cc142d42896e9862f775d8cf5c"},
@@ -1125,6 +1295,14 @@ idna = [
 imagesize = [
     {file = "imagesize-1.2.0-py2.py3-none-any.whl", hash = "sha256:6965f19a6a2039c7d48bca7dba2473069ff854c36ae6f19d2cde309d998228a1"},
     {file = "imagesize-1.2.0.tar.gz", hash = "sha256:b1f6b5a4eab1f73479a50fb79fcf729514a900c341d8503d62a62dbc4127a2b1"},
+]
+inflection = [
+    {file = "inflection-0.5.1-py2.py3-none-any.whl", hash = "sha256:f38b2b640938a4f35ade69ac3d053042959b62a0f1076a5bbaa1b9526605a8a2"},
+    {file = "inflection-0.5.1.tar.gz", hash = "sha256:1a29730d366e996aaacffb2f1f1cb9593dc38e2ddd30c91250c6dde09ea9b417"},
+]
+iniconfig = [
+    {file = "iniconfig-1.0.1-py3-none-any.whl", hash = "sha256:80cf40c597eb564e86346103f609d74efce0f6b4d4f30ec8ce9e2c26411ba437"},
+    {file = "iniconfig-1.0.1.tar.gz", hash = "sha256:e5f92f89355a67de0595932a6c6c02ab4afddc6fcdc0bfc5becd0d60884d3f69"},
 ]
 isort = [
     {file = "isort-4.3.21-py2.py3-none-any.whl", hash = "sha256:6e811fcb295968434526407adb8796944f1988c5b65e8139058f2014cbe100fd"},
@@ -1195,6 +1373,10 @@ markupsafe = [
 mccabe = [
     {file = "mccabe-0.6.1-py2.py3-none-any.whl", hash = "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42"},
     {file = "mccabe-0.6.1.tar.gz", hash = "sha256:dd8d182285a0fe56bace7f45b5e7d1a6ebcbf524e8f3bd87eb0f125271b8831f"},
+]
+more-itertools = [
+    {file = "more-itertools-8.5.0.tar.gz", hash = "sha256:6f83822ae94818eae2612063a5101a7311e68ae8002005b5e05f03fd74a86a20"},
+    {file = "more_itertools-8.5.0-py3-none-any.whl", hash = "sha256:9b30f12df9393f0d28af9210ff8efe48d10c94f73e5daf886f10c4b0b0b4f03c"},
 ]
 mypy = [
     {file = "mypy-0.782-cp35-cp35m-macosx_10_6_x86_64.whl", hash = "sha256:2c6cde8aa3426c1682d35190b59b71f661237d74b053822ea3d748e2c9578a7c"},
@@ -1286,8 +1468,16 @@ pies = [
     {file = "pies-2.6.7-py2.py3-none-any.whl", hash = "sha256:79a652dddc64c6fa42c7dfe9686ae7b1d856391094b873e2f52fcd0bd662c102"},
     {file = "pies-2.6.7.tar.gz", hash = "sha256:e8a76923ce0e0f605240901983fe492814a65d3d803efe3013a0e1815b75e4e9"},
 ]
+pluggy = [
+    {file = "pluggy-0.13.1-py2.py3-none-any.whl", hash = "sha256:966c145cd83c96502c3c3868f50408687b38434af77734af1e9ca461a4081d2d"},
+    {file = "pluggy-0.13.1.tar.gz", hash = "sha256:15b2acde666561e1298d71b523007ed7364de07029219b604cf808bfa1c765b0"},
+]
 prospector = [
     {file = "prospector-1.3.0.tar.gz", hash = "sha256:43e5e187c027336b0e4c4aa6a82d66d3b923b5ec5b51968126132e32f9d14a2f"},
+]
+py = [
+    {file = "py-1.9.0-py2.py3-none-any.whl", hash = "sha256:366389d1db726cd2fcfc79732e75410e5fe4d31db13692115529d34069a043c2"},
+    {file = "py-1.9.0.tar.gz", hash = "sha256:9ca6883ce56b4e8da7e79ac18787889fa5206c79dcc67fb065376cd2fe03f342"},
 ]
 pycodestyle = [
     {file = "pycodestyle-2.6.0-py2.py3-none-any.whl", hash = "sha256:2295e7b2f6b5bd100585ebcb1f616591b652db8a741695b3d8f5d28bdc934367"},
@@ -1327,6 +1517,10 @@ pylint-plugin-utils = [
     {file = "pylint-plugin-utils-0.6.tar.gz", hash = "sha256:57625dcca20140f43731311cd8fd879318bf45a8b0fd17020717a8781714a25a"},
     {file = "pylint_plugin_utils-0.6-py3-none-any.whl", hash = "sha256:2f30510e1c46edf268d3a195b2849bd98a1b9433229bb2ba63b8d776e1fc4d0a"},
 ]
+pymysql = [
+    {file = "PyMySQL-0.10.1-py2.py3-none-any.whl", hash = "sha256:44f47128dda8676e021c8d2dbb49a82be9e4ab158b9f03e897152a3a287c69ea"},
+    {file = "PyMySQL-0.10.1.tar.gz", hash = "sha256:263040d2779a3b84930f7ac9da5132be0fefcd6f453a885756656103f8ee1fdd"},
+]
 pynacl = [
     {file = "PyNaCl-1.4.0-cp27-cp27m-macosx_10_10_x86_64.whl", hash = "sha256:ea6841bc3a76fa4942ce00f3bda7d436fda21e2d91602b9e21b7ca9ecab8f3ff"},
     {file = "PyNaCl-1.4.0-cp27-cp27m-manylinux1_x86_64.whl", hash = "sha256:d452a6746f0a7e11121e64625109bc4468fc3100452817001dbe018bb8b08514"},
@@ -1354,6 +1548,10 @@ pyparsing = [
 pyroma = [
     {file = "pyroma-2.6-py2.py3-none-any.whl", hash = "sha256:351758a81e2a12c970deb73687e239636aad52795cd81429695073d59fff0699"},
     {file = "pyroma-2.6.tar.gz", hash = "sha256:c49c00377219626bf83df42adf018cc231e6162b68cc7aaf2ff1c63803924102"},
+]
+pytest = [
+    {file = "pytest-6.0.2-py3-none-any.whl", hash = "sha256:0e37f61339c4578776e090c3b8f6b16ce4db333889d65d0efb305243ec544b40"},
+    {file = "pytest-6.0.2.tar.gz", hash = "sha256:c8f57c2a30983f469bf03e68cdfa74dc474ce56b8f280ddcb080dfd91df01043"},
 ]
 python-dateutil = [
     {file = "python-dateutil-2.8.1.tar.gz", hash = "sha256:73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c"},
