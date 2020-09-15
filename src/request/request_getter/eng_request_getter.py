@@ -4,7 +4,7 @@ from sqlalchemy.sql import func
 
 from data_type.processing_request import ProcessingRequest
 from request.request_getter.request_getter import RequestGetter
-import util.science_utils
+from util import science_utils
 
 
 class EngRequestGetter(RequestGetter):
