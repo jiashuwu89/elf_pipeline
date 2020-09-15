@@ -80,7 +80,7 @@ class IdpuProcessor(ScienceProcessor):
 
     @abstractmethod
     def get_completeness_updater(self, processing_request):
-        pass
+        raise NotImplementedError
 
     def generate_l0_file(self, processing_request, l0_df):
         # Filter fields and duplicates
@@ -140,7 +140,7 @@ class IdpuProcessor(ScienceProcessor):
 
     @abstractmethod
     def transform_l0_df(self, processing_request, l0_df):
-        pass
+        raise NotImplementedError
 
     def generate_l1_file(self, processing_request, l1_df):
         fname = self.make_filename(processing_request, 1)
@@ -294,7 +294,7 @@ class IdpuProcessor(ScienceProcessor):
 
     @abstractmethod
     def process_rejoined_data(self, processing_request, df):
-        pass
+        raise NotImplementedError
 
     def merge_processed_dataframes(self, dfs, idpu_types):
         """

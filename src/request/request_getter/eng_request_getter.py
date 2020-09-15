@@ -1,3 +1,5 @@
+import datetime as dt
+
 import sqlalchemy
 from elfin.common import models
 from sqlalchemy.sql import func
@@ -7,22 +9,28 @@ from request.request_getter.request_getter import RequestGetter
 from util import science_utils
 
 
+# TODO: requests gotten by categoricals and bmon, but what about idpu?
 class EngRequestGetter(RequestGetter):
     def get(self, pipeline_query):
-        self.logger.info("Getting ENG Requests")
-        categoricals_requests = self.get_categoricals_requests(pipeline_query.start_time, pipeline_query.end_time)
-        bmon_requests = self.get_bmon_requests(pipeline_query.start_time, pipeline_query.end_time)
+        self.logger.info("⚽️\tGetting ENG Requests")
+        categoricals_requests = self.get_categoricals_requests(pipeline_query)
+        bmon_requests = self.get_bmon_requests(pipeline_query)
 
         eng_processing_requests = categoricals_requests.union(bmon_requests)
 
         # TODO: s if plural
         self.logger.info(
-            f"Got {len(eng_processing_requests)}"
+            f"⚽️\tGot {len(eng_processing_requests)} "
             + f"ENG processing request{science_utils.s_if_plural(eng_processing_requests)}"
         )
         return eng_processing_requests
 
-    def get_categoricals_requests(self, start_time, end_time):
+    def get_categoricals_requests(self, pipeline_query):
+        self.logger.info("Getting ENG Categoricals requests")
+        mission_ids = pipeline_query.mission_ids
+        start_time = pipeline_query.start_time
+        end_time = pipeline_query.end_time
+
         categoricals = [
             models.Categoricals.TMP_1,
             models.Categoricals.TMP_2,
@@ -31,24 +39,58 @@ class EngRequestGetter(RequestGetter):
             models.Categoricals.TMP_5,
             models.Categoricals.TMP_6,
         ]
-        categoricals_query = (  # TODO: Fix this, missing mission
-            self.pipeline_config.session.query(sqlalchemy.distinct(func.date(models.Categorical.timestamp)))
-            .filter(
-                models.Categorical.mission_id == 1,  # TODO: IS THIS A PROBLEM? replace with mission_id.in_(mission_ids)
-                models.Packet.timestamp >= start_time,
-                models.Packet.timestamp < end_time,
-                models.Categorical.name.in_(categoricals),
-            )
-            .join(models.Packet)
-        )
-        return {  # TODO: replace res.mission_id and res.timestamp (res[0]) if necessary
-            ProcessingRequest(res.mission_id, "eng", res.timestamp.date()) for res in categoricals_query
-        }
 
-    def get_bmon_requests(self, start_time, end_time):
-        bmon_query = (
-            self.pipeline_config.session.query(sqlalchemy.distinct(func.date(models.BmonData.timestamp)))
-            .filter(models.Packet.timestamp >= start_time, models.Packet.timestamp < end_time)
-            .join(models.Packet)
+        categoricals_requests = set()
+
+        # TODO: make into single query
+        for mission_id in mission_ids:
+            query = (  # TODO: Fix this, missing mission
+                self.pipeline_config.session.query(sqlalchemy.distinct(func.date(models.Categorical.timestamp)))
+                .filter(
+                    models.Categorical.mission_id == mission_id,
+                    models.Packet.timestamp >= start_time,
+                    models.Packet.timestamp < end_time,
+                    models.Categorical.name.in_(categoricals),
+                )
+                .join(models.Packet)
+            )
+
+            current_requests = {
+                ProcessingRequest(mission_id, "eng", dt.datetime.combine(res[0], dt.datetime.min.time()))
+                for res in query
+            }
+            categoricals_requests.update(current_requests)
+
+        self.logger.info(
+            f"Got {len(categoricals_requests)} "
+            + f"ENG Categoricals request{science_utils.s_if_plural(categoricals_requests)}"
         )
-        return {ProcessingRequest(res.mission_id, "eng", res.timestamp.date()) for res in bmon_query}
+        return categoricals_requests
+
+    def get_bmon_requests(self, pipeline_query):
+        self.logger.info("Getting ENG Bmon requests")
+        mission_ids = pipeline_query.mission_ids
+        start_time = pipeline_query.start_time
+        end_time = pipeline_query.end_time
+
+        bmon_requests = set()
+
+        for mission_id in mission_ids:
+            query = (
+                self.pipeline_config.session.query(sqlalchemy.distinct(func.date(models.BmonData.timestamp)))
+                .filter(
+                    models.BmonData.mission_id == mission_id,
+                    models.Packet.timestamp >= start_time,
+                    models.Packet.timestamp < end_time,
+                )
+                .join(models.Packet)
+            )
+
+            current_requests = {
+                ProcessingRequest(mission_id, "eng", dt.datetime.combine(res[0], dt.datetime.min.time()))
+                for res in query
+            }
+            bmon_requests.update(current_requests)
+
+        self.logger.info(f"Got {len(bmon_requests)} " + f"ENG Bmon request{science_utils.s_if_plural(bmon_requests)}")
+        return bmon_requests

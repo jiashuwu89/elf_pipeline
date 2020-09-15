@@ -114,18 +114,3 @@ def interpolate_attitude(S_init, t_init, S_fin, t_fin):
         interpolated_atts.append(S_gei / np.linalg.norm(S_gei))
 
     return np.array(t_arr_minres), np.array(interpolated_atts)
-
-
-if __name__ == "__main__":
-    # EXAMPLE FUNCTION CALL (using first two entries in ELA attitude file)
-    Si = np.array([0.49483781545421507, 0.63977898197938476, 0.58806325392250303])
-    Sf = np.array([0.55442686811141506, 0.55396341823980311, 0.62107598501974026])
-    Ti = "2019-04-30/17:38:32"
-    Tf = "2019-05-02/09:29:14"
-
-    dt_init = datetime.strptime(Ti, "%Y-%m-%d/%H:%M:%S")
-    dt_fin = datetime.strptime(Tf, "%Y-%m-%d/%H:%M:%S")
-
-    interp_times, interp_atts = interpolate_attitude(Si, dt_init, Sf, dt_fin)
-
-    print(interp_times, interp_atts)

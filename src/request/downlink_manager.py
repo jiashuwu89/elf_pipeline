@@ -32,7 +32,7 @@ class DownlinkManager:
     def print_downlinks(self, downlinks, prefix="Downlinks:"):
         """Prints the collection of downlinks given, in a formatted fashion"""
         if downlinks:
-            msg = f"{prefix}\nGot {len(downlinks)} Downlink{science_utils.s_if_plural(downlinks)}\n" + "\n".join(
+            msg = f"{prefix}\nGot {len(downlinks)} Total Downlink{science_utils.s_if_plural(downlinks)}\n" + "\n".join(
                 [str(d) for d in downlinks]
             )
         else:
@@ -76,10 +76,15 @@ class DownlinkManager:
         """
         downlinks = []
         for mission_id in pipeline_query.mission_ids:
-            self.logger.info(f"Getting Downlinks for mission {mission_id}")
-            downlinks += self.calculate_new_downlinks_by_mission_id(
+            self.logger.info(f"Getting Downlink for mission {mission_id}")
+            cur_mission_downlinks = self.calculate_new_downlinks_by_mission_id(
                 mission_id, pipeline_query.start_time, pipeline_query.end_time
             )
+            self.logger.info(
+                f"Got {len(cur_mission_downlinks)} "
+                + f"Downlink{science_utils.s_if_plural(cur_mission_downlinks)} for mission {mission_id}"
+            )
+            downlinks += cur_mission_downlinks
 
         # TODO: can't compare idpu_type directly against product name!
         return [

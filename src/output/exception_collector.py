@@ -26,8 +26,8 @@ class ExceptionCollector:
         log_msg = "Exception Recorded:"
         email_msg = "Exception Recorded:"
         for x in to_record:
-            log_msg += f"\n\t\t{x}"
             log_msg += f"\n{x}"
+            email_msg += f"\n{x}"
         self.logger.critical(log_msg)
         self.exception_list.append(email_msg)
 

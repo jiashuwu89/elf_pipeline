@@ -25,10 +25,12 @@ class ProcessingRequest:
         return hash((self.mission_id, self.data_product, self.date))
 
     def __str__(self):
-        return f"ProcessingRequest(\
-            mission_id={self.mission_id}, \
-            data_product={self.data_product}, \
-            date={self.date}"
+        return (
+            "ProcessingRequest("
+            + f"mission_id={self.mission_id}, "
+            + f"data_product={self.data_product}, "
+            + f"date={self.date})"
+        )
 
     @property
     def probe(self):

@@ -2,6 +2,7 @@ SRC=src
 TST=tst
 PYLINT_CONFIG=.pylintrc
 LINE_LENGTH=120
+COVERAGE_LIMIT=80
 PR=poetry run
 
 # TODO: Add poetry stuff
@@ -24,26 +25,31 @@ format:
 # TODO: mypy?
 check-style:
 	@echo "⭐ Checking Style ⭐"
-	$(PR) prospector 	--strictness medium \
-				--max-line-length $(LINE_LENGTH) \
-				--with-tool vulture \
-				--without-tool pep257 \
-				--pylint-config-file $(PYLINT_CONFIG) \
-				$(SRC) \
-	 && prospector 	--strictness high \
-				--max-line-length $(LINE_LENGTH) \
-				--with-tool vulture \
-				--without-tool pep257 \
-				--pylint-config-file $(PYLINT_CONFIG) \
-				$(TST);
+	$(PR) prospector \
+		--strictness medium \
+		--max-line-length $(LINE_LENGTH) \
+		--with-tool vulture \
+		--without-tool pep257 \
+		--pylint-config-file $(PYLINT_CONFIG) \
+		$(SRC) \
+	 && prospector \
+	 	--strictness high \
+		--max-line-length $(LINE_LENGTH) \
+		--with-tool vulture \
+		--without-tool pep257 \
+		--pylint-config-file $(PYLINT_CONFIG) \
+		$(TST);
 
 test:
 	@echo "⭐ Performing Tests ⭐"
 	PYTHONPATH=$(SRC) && $(PR) coverage run --source=$(SRC) -m pytest;
 
+# --skip-covered can be used to ignore files with 100% coverage
 coverage: test
 	@echo "⭐ Checking Code Coverage ⭐"
-	PYTHONPATH=$(SRC) && $(PR) coverage html --fail-under=80;
+	$(PR) coverage html \
+		--fail-under=$(COVERAGE_LIMIT) \
+		--skip-empty;
 
 doc:
 	@echo "⭐ Generating Documentation ⭐"
@@ -55,6 +61,7 @@ todo:
 	grep --color=always -Iirn "todo" $(SRC) | sed "s/    //g"
 
 clean:
+	@echo "⭐ Cleaning Files ⭐"
 	rm -rf .coverage htmlcov doc/build
 
 help:

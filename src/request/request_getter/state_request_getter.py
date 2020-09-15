@@ -10,7 +10,7 @@ from request.request_getter.request_getter import RequestGetter
 
 class StateRequestGetter(RequestGetter):
     def get(self, pipeline_query):
-        self.logger.info("Getting State Requests")
+        self.logger.info("⚾️\tGetting State Requests")
         state_processing_requests = set()
 
         # Always process certain days
@@ -39,5 +39,5 @@ class StateRequestGetter(RequestGetter):
                 state_processing_requests.add(ProcessingRequest(mission_id, "state", cur))
                 cur += dt.timedelta(days=1)
 
-        self.logger.info(f"Got {len(state_processing_requests)} State processing requests")
+        self.logger.info(f"⚾️\tGot {len(state_processing_requests)} State processing requests")
         return state_processing_requests

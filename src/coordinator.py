@@ -12,6 +12,7 @@ from output.exception_collector import ExceptionCollector
 from output.server_manager import ServerManager
 from processor.processor_manager import ProcessorManager
 from request.request_getter_manager import RequestGetterManager
+from util import science_utils
 from util.constants import DAILY_EMAIL_LIST
 
 # TODO: self.times should be an enum
@@ -95,8 +96,11 @@ class Coordinator:
 
         self.logger.info("⛅️\tGenerating Files")
         generated_files = self.processor_manager.generate_files(processing_requests)
-        self.logger.info(f"Generated {len(generated_files)} files")
-        self.logger.info(generated_files)  # TODO: Clean this up
+        self.logger.info(
+            f"Generated {len(generated_files)} file{science_utils.s_if_plural(generated_files)}:"
+            + "\n\t\t"
+            + "\n\t\t".join(generated_files)
+        )
 
         return generated_files
 

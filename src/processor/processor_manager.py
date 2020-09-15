@@ -1,4 +1,5 @@
 """The ProcessorManager assigns file-generation tasks to processors"""
+import logging
 import traceback
 
 from processor.eng_processor import EngProcessor
@@ -12,15 +13,23 @@ class ProcessorManager:
     """A class to generate files using processors, given processing requests."""
 
     def __init__(self, pipeline_config, exception_collector):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.pipeline_config = pipeline_config
-        self.processors = self.init_processors()
         self.exception_collector = exception_collector
+
+        self.eng_processor = EngProcessor(self.pipeline_config)
+        self.epd_processor = EpdProcessor(self.pipeline_config)
+        self.fgm_processor = FgmProcessor(self.pipeline_config)
+        self.mrm_processor = MrmProcessor(self.pipeline_config)
+        self.state_processor = StateProcessor(self.pipeline_config)
+        self.processors = self.init_processors_map()
 
     def generate_files(self, processing_requests):
         """Given requests, generate appropriate files using processors"""
         files = set()
 
         for pr in processing_requests:
+            self.logger.info(f"Handling {str(pr)}")
             try:
                 files.update(self.processors[pr.data_product].generate_files(pr))
             except Exception as e:
@@ -29,12 +38,17 @@ class ProcessorManager:
 
         return files
 
-    def init_processors(self):
+    def init_processors_map(self):
         """Creates a dict mapping data product name to processor"""
         return {
-            "eng": EngProcessor(self.pipeline_config),
-            "epd": EpdProcessor(self.pipeline_config),
-            "fgm": FgmProcessor(self.pipeline_config),
-            "mrm": MrmProcessor(self.pipeline_config),
-            "state": StateProcessor(self.pipeline_config),
+            "eng": self.eng_processor,
+            "epdef": self.epd_processor,
+            "epdes": self.epd_processor,
+            "epdif": self.epd_processor,
+            "epdis": self.epd_processor,
+            "fgf": self.fgm_processor,
+            "fgs": self.fgm_processor,
+            "mrma": self.mrm_processor,
+            "mrmi": self.mrm_processor,
+            "state": self.state_processor,
         }

@@ -25,7 +25,7 @@ class ScienceProcessor(ABC):
 
     @abstractmethod
     def generate_files(self, processing_request):
-        pass
+        raise NotImplementedError
 
     def make_filename(self, processing_request, level, size=None):
         """Constructs the appropriate filename for a L0/L1/L2 file, and returns the full path (level is int)"""

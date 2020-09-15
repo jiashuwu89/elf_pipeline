@@ -10,4 +10,4 @@ class RequestGetter(ABC):
 
     @abstractmethod
     def get(self, pipeline_query):
-        pass
+        NotImplementedError

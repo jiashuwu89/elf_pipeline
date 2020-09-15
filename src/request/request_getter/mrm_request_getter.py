@@ -6,12 +6,13 @@ from sqlalchemy.sql import func
 
 from data_type.processing_request import ProcessingRequest
 from request.request_getter.request_getter import RequestGetter
+from util import science_utils
 from util.constants import MRM_PRODUCTS, MRM_TYPES
 
 
 class MrmRequestGetter(RequestGetter):
     def get(self, pipeline_query):
-        self.logger.info("Getting MRM Requests")
+        self.logger.info("🏈\tGetting MRM Requests")
         mrm_products = self.get_mrm_products(pipeline_query.data_products)
         if not mrm_products:
             self.logger.info("Got 0 MRM processing requests")
@@ -34,7 +35,10 @@ class MrmRequestGetter(RequestGetter):
             if res.date is not None
         }
 
-        self.logger.info(f"Got {len(mrm_processing_requests)} MRM processing requests")
+        self.logger.info(
+            f"🏈\tGot {len(mrm_processing_requests)} "
+            + f"MRM processing request{science_utils.s_if_plural(mrm_processing_requests)}"
+        )
         return mrm_processing_requests
 
     def get_mrm_products(self, data_products):
