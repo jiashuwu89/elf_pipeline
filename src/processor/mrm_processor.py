@@ -62,7 +62,7 @@ class MrmProcessor(ScienceProcessor):
 
         return mrm_df
 
-    def fill_cdf(self, processing_request, mrm_df, cdf):
+    def fill_cdf(self, processing_request, df, cdf):
         self.logger.debug("Filling MRM CDF")
         probe = processing_request.probe
 
@@ -70,5 +70,5 @@ class MrmProcessor(ScienceProcessor):
         cdf.attrs["Generation_date"] = datestr_run
         cdf.attrs["MODS"] = f"Rev- {datestr_run}"  # TODO: Check this string
 
-        cdf[f"{probe}_{processing_request.data_product}_time"] = mrm_df["timestamp"].apply(pycdf.lib.datetime_to_tt2000)
-        cdf[f"{probe}_{processing_request.data_product}"] = mrm_df[["mrm_x", "mrm_y", "mrm_z"]].values
+        cdf[f"{probe}_{processing_request.data_product}_time"] = df["timestamp"].apply(pycdf.lib.datetime_to_tt2000)
+        cdf[f"{probe}_{processing_request.data_product}"] = df[["mrm_x", "mrm_y", "mrm_z"]].values

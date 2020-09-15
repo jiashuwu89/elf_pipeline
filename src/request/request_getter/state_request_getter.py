@@ -10,6 +10,7 @@ from request.request_getter.request_getter import RequestGetter
 
 class StateRequestGetter(RequestGetter):
     def get(self, pipeline_query):
+        self.logger.info("Getting State Requests")
         state_processing_requests = set()
 
         # Always process certain days

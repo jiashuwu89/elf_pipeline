@@ -2,30 +2,22 @@ from abc import ABC
 
 
 class PipelineConfig(ABC):
-    @property
-    def session(self):
-        raise NotImplementedError
+    """A class to hold configurations of the pipeline.
 
-    @property
-    def calculate(self):
-        raise NotImplementedError
-
-    @property
-    def update_db(self):
-        raise NotImplementedError
-
-    @property
-    def generate_files(self):
-        raise NotImplementedError
-
-    @property
-    def output_dir(self):
-        raise NotImplementedError
-
-    @property
-    def upload(self):
-        raise NotImplementedError
-
-    @property
-    def email(self):
-        raise NotImplementedError
+    Attributes
+    ----------
+    session
+        From elfin.common.db
+    calculate: bool
+        Specifies if downlinks should be calculated
+    update_db: bool
+        Specifies if the science_downlinks table should be updated
+    generate_files: bool
+        Specifies if files should be generated
+    output_dir: str
+        The directory where generated files should be stored
+    upload: bool
+        Specifies if files should be uploaded to the server
+    email: bool
+        Specifies if warnings should be emailed, if problems occur
+    """

@@ -76,7 +76,11 @@ class Coordinator:
             self.logger.info("🌦\tProblems detected, sending email notification")
             self.exception_collector.email()
         else:
-            self.logger.info("☀️\tPipeline completed successfully")
+            self.logger.info(
+                "🌞\tPipeline completed successfully"
+                if not self.exception_collector.email_list
+                else "🌦\tProblems detected"
+            )
 
     def get_processing_requests(self, pipeline_query):
         self.logger.info("🌥\tGetting Processing Requests")

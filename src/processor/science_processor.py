@@ -21,7 +21,7 @@ class ScienceProcessor(ABC):
         self.session = pipeline_config.session
         self.output_dir = pipeline_config.output_dir
 
-        self.downlink_manager = DownlinkManager(self.session)
+        self.downlink_manager = DownlinkManager(pipeline_config)
 
     @abstractmethod
     def generate_files(self, processing_request):

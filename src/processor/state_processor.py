@@ -55,8 +55,12 @@ class StateProcessor(ScienceProcessor):
         """
         probe = processing_request.probe
         file_date = processing_request.date.strftime("%Y%m%d")
-        fname = f"{probe}_l{level}_state_{self.state_type}_{file_date}_v01.cdf"
+        fname = self.get_fname(probe, level, self.state_type, file_date)
         return f"{self.output_dir}/{fname}"
+
+    @staticmethod
+    def get_fname(probe, level, state_type, file_date):
+        return f"{probe}_l{level}_state_{state_type}_{file_date}_v01.cdf"
 
     def create_cdf(self, fname):
         datestr_run = dt.datetime.utcnow().strftime("%04Y-%02m-%02d")
@@ -72,7 +76,7 @@ class StateProcessor(ScienceProcessor):
 
         df = None
         for d in [processing_request.date - dt.timedelta(days=1), processing_request.date]:
-            cdf_fname = self.make_filename(processing_request, level=1)
+            cdf_fname = self.get_fname(processing_request.probe, 1, self.state_type, d)
             csv_fname = STATE_CSV_DIR + cdf_fname.split("/")[-1].rstrip(".cdf") + ".csv"
 
             try:
@@ -86,7 +90,7 @@ class StateProcessor(ScienceProcessor):
 
         if not df:
             raise RuntimeError(
-                f"csv_df could not be created! Check /home/elfin-esn/state_data to see if csv exists for {processing_request.date}"
+                f"Couldn't creat csv_df Check /home/elfin-esn/state_data for csv for {processing_request.date}"
             )
 
         return df.loc[

@@ -31,12 +31,14 @@ class ArgparsePipelineConfig(PipelineConfig):
         self.session = db.SESSIONMAKER()
 
         # Initialize parameters/options from command line
-        times = self.get_times(args.func, args.d, args.c)
-        self.calculate = self.downlink_calculation_necessary(times, args.calculate)
-        self.update_db = self.downlink_upload_necessary(args.func, args.calculate)
+        times = self.get_times(
+            args.func, args.d if hasattr(args, "d") else None, args.c if hasattr(args, "c") else None
+        )
+        self.calculate = self.downlink_calculation_necessary(times)
+        self.update_db = self.downlink_upload_necessary(args.calculate)
         self.generate_files = self.file_generation_necessary(args.func)
         self.output_dir = self.get_output_dir(args.output_dir)
-        self.upload = self.upload_necessary(args.no_upload, args.generate_files)
+        self.upload = self.upload_necessary(args.no_upload, self.generate_files)
         self.email = self.email_necessary(args.no_email)
 
     @staticmethod
@@ -48,12 +50,19 @@ class ArgparsePipelineConfig(PipelineConfig):
         raise ValueError("Couldn't determine value for times")
 
     @staticmethod
-    def downlink_calculation_necessary(times, calculate):
-        return times == "downlink"  # TODO: This probably isn't needed: or calculate in ["yes", "nodb"]
+    def downlink_calculation_necessary(times):
+        """Determines if it is necessary to calculate downlinks.
+
+        We must calculate downlinks if we are only given downlink times. In
+        the case that we are given collection time, we cannot calculate,
+        since the science_packet table does not contain collection time
+        (instead, we must rely on the science_downlink table)
+        """
+        return times == "downlink"
 
     @staticmethod
-    def downlink_upload_necessary(func, calculate):
-        return func == "run_daily" or calculate == "yes"
+    def downlink_upload_necessary(calculate):
+        return calculate == "yes"
 
     @staticmethod
     def file_generation_necessary(func):
@@ -81,8 +90,10 @@ class ArgparsePipelineQuery(PipelineQuery):
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.mission_ids = self.get_mission_ids(args.ela, args.elb, args.em3)
-        self.data_products = self.get_data_products(args.products)
-        self.times, self.start_time, self.end_time = self.get_times(args.func, args.d, args.c)
+        self.data_products = self.get_data_products(args.products if hasattr(args, "products") else None)
+        self.times, self.start_time, self.end_time = self.get_times(
+            args.func, args.d if hasattr(args, "d") else None, args.c if hasattr(args, "c") else None
+        )
 
     @staticmethod
     def get_mission_ids(ela, elb, em3):
@@ -103,7 +114,7 @@ class ArgparsePipelineQuery(PipelineQuery):
     @staticmethod
     def get_data_products(products):
         if not products:
-            raise ValueError("No products specified")
+            return ALL_PRODUCTS.copy()
         return products
 
     @staticmethod
@@ -227,7 +238,11 @@ class CLIHandler:
             "-ne", "--no-email", help="don't send warning emails to people in the email list", action="store_true"
         )
         argparser.add_argument(
-            "-o", "--output-dir", help="directory in which to output generated files", action="store", metavar="DIR"
+            "-o",
+            "--output-dir",
+            help="directory in which to output generated files (if not specified, a temporary directory created)",
+            action="store",
+            metavar="DIR",
         )
 
         return argparser

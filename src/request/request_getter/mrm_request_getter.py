@@ -11,6 +11,7 @@ from util.constants import MRM_PRODUCTS, MRM_TYPES
 
 class MrmRequestGetter(RequestGetter):
     def get(self, pipeline_query):
+        self.logger.info("Getting MRM Requests")
         mrm_products = self.get_mrm_products(pipeline_query.data_products)
         if not mrm_products:
             return set()

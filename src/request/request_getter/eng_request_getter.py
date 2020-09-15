@@ -8,6 +8,7 @@ from request.request_getter.request_getter import RequestGetter
 
 class EngRequestGetter(RequestGetter):
     def get(self, pipeline_query):
+        self.logger.info("Getting ENG Requests")
         categoricals_requests = self.get_categoricals_requests(pipeline_query.start_time, pipeline_query.end_time)
         bmon_requests = self.get_bmon_requests(pipeline_query.start_time, pipeline_query.end_time)
 
@@ -26,7 +27,7 @@ class EngRequestGetter(RequestGetter):
             models.Categoricals.TMP_5,
             models.Categoricals.TMP_6,
         ]
-        categoricals_query = (
+        categoricals_query = (  # TODO: Fix this, missing mission
             self.pipeline_config.session.query(sqlalchemy.distinct(func.date(models.Categorical.timestamp)))
             .filter(
                 models.Categorical.mission_id == 1,  # TODO: IS THIS A PROBLEM? replace with mission_id.in_(mission_ids)

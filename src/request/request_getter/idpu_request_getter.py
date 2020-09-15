@@ -26,6 +26,7 @@ class IdpuRequestGetter(RequestGetter):
         collection time data necessarily (compressed packets). We MUST refer
         refer to science downlinks table
         """
+        self.logger.info("Getting IDPU Requests")
         idpu_products = set()
         for product in pipeline_query.data_products:
             if product in IDPU_PRODUCTS:
@@ -40,7 +41,7 @@ class IdpuRequestGetter(RequestGetter):
         else:
             raise ValueError(f"Expected 'downlink' or 'collection', got {pipeline_query.times}")
 
-        self.logger.info(f"Obtained Downlinks:\n{self.downlink_manager.print_downlinks(dl_list)}")
+        self.downlink_manager.print_downlinks(dl_list, prefix="Obtained Downlinks:")
         return self.get_requests_from_downlinks(dl_list)
 
     def get_requests_from_downlinks(self, dl_list):

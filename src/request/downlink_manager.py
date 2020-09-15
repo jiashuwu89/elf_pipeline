@@ -29,9 +29,13 @@ class DownlinkManager:
         self.session = pipeline_config.session
         self.update_db = pipeline_config.update_db
 
-    def print_downlinks(self, downlinks):
+    def print_downlinks(self, downlinks, prefix="Downlinks:"):
         """Prints the collection of downlinks given, in a formatted fashion"""
-        msg = "Downlinks:\n" + "\n".join([str(d) for d in downlinks])
+        # TODO: s_if_plural
+        if downlinks:
+            msg = f"{prefix}\nGot {len(downlinks)} Downlinks\n" + "\n".join([str(d) for d in downlinks])
+        else:
+            msg = f"{prefix} No downlinks!"
         self.logger.info(msg)
 
     def get_downlinks_by_collection_time(self, query):
@@ -71,6 +75,7 @@ class DownlinkManager:
         """
         downlinks = []
         for mission_id in pipeline_query.mission_ids:
+            self.logger.info(f"Getting Downlinks for mission {mission_id}")
             downlinks += self.calculate_new_downlinks_by_mission_id(
                 mission_id, pipeline_query.start_time, pipeline_query.end_time
             )
@@ -187,8 +192,8 @@ class DownlinkManager:
 
         downlinks.sort(key=lambda x: x.idpu_type)
 
-        if self.update_db:
-            self.logger.info(f"Updating DB with the calculated Downlinks:\n{self.print_downlinks(downlinks)}")
+        if self.update_db:  # TODO: s_if_plural
+            self.logger.info(f"Updating science_downlink table with {len(downlinks)} calculated Downlinks")
             self.upload_downlink_entries(downlinks)
 
         return downlinks

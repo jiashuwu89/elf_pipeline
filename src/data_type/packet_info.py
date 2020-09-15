@@ -37,5 +37,4 @@ class PacketInfo:
         return hash((self.packet_id, self.id, self.idpu_time, self.collection_time))
 
     def __str__(self):
-        return f"PacketInfo(packet_id={self.packet_id}, id={self.id}, \
-                idpu_time={self.idpu_time}, collection_time={self.collection_time})"
+        return f"PacketInfo(packet_id={self.packet_id}, id={self.id}, " + f"idpu_time={self.idpu_time}, collection_time={self.collection_time})"

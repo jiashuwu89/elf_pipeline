@@ -194,6 +194,7 @@ class EngDownlinkManager:
         return final_df
 
     def get_cdf_fields(self, processing_request):
+        self.logger.debug(f"Getting CDF fields for processing request: {processing_request}")
         eng_fields = [
             "fc_time",
             "idpu_time",

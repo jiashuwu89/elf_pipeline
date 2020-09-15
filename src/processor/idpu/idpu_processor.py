@@ -19,7 +19,7 @@ class IdpuProcessor(ScienceProcessor):
     def __init__(self, pipeline_config):
         super().__init__(pipeline_config)
 
-        self.downlink_manager = DownlinkManager(pipeline_config.session)
+        self.downlink_manager = DownlinkManager(pipeline_config)
 
     def generate_files(self, processing_request):
         l0_file_name, l0_df = self.generate_l0_products(processing_request)

@@ -1,5 +1,7 @@
 import pytest
 
+from util.constants import ALL_PRODUCTS
+
 from run import ArgparsePipelineConfig, ArgparsePipelineQuery
 
 
@@ -13,23 +15,13 @@ class TestArgparsePipelineConfig:
         assert ArgparsePipelineConfig.get_times("run_downlinks", None, ["BLAH", "BLAH"]) == "collection"
 
     def test_downlink_calculation_necessary(self):
-        assert ArgparsePipelineConfig.downlink_calculation_necessary("downlink", "yes") is True
-        assert ArgparsePipelineConfig.downlink_calculation_necessary("downlink", "no") is True
-        assert ArgparsePipelineConfig.downlink_calculation_necessary("downlink", "nodb") is True
-        assert ArgparsePipelineConfig.downlink_calculation_necessary("collection", "yes") is True
-        assert ArgparsePipelineConfig.downlink_calculation_necessary("collection", "no") is False
-        assert ArgparsePipelineConfig.downlink_calculation_necessary("collection", "nodb") is True
+        assert ArgparsePipelineConfig.downlink_calculation_necessary("downlink") is True
+        assert ArgparsePipelineConfig.downlink_calculation_necessary("collection") is False
 
     def test_downlink_upload_necessary(self):
-        assert ArgparsePipelineConfig.downlink_upload_necessary("run_daily", "yes") is True
-        assert ArgparsePipelineConfig.downlink_upload_necessary("run_daily", "no") is True
-        assert ArgparsePipelineConfig.downlink_upload_necessary("run_daily", "nodb") is True
-        assert ArgparsePipelineConfig.downlink_upload_necessary("run_dump", "yes") is True
-        assert ArgparsePipelineConfig.downlink_upload_necessary("run_dump", "no") is False
-        assert ArgparsePipelineConfig.downlink_upload_necessary("run_dump", "nodb") is False
-        assert ArgparsePipelineConfig.downlink_upload_necessary("run_downlinks", "yes") is True
-        assert ArgparsePipelineConfig.downlink_upload_necessary("run_downlinks", "no") is False
-        assert ArgparsePipelineConfig.downlink_upload_necessary("run_downlinks", "nodb") is False
+        assert ArgparsePipelineConfig.downlink_upload_necessary("yes") is True
+        assert ArgparsePipelineConfig.downlink_upload_necessary("no") is False
+        assert ArgparsePipelineConfig.downlink_upload_necessary("nodb") is False
 
     def test_file_generation_necessary(self):
         assert ArgparsePipelineConfig.file_generation_necessary("run_daily") is True
@@ -51,7 +43,7 @@ class TestArgparsePipelineConfig:
 
     def test_email_necessary(self):
         assert ArgparsePipelineConfig.email_necessary(True) is False
-        assert ArgparsePipelineConfig.email_necessary(True) is True
+        assert ArgparsePipelineConfig.email_necessary(False) is True
 
 
 class TestArgparsePipelineQuery:
@@ -68,8 +60,7 @@ class TestArgparsePipelineQuery:
     def test_get_data_products(self):
         assert ArgparsePipelineQuery.get_data_products(["fgf", "fgs"]) == ["fgf", "fgs"]
 
-        with pytest.raises(ValueError):
-            ArgparsePipelineQuery.get_data_products([])
+        assert ArgparsePipelineQuery.get_data_products([]) == ALL_PRODUCTS
 
     def test_get_times(self):
         pass
