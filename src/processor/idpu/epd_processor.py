@@ -16,8 +16,7 @@ import datetime as dt
 
 import pandas as pd
 
-from data_type.completeness_config import (EpdeCompletenessConfig,
-                                           EpdiCompletenessConfig)
+from data_type.completeness_config import EpdeCompletenessConfig, EpdiCompletenessConfig
 from metric.completeness import CompletenessUpdater
 from processor.idpu.idpu_processor import IdpuProcessor
 from util import byte_tools

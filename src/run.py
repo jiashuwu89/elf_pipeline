@@ -43,7 +43,7 @@ class ArgparsePipelineConfig(PipelineConfig):
     def get_times(func, d, c):
         if func == "run_daily" or d:
             return "downlink"
-        elif c:
+        if c:
             return "collection"
         raise ValueError("Couldn't determine value for times")
 

@@ -5,7 +5,6 @@ IDPU data processors usually need some methods to perform decompression
 import datetime as dt
 from abc import abstractmethod
 
-import numpy as np
 import pandas as pd
 from elfin.libelfin.utils import compute_crc
 from spacepy import pycdf
@@ -19,7 +18,6 @@ from util.science_utils import dt_to_tt2000, s_if_plural
 class IdpuProcessor(ScienceProcessor):
     def __init__(self, pipeline_config):
         super().__init__(pipeline_config)
-        self.cdf_fields = []
 
         self.downlink_manager = DownlinkManager(pipeline_config.session)
 
@@ -318,27 +316,3 @@ class IdpuProcessor(ScienceProcessor):
         df = df.drop_duplicates("idpu_time", keep="first")
 
         return df.reset_index()
-
-    def fill_cdf(self, processing_request, df, cdf):
-        """Inserts data from df into a CDF file
-
-        Parameters
-        ==========
-        df
-        cdf
-        """
-        for key in self.get_cdf_fields(processing_request):
-            df_field_name = self.cdf_fields[key]
-            cdf_field_name = f"{processing_request.probe}_{key}"
-
-            if cdf_field_name in cdf.keys() and df_field_name in df.columns:
-                data = df[df_field_name].values
-                # numpy array with lists need to be converted to a multi-dimensional numpy array of numbers
-                if isinstance(data[0], list):
-                    data = np.stack(data)
-
-                cdf[cdf_field_name] = data
-
-    @abstractmethod
-    def get_cdf_fields(self, processing_request):
-        pass

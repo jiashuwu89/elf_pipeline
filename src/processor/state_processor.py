@@ -30,7 +30,7 @@ class StateProcessor(ScienceProcessor):
         cdf_fname = self.make_filename(processing_request, 1)
         cdf = self.create_cdf(cdf_fname)
 
-        csv_df = self.combine_state_csvs(processing_request.date)
+        csv_df = self.combine_state_csvs(processing_request)
         self.update_cdf_with_csv_df(probe, csv_df, cdf)  # time, position, and velocity
 
         self.update_cdf_with_sun(processing_request, cdf)  # Sun/Shadow Variable
@@ -67,12 +67,12 @@ class StateProcessor(ScienceProcessor):
 
         return cdf
 
-    def combine_state_csvs(self, date):
+    def combine_state_csvs(self, processing_request):
         """Reads CSVs and returns values from 00:00:00 to 23:59:59."""
 
         df = None
-        for d in [date - dt.timedelta(days=1), date]:
-            cdf_fname = self.make_filename(level=1, collection_date=d)  # TODO: FIx this
+        for d in [processing_request.date - dt.timedelta(days=1), processing_request.date]:
+            cdf_fname = self.make_filename(processing_request, level=1)
             csv_fname = STATE_CSV_DIR + cdf_fname.split("/")[-1].rstrip(".cdf") + ".csv"
 
             try:
@@ -86,10 +86,12 @@ class StateProcessor(ScienceProcessor):
 
         if not df:
             raise RuntimeError(
-                f"csv_df could not be created! Check /home/elfin-esn/state_data to see if csv exists for {date}"
+                f"csv_df could not be created! Check /home/elfin-esn/state_data to see if csv exists for {processing_request.date}"
             )
 
-        return df.loc[(df.index >= date) & (df.index < date + dt.timedelta(days=1))]
+        return df.loc[
+            (df.index >= processing_request.date) & (df.index < processing_request.date + dt.timedelta(days=1))
+        ]
 
     def read_state_csv(self, csv_fname):
         """Read the state vectors CSV produced by STK."""

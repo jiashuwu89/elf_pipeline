@@ -52,7 +52,6 @@ processor.state\_processor module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

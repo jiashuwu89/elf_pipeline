@@ -4,6 +4,14 @@ util package
 Submodules
 ----------
 
+util.byte\_tools module
+-----------------------
+
+.. automodule:: util.byte_tools
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 util.compression\_values module
 -------------------------------
 
@@ -43,7 +51,6 @@ util.science\_utils module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

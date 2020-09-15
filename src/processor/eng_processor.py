@@ -11,53 +11,14 @@ import pandas as pd
 from elfin.common import models
 from spacepy import pycdf
 
-from data_type.downlink import Downlink
 from processor.science_processor import ScienceProcessor
-from util.constants import SCIENCE_TYPES
 from util.science_utils import dt_to_tt2000
 
 
 class EngProcessor(ScienceProcessor):
     """Class to generate ENG files"""
 
-    def __init__(self, pipeline_config):
-        super().__init__(pipeline_config)
-
-        # TODO: Fix this (see fgm or epd processors)
-        self.idpu_types = SCIENCE_TYPES[data_product]
-
-        self.eng_fields = [
-            "fc_time",
-            "idpu_time",
-            "fgm_time",
-            "epd_time",
-            "sips_time",
-            "fc_avionics_temp_1",
-            "fc_avionics_temp_2",
-            "fc_batt_temp_1",
-            "fc_batt_temp_2",
-            "fc_batt_temp_3",
-            "fc_batt_temp_4",
-            "fc_chassis_temp",
-            "fc_idpu_temp",
-            "sips_5v0_current",
-            "sips_5v0_voltage",
-            "sips_input_current",
-            "sips_input_temp",
-            "sips_input_voltage",
-            "epd_biash",
-            "epd_biasl",
-            "epd_efe_temp",
-            "fgm_3_3_volt",
-            "fgm_8_volt",
-            "fgm_analog_ground",
-            "fgm_eu_temp",
-            "fgm_sh_temp",
-        ]
-
-        self.cdf_fields_l1 = {}
-        for field in self.eng_fields:
-            self.cdf_fields_l1[field] = field
+    # Get IDPU Types from processing request
 
     def generate_files(self, processing_request):
         # TODO: Fill this in
@@ -92,6 +53,7 @@ class EngProcessor(ScienceProcessor):
 
         orig_df = pd.DataFrame()
 
+        # TODO: Rewrite this
         for _, row in df.iterrows():
             to_add = {"idpu_time": row["idpu_time"]}
             to_add.update(self.extract_data(row["idpu_type"], row["data"], row["idpu_time"]))
@@ -157,9 +119,9 @@ class EngProcessor(ScienceProcessor):
         pass
 
 
-class EngDownlinkManager(Downlink):
+class EngDownlinkManager:
     def __init__(self, mission_id, start, end, session=None):
-        super().__init__(session)
+        self.session = session
         self.mission_id = mission_id
         self.start = start
         self.end = end
@@ -230,3 +192,35 @@ class EngDownlinkManager(Downlink):
 
         final_df = pd.concat([fc_avionics_temp_1, fc_avionics_temp_2], axis=0, ignore_index=True, sort=True)
         return final_df
+
+    def get_cdf_fields(self, processing_request):
+        eng_fields = [
+            "fc_time",
+            "idpu_time",
+            "fgm_time",
+            "epd_time",
+            "sips_time",
+            "fc_avionics_temp_1",
+            "fc_avionics_temp_2",
+            "fc_batt_temp_1",
+            "fc_batt_temp_2",
+            "fc_batt_temp_3",
+            "fc_batt_temp_4",
+            "fc_chassis_temp",
+            "fc_idpu_temp",
+            "sips_5v0_current",
+            "sips_5v0_voltage",
+            "sips_input_current",
+            "sips_input_temp",
+            "sips_input_voltage",
+            "epd_biash",
+            "epd_biasl",
+            "epd_efe_temp",
+            "fgm_3_3_volt",
+            "fgm_8_volt",
+            "fgm_analog_ground",
+            "fgm_eu_temp",
+            "fgm_sh_temp",
+        ]
+
+        return {field: field for field in eng_fields}

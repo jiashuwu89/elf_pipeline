@@ -7,27 +7,26 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   request.downlink
+   request.request_getter
 
 Submodules
 ----------
 
-request.processing\_request module
-----------------------------------
+request.downlink\_manager module
+--------------------------------
 
-.. automodule:: request.processing_request
+.. automodule:: request.downlink_manager
    :members:
    :undoc-members:
    :show-inheritance:
 
-request.request\_manager module
--------------------------------
+request.request\_getter\_manager module
+---------------------------------------
 
-.. automodule:: request.request_manager
+.. automodule:: request.request_getter_manager
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

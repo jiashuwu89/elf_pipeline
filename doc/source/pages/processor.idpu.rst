@@ -28,7 +28,6 @@ processor.idpu.idpu\_processor module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

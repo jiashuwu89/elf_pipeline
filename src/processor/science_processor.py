@@ -2,10 +2,10 @@ import logging
 import os
 from abc import ABC, abstractmethod
 
+import numpy as np
 from spacepy import pycdf
 
-from request.downlink_manager import \
-    DownlinkManager  # TODO: Split Downlink Manager
+from request.downlink_manager import DownlinkManager  # TODO: Split Downlink Manager
 from util.constants import MASTERCDF_DIR
 
 
@@ -63,3 +63,29 @@ class ScienceProcessor(ABC):
         self.logger.debug(f"Creating cdf using mastercdf {master_cdf}")
 
         return pycdf.CDF(fname, master_cdf)
+
+    def fill_cdf(self, processing_request, df, cdf):
+        """Inserts data from df into a CDF file
+
+        Parameters
+        ==========
+        df
+        cdf
+        """
+        cdf_fields = self.get_cdf_fields(processing_request)
+        for key in cdf_fields:
+            df_field_name = cdf_fields[key]
+            cdf_field_name = f"{processing_request.probe}_{key}"
+
+            if cdf_field_name in cdf.keys() and df_field_name in df.columns:
+                data = df[df_field_name].values
+                # numpy array with lists need to be converted to a multi-dimensional numpy array of numbers
+                if isinstance(data[0], list):
+                    data = np.stack(data)
+
+                cdf[cdf_field_name] = data
+
+    def get_cdf_fields(self, processing_request):
+        """Get CDF Fields to help populate the CDF, override if necessary"""
+        self.logger.debug(f"No CDF fields for {str(processing_request)}")
+        return {}

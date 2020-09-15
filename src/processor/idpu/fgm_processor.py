@@ -357,4 +357,4 @@ class FgmProcessor(IdpuProcessor):
 
     def get_cdf_fields(self, processing_request):
         data_product = processing_request.data_product
-        return {data_product: "data", data_product + "_time": "idpu_time"}
+        return {data_product: "data", f"{data_product}_time": "idpu_time"}

@@ -16,9 +16,9 @@ all: format check-style test doc
 format:
 	@echo "⭐ Formatting ⭐";
 	$(PR) black --line-length $(LINE_LENGTH) $(SRC) \
-	&& isort -rc $(SRC) \
+	&& isort -rc --lines $(LINE_LENGTH) $(SRC) \
 	&& black --line-length $(LINE_LENGTH) $(TST) \
-	&& isort -rc $(TST);
+	&& isort -rc --lines $(LINE_LENGTH) $(TST);
 
 # TODO: Vulture broken in prospector right now
 # TODO: mypy?
@@ -47,7 +47,7 @@ test:
 doc:
 	@echo "⭐ Generating Documentation ⭐"
 	$(PR) sphinx-apidoc -f -o doc/source/pages/ $(SRC);
-	cd docs && make html;
+	cd doc && make html;
 
 todo:
 	@echo "⭐ Finding TODOs ⭐"

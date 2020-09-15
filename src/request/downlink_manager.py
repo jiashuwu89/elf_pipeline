@@ -54,7 +54,7 @@ class DownlinkManager:
         for dl in sql_query:
             first_packet_info = PacketInfo(None, dl.first_packet, dl.first_time, dl.first_collection_time)
             last_packet_info = PacketInfo(None, dl.last_packet, dl.last_time, dl.last_collection_time)
-            downlinks.append(Downlink(dl.mission_id, dl.idpu_type, first_packet_info, last_packet_info))
+            downlinks.append(Downlink(dl.mission_id, dl.idpu_type, dl.denominator, first_packet_info, last_packet_info))
 
         return downlinks
 
@@ -124,7 +124,9 @@ class DownlinkManager:
                 if cur_packet_type is not None and first_idpu_time is not None and last_idpu_time is not None:
                     first_packet_info = PacketInfo(None, first_id, first_idpu_time, first_collection_time)
                     last_packet_info = PacketInfo(None, last_id, last_idpu_time, last_collection_time)
-                    downlinks.append(Downlink(mission_id, cur_packet_type, first_packet_info, last_packet_info))
+                    downlinks.append(
+                        Downlink(mission_id, cur_packet_type, cur_denom, first_packet_info, last_packet_info)
+                    )
 
                 cur_packet_type = None
                 first_idpu_time = None
@@ -181,7 +183,7 @@ class DownlinkManager:
         if cur_packet_type is not None and first_idpu_time is not None and last_idpu_time is not None:
             first_packet_info = PacketInfo(None, first_id, first_idpu_time, first_collection_time)
             last_packet_info = PacketInfo(None, last_id, last_idpu_time, last_collection_time)
-            downlinks.append(Downlink(mission_id, cur_packet_type, first_packet_info, last_packet_info))
+            downlinks.append(Downlink(mission_id, cur_packet_type, cur_denom, first_packet_info, last_packet_info))
 
         downlinks.sort(key=lambda x: x.idpu_type)
 
