@@ -55,18 +55,15 @@ class IdpuRequestGetter(RequestGetter):
         delta = dt.timedelta(days=1)
 
         general_processing_requests = set()
-        for (
-            dl
-        ) in (
-            dl_list
-        ):  # TODO: Replace dl.idpu_type with data type (should not be int, should be str, such as 2 becomes fgm)
+        # TODO: Replace dl.idpu_type with data type (should not be int, should be str, such as 2 becomes fgm)
+        for dl in dl_list:
             for data_product in PACKET_MAP[dl.idpu_type]:
-                start_date = dl.first_collection_time.date()
-                end_date = dl.last_collection_time.date()
+                start_date = dl.first_packet_info.collection_time.date()
+                end_date = dl.last_packet_info.collection_time.date()
                 while start_date <= end_date:
                     pr = ProcessingRequest(dl.mission_id, data_product, start_date)
                     general_processing_requests.add(pr)
                     start_date += delta
 
-        self.logger.debug(f"Got {len(general_processing_requests)} requests from downlinks")
+        self.logger.info(f"Got {len(general_processing_requests)} requests from downlinks")
         return general_processing_requests

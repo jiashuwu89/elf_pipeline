@@ -1,8 +1,7 @@
 import pytest
 
-from util.constants import ALL_PRODUCTS
-
 from run import ArgparsePipelineConfig, ArgparsePipelineQuery
+from util.constants import ALL_PRODUCTS
 
 
 class TestArgparsePipelineConfig:

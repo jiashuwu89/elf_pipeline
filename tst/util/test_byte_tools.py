@@ -5,8 +5,8 @@ class TestByteTools:
     def test_little_e_to_big_e(self):
         assert byte_tools.little_e_to_big_e(b"badcfe") == b"abcdef"
 
-    def test_raw_idpu_bytes_to_datetime(self):
-        pass
+    # def test_raw_idpu_bytes_to_datetime(self):
+    #     pass
 
     def test_get_signed(self):
         assert byte_tools.get_signed(b"1234") == 825373492
@@ -20,8 +20,8 @@ class TestByteTools:
         assert byte_tools.get_two_unsigned_bytes(65535) == b"\xff\xff"
         assert byte_tools.get_two_unsigned_bytes(100000) == b"\xff\xff"  # BUG?
 
-    def test_bin_string(self):
-        pass
+    # def test_bin_string(self):
+    #     pass
 
-    def test_get_huffman(self):
-        pass
+    # def test_get_huffman(self):
+    #     pass

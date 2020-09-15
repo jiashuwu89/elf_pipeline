@@ -4,6 +4,7 @@ from sqlalchemy.sql import func
 
 from data_type.processing_request import ProcessingRequest
 from request.request_getter.request_getter import RequestGetter
+import util.science_utils
 
 
 class EngRequestGetter(RequestGetter):
@@ -15,7 +16,7 @@ class EngRequestGetter(RequestGetter):
         eng_processing_requests = categoricals_requests.union(bmon_requests)
 
         # TODO: s if plural
-        self.logger.debug(f"Got {len(eng_processing_requests)} ENG processing requests")
+        self.logger.info(f"Got {len(eng_processing_requests)}" + f"ENG processing request{science_utils.s_if_plural(eng_processing_requests)}")
         return eng_processing_requests
 
     def get_categoricals_requests(self, start_time, end_time):

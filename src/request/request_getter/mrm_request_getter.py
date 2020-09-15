@@ -14,6 +14,7 @@ class MrmRequestGetter(RequestGetter):
         self.logger.info("Getting MRM Requests")
         mrm_products = self.get_mrm_products(pipeline_query.data_products)
         if not mrm_products:
+            self.logger.info("Got 0 MRM processing requests")
             return set()
 
         sql_query = (
@@ -33,7 +34,7 @@ class MrmRequestGetter(RequestGetter):
             if res.date is not None
         }
 
-        self.logger.debug(f"Got {len(mrm_processing_requests)} MRM processing requests")
+        self.logger.info(f"Got {len(mrm_processing_requests)} MRM processing requests")
         return mrm_processing_requests
 
     def get_mrm_products(self, data_products):

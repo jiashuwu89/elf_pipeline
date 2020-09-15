@@ -20,7 +20,11 @@ class Downlink:
         return hash((self.mission_id, self.idpu_type, self.denominator, self.first_packet_info, self.last_packet_info))
 
     def __str__(self):
-        return "\n".join(["Downlink(",
+        return "\n".join(
+            [
+                "Downlink(",
                 f"\tmission_id={self.mission_id}, idpu_type={self.idpu_type}, denominator={self.denominator}",
                 f"\tFirst: {str(self.first_packet_info)}",
-                f"\tSecond: {str(self.last_packet_info)})"])
+                f"\tSecond: {str(self.last_packet_info)})",
+            ]
+        )

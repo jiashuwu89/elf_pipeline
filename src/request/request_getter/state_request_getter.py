@@ -39,5 +39,5 @@ class StateRequestGetter(RequestGetter):
                 state_processing_requests.add(ProcessingRequest(mission_id, "state", cur))
                 cur += dt.timedelta(days=1)
 
-        self.logger.debug(f"Got {len(state_processing_requests)} State processing requests")
+        self.logger.info(f"Got {len(state_processing_requests)} State processing requests")
         return state_processing_requests

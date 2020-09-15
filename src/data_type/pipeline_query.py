@@ -1,5 +1,7 @@
 from abc import ABC
 
+from util.constants import SCIENCE_TYPES
+
 
 class PipelineQuery(ABC):
     """A class to hold the query to the pipeline, what the user has requested
@@ -18,3 +20,10 @@ class PipelineQuery(ABC):
     end_time: dt.datetime
         The time which all data must precede
     """
+
+    @staticmethod
+    def data_products_to_idpu_types(data_products):
+        idpu_types = []
+        for data_product in data_products:
+            idpu_types += SCIENCE_TYPES.get(data_product, [])
+        return idpu_types

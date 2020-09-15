@@ -30,11 +30,6 @@ class ProcessingRequest:
             data_product={self.data_product}, \
             date={self.date}"
 
-    def get_probe(self):
-        """Gives the probe (ex. ELA, ELB, EM3)"""
-        # TODO: Deprecate in favor of probe property
-        return MISSION_DICT[self.mission_id]
-
     @property
     def probe(self):
         """Gives the probe (ex. ELA, ELB, EM3)"""
@@ -42,4 +37,4 @@ class ProcessingRequest:
 
     @property
     def idpu_types(self):
-        return SCIENCE_TYPES.get(self.data_product, [])  # TODO: if not in SCIENCE_TYPES, returning [] is ok?
+        return SCIENCE_TYPES.get(self.data_product, [])

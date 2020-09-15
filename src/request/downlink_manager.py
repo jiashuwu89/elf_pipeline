@@ -7,7 +7,7 @@ from elfin.common import models
 
 from data_type.downlink import Downlink
 from data_type.packet_info import PacketInfo
-from util import byte_tools
+from util import byte_tools, science_utils
 from util.constants import COMPRESSED_TYPES
 
 # TODO: packet_id vs id Check
@@ -31,9 +31,10 @@ class DownlinkManager:
 
     def print_downlinks(self, downlinks, prefix="Downlinks:"):
         """Prints the collection of downlinks given, in a formatted fashion"""
-        # TODO: s_if_plural
         if downlinks:
-            msg = f"{prefix}\nGot {len(downlinks)} Downlinks\n" + "\n".join([str(d) for d in downlinks])
+            msg = f"{prefix}\nGot {len(downlinks)} Downlink{science_utils.s_if_plural(downlinks)}\n" + "\n".join(
+                [str(d) for d in downlinks]
+            )
         else:
             msg = f"{prefix} No downlinks!"
         self.logger.info(msg)
@@ -79,7 +80,13 @@ class DownlinkManager:
             downlinks += self.calculate_new_downlinks_by_mission_id(
                 mission_id, pipeline_query.start_time, pipeline_query.end_time
             )
-        return [dl for dl in downlinks if dl.idpu_type in pipeline_query.data_products]
+
+        # TODO: can't compare idpu_type directly against product name!
+        return [
+            dl
+            for dl in downlinks
+            if dl.idpu_type in pipeline_query.data_products_to_idpu_types(pipeline_query.data_products)
+        ]
 
     # HELPER FOR get_downlinks_by_downlink_time, should be private
     def calculate_new_downlinks_by_mission_id(self, mission_id, start_time, end_time):
@@ -192,8 +199,11 @@ class DownlinkManager:
 
         downlinks.sort(key=lambda x: x.idpu_type)
 
-        if self.update_db:  # TODO: s_if_plural
-            self.logger.info(f"Updating science_downlink table with {len(downlinks)} calculated Downlinks")
+        if self.update_db:
+            self.logger.info(
+                f"Updating science_downlink table with {len(downlinks)}"
+                + f"calculated Downlink{science_utils.s_if_plural(downlinks)}"
+            )
             self.upload_downlink_entries(downlinks)
 
         return downlinks

@@ -231,6 +231,7 @@ class CLIHandler:
             choices=["yes", "no", "nodb"],
             default="yes",
         )
+        # TODO: Replace calculate option with upload_to_db option
 
         argparser.add_argument("-v", "--verbose", help="use DEBUG log level", action="store_true")
         argparser.add_argument("-n", "--no-upload", help="don't upload L0/L1 files to the server", action="store_true")

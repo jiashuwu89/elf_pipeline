@@ -1,0 +1,15 @@
+#!/bin/sh
+# Based on https://proandroiddev.com/ooga-chaka-git-hooks-to-enforce-code-quality-11ce8d0d23cb
+
+echo "Running 'make format'"
+poetry run make format
+status=$?
+if [ "$status" = 0 ] ; then
+    echo "Auto-Formatter completed with no problems"
+else
+    echo 1>&2 "Auto-Formatter failed"
+    exit 1
+fi
+
+git add .
+exit 0

@@ -1,0 +1,52 @@
+
+image: python:latest
+
+# Change pip's cache directory to be inside the project directory since we can
+# only cache local items.
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PIPENV_VENV_IN_PROJECT: 1
+  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+
+cache:
+  paths:
+    - .cache/pip
+    - .venv
+
+stages:
+  - Static Analysis
+  - build
+  - release
+
+before_script:
+  - python -V  # Print out python version for debugging
+  - pip install poetry
+  - poetry install
+
+check-style:
+  stage: Static Analysis
+  script:
+  - poetry run make check-style
+  # allow_failure: true
+
+test:
+  stage: Static Analysis
+  script:
+  - poetry run make test
+
+build-image:
+  stage: build
+  script:
+    - echo "Nothing right now!"
+
+pages:
+  stage: release
+  script:
+    - poetry run make doc
+    - mv doc/build/html/ public/
+  artifacts:
+    paths:
+      - public
+  only:
+    - master

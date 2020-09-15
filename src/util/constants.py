@@ -45,6 +45,7 @@ PACKET_MAP = {
 }
 
 # A Dictionary mapping products to IDPU type
+# TODO: Figure this out (why are 1/2 fgs and fgf packets, but so are 17 and 18)
 SCIENCE_TYPES = {
     "eng": [14, 15, 16],  # 14: SIPS, 15: EPD, 16: FGM
     "fgf": [17, 18],

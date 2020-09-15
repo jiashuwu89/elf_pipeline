@@ -16,6 +16,7 @@ Pipeline to process packets and generate CDFs.
 
 ## General TODOs
 - Standardize processors better
+- Increase logging
 - Set up CI/CD Pipeline
 - Types for all variables
 - Favor f-string over string concat, other string creation techniques

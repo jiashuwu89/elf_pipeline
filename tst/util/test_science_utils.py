@@ -18,3 +18,6 @@ class TestScienceUtils:
 
         sample_list = [1, 5, 2]
         assert science_utils.s_if_plural(sample_list) == "s"
+
+        sample_list = []
+        assert science_utils.s_if_plural(sample_list) == "s"

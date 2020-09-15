@@ -12,6 +12,8 @@ class TestProcessingRequest:
     ALT_DATA_PRODUCT = "state"
     ALT_DATE = dt.date(2019, 5, 2)
 
+    EM3 = 3
+
     def test_init(self):
         ProcessingRequest(self.MISSION_ID, self.DATA_PRODUCT, self.DATE)
 
@@ -37,3 +39,16 @@ class TestProcessingRequest:
     def test_str(self):
         pr = ProcessingRequest(self.MISSION_ID, self.DATA_PRODUCT, self.DATE)
         assert isinstance(str(pr), str)
+
+    def test_probe(self):
+        pr_1 = ProcessingRequest(self.MISSION_ID, self.DATA_PRODUCT, self.DATE)
+        assert pr_1.probe == "elb"
+
+        pr_2 = ProcessingRequest(self.ALT_MISSION_ID, self.DATA_PRODUCT, self.DATE)
+        assert pr_2.probe == "ela"
+
+        pr_3 = ProcessingRequest(self.EM3, self.DATA_PRODUCT, self.DATE)
+        assert pr_3.probe == "em3"
+
+    # def test_idpu_types(self):
+    #     pass

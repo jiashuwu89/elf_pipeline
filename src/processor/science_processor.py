@@ -30,7 +30,7 @@ class ScienceProcessor(ABC):
     def make_filename(self, processing_request, level, size=None):
         """Constructs the appropriate filename for a L0/L1/L2 file, and returns the full path (level is int)"""
         formatted_date = processing_request.date.strftime("%Y%m%d")
-        fname = f"{processing_request.get_probe()}_l{level}_{processing_request.data_product}_{formatted_date}"
+        fname = f"{processing_request.probe}_l{level}_{processing_request.data_product}_{formatted_date}"
         if level == 0:
             if size is None:
                 raise ValueError("No size given for level 0 naming")

@@ -17,7 +17,7 @@ def dt_to_tt2000(dt: datetime):
 
 def s_if_plural(x):
     """Determine whether a collection should be referred to as plural."""
-    return "s" if len(x) > 1 else ""
+    return "s" if len(x) != 1 else ""
 
 
 def twos_comp(uint_val, bits=24):
