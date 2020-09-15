@@ -18,7 +18,7 @@ class TestByteTools:
         assert byte_tools.get_two_unsigned_bytes(1) == b"\x00\x01"
         assert byte_tools.get_two_unsigned_bytes(15) == b"\x00\x0f"
         assert byte_tools.get_two_unsigned_bytes(65535) == b"\xff\xff"
-        assert byte_tools.get_two_unsigned_bytes(100000) == b"\xff\xff"  # BUG?
+        assert byte_tools.get_two_unsigned_bytes(100000) == b"\xff\xff"
 
     # def test_bin_string(self):
     #     pass

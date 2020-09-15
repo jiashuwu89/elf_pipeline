@@ -7,11 +7,11 @@ PR=poetry run
 # TODO: Add poetry stuff
 
 
-.PHONY: all format check-style test doc
+.PHONY: all format check-style test coverage doc todo clean help
 
 
-all: format check-style test doc
-	@echo "⭐ Beginning ALL targets ⭐";
+all: format check-style test coverage doc
+	@echo "⭐ ALL targets ⭐";
 
 format:
 	@echo "⭐ Formatting ⭐";
@@ -40,9 +40,10 @@ check-style:
 test:
 	@echo "⭐ Performing Tests ⭐"
 	PYTHONPATH=$(SRC) && $(PR) coverage run --source=$(SRC) -m pytest;
+
+coverage: test
 	@echo "⭐ Checking Code Coverage ⭐"
-	PYTHONPATH=$(SRC) && $(PR) coverage report --fail-under=80;
-	@echo "⭐ Resetting PYTHONPATH"
+	PYTHONPATH=$(SRC) && $(PR) coverage html --fail-under=80;
 
 doc:
 	@echo "⭐ Generating Documentation ⭐"
@@ -52,6 +53,9 @@ doc:
 todo:
 	@echo "⭐ Finding TODOs ⭐"
 	grep --color=always -Iirn "todo" $(SRC) | sed "s/    //g"
+
+clean:
+	rm -rf .coverage htmlcov doc/build
 
 help:
 	@echo "⭐ Available Targets ⭐"

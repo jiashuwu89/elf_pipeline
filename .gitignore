@@ -2,6 +2,7 @@ src/util/credentials.py
 **/__pycache__
 doc/build
 env
+htmlcov
 .coverage
 .vscode
 .pytest_cache

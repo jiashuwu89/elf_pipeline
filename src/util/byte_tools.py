@@ -26,7 +26,7 @@ def get_two_unsigned_bytes(i):
     try:
         return i.to_bytes(2, "big")
     except OverflowError:
-        return 0xFFFF
+        return b"\xff\xff"
 
 
 def bin_string(b):

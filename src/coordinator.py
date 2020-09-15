@@ -103,7 +103,7 @@ class Coordinator:
     def transfer_files(self, generated_files):
         if not self.pipeline_config.upload:
             self.logger.info("No files transferred")
-            return
+            return 0
 
         self.logger.info("🌤\tUploading Files")
         transferred_files_count = self.server_manager.transfer_files(generated_files)
@@ -111,3 +111,5 @@ class Coordinator:
 
         if len(generated_files) != transferred_files_count:
             raise RuntimeError(f"Transferred only {transferred_files_count}/{len(generated_files)} files")
+
+        return transferred_files_count

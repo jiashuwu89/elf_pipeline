@@ -46,6 +46,10 @@ Pipeline to process packets and generate CDFs.
   - Timing things with a timing decorator?
 - Utilize Prefect
 
+# Using pre-commit
+- Add link to hooks directory: `cd .git/hooks && ln -s ../../pre-commit pre-commit`
+- Make sure pre-commit file is executable with `chmod`
+
 ## Contributors
 - Akhil Palla
 - Matt Nuesca
