@@ -28,7 +28,7 @@ check-style:
   stage: Static Analysis
   script:
   - poetry run make check-style
-  # allow_failure: true
+  allow_failure: true
 
 test:
   stage: Static Analysis
