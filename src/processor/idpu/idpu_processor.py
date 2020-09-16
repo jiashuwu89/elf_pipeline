@@ -28,7 +28,7 @@ class IdpuProcessor(ScienceProcessor):
         return [l0_file_name, l1_file_name]
 
     def generate_l0_products(self, processing_request):
-        self.logger.info(f"🔴\tGenerating Level 0 products for {str(processing_request)}")
+        self.logger.info(f"🔴  Generating Level 0 products for {str(processing_request)}")
         l0_df = self.generate_l0_df(processing_request)
         self.update_completeness_table(processing_request, l0_df)
         l0_file_name = self.generate_l0_file(processing_request, l0_df.copy())
@@ -41,7 +41,7 @@ class IdpuProcessor(ScienceProcessor):
         passed separately (as a list) through process_l0.
         Finally, the individual dataframes are merged and duplicates/empty packets dropped.
         """
-        self.logger.info(f"🟠\tGenerating Level 0 DataFrame for {str(processing_request)}")
+        self.logger.info(f"🟠  Generating Level 0 DataFrame for {str(processing_request)}")
 
         dl_list = self.downlink_manager.get_relevant_downlinks(processing_request)  # TODO: By COLLECTION Time
         self.downlink_manager.print_downlinks(dl_list, "Relevant downlinks")
@@ -241,14 +241,15 @@ class IdpuProcessor(ScienceProcessor):
         df_times = df["idpu_time"]
 
         completeness_updater = self.get_completeness_updater(processing_request)
-        completeness_updater.update_completeness_table(df_times)  # TODO: Change EPD to EPDE or EPDI
+        if completeness_updater:
+            completeness_updater.update_completeness_table(df_times)  # TODO: Change EPD to EPDE or EPDI
 
     @abstractmethod
     def get_completeness_updater(self, processing_request):
         raise NotImplementedError
 
     def generate_l0_file(self, processing_request, l0_df):
-        self.logger.info(f"🟡\tGenerating Level 0 file for {str(processing_request)}")
+        self.logger.info(f"🟡  Generating Level 0 file for {str(processing_request)}")
         # Filter fields and duplicates
         l0_df = l0_df[["idpu_time", "data"]]
         l0_df = l0_df.drop_duplicates().dropna()
@@ -278,13 +279,13 @@ class IdpuProcessor(ScienceProcessor):
 
         Returns the path and name of the generated level 1 file.
         """
-        self.logger.info(f"🟢\tGenerating Level 1 products for {str(processing_request)}")
+        self.logger.info(f"🟢  Generating Level 1 products for {str(processing_request)}")
         l1_df = self.generate_l1_df(processing_request, l0_df)
         l1_file_name = self.generate_l1_file(processing_request, l1_df.copy())
         return l1_file_name, l1_df
 
     def generate_l1_df(self, processing_request, l0_df):
-        self.logger.info(f"🔵\tGenerating Level 1 DataFrame for {str(processing_request)}")
+        self.logger.info(f"🔵  Generating Level 1 DataFrame for {str(processing_request)}")
         if l0_df is None:
             l0_df = self.generate_l0_df(processing_request.date)
 
@@ -311,7 +312,7 @@ class IdpuProcessor(ScienceProcessor):
         raise NotImplementedError
 
     def generate_l1_file(self, processing_request, l1_df):
-        self.logger.info(f"🟣\tGenerating Level 1 DataFrame for {str(processing_request)}")
+        self.logger.info(f"🟣  Generating Level 1 DataFrame for {str(processing_request)}")
         fname = self.make_filename(processing_request, 1)
         cdf = self.create_cdf(fname)
         self.fill_cdf(processing_request, cdf, l1_df)

@@ -251,11 +251,12 @@ class CLIHandler:
     def run(self):
         """ Get arguments and perform processing, noting the duration """
         start_time: dt.datetime = dt.datetime.utcnow()
-        self.logger.info(f"🤠\tBegining at {start_time.strftime('%Y-%m-%d %H:%M:%S')} (UTC)\t🤠")
+        self.logger.info(f"🤠  Beginning at {start_time.strftime('%Y-%m-%d %H:%M:%S')} (UTC)\t🤠")
 
         args: argparse.ArgumentParser = self.argparser.parse_args()
 
         if args.verbose:
+            self.logger.info("Logging level set to 'DEBUG'")
             self.logger.setLevel(logging.DEBUG)
 
         pipeline_config = ArgparsePipelineConfig(args)

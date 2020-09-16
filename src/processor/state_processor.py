@@ -53,14 +53,12 @@ class StateProcessor(ScienceProcessor):
 
         Overrides default implementation
         """
-        probe = processing_request.probe
-        file_date = processing_request.date.strftime("%Y%m%d")
-        fname = self.get_fname(probe, level, self.state_type, file_date)
+        fname = self.get_fname(processing_request.probe, level, self.state_type, processing_request.date)
         return f"{self.output_dir}/{fname}"
 
     @staticmethod
     def get_fname(probe, level, state_type, file_date):
-        return f"{probe}_l{level}_state_{state_type}_{file_date}_v01.cdf"
+        return f"{probe}_l{level}_state_{state_type}_{file_date.strftime('%Y%m%d')}_v01.cdf"
 
     def create_cdf(self, fname):
         datestr_run = dt.datetime.utcnow().strftime("%04Y-%02m-%02d")

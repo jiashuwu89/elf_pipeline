@@ -2,7 +2,7 @@
 import logging
 import traceback
 
-from processor.eng_processor import EngProcessor
+from processor.idpu.eng_processor import EngProcessor
 from processor.idpu.epd_processor import EpdProcessor
 from processor.idpu.fgm_processor import FgmProcessor
 from processor.mrm_processor import MrmProcessor
@@ -40,7 +40,7 @@ class ProcessorManager:
         files = set()
 
         for pr in processing_requests:
-            self.logger.info(f"🔔🔔🔔\tGenerating files for {str(pr)}")
+            self.logger.info(f"🔔🔔🔔  Generating files for {str(pr)}")
             try:
                 generated_files = self.processors[pr.data_product].generate_files(pr)
                 self.logger.info(f"🕶\tSuccessfully generated files: {generated_files}")

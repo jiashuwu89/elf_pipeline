@@ -33,8 +33,9 @@ class DownlinkManager:
         """Prints the collection of downlinks given, in a formatted fashion"""
         if downlinks:  # TODO: Fix this
             msg = (
-                f"{prefix} (Got {len(downlinks)} Total Downlink{science_utils.s_if_plural(downlinks)}):\n"
+                f"{prefix} (Got {len(downlinks)} Total Downlink{science_utils.s_if_plural(downlinks)}):\n\n"
                 + "\n".join([str(d) for d in downlinks])
+                + "\n"
             )
         else:
             msg = f"{prefix} No downlinks!"
@@ -77,17 +78,17 @@ class DownlinkManager:
         """
         downlinks = []
         for mission_id in pipeline_query.mission_ids:
-            self.logger.info(f"➜\tGetting Downlinks for mission {mission_id}")
+            self.logger.info(f"➜  Getting Downlinks for mission {mission_id}")
             cur_mission_downlinks = self.calculate_new_downlinks_by_mission_id(
                 mission_id, pipeline_query.start_time, pipeline_query.end_time
             )
             self.logger.info(
-                f"➜\tGot {len(cur_mission_downlinks)} "
+                f"➜  Got {len(cur_mission_downlinks)} "
                 + f"Downlink{science_utils.s_if_plural(cur_mission_downlinks)} for mission {mission_id}"
             )
             downlinks += cur_mission_downlinks
 
-        # TODO: can't compare idpu_type directly against product name!
+        # TODO: if nodb, need to store downlinks somewhere for the processors to get them!
         return [
             dl
             for dl in downlinks

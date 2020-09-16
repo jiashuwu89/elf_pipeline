@@ -61,20 +61,21 @@ class Coordinator:
         """Execute the pipeline"""
         try:
             # Extract
-            self.logger.info("🌥\tGetting Processing Requests")
+            self.logger.info("🌥  Getting Processing Requests")
             processing_requests = self.get_processing_requests(pipeline_query)
             self.logger.info(
-                f"🌥\tGot {len(processing_requests)} processing requests:\n\t\t"
-                + "\n\t\t".join(str(pr) for pr in processing_requests)
+                f"🌥  Got {len(processing_requests)} processing requests:\n\n\t"
+                + "\n\t".join(str(pr) for pr in processing_requests)
+                + "\n"
             )  # TODO: s_if_plural
 
             # Transform
-            self.logger.info("⛅️\tGenerating Files")
+            self.logger.info("⛅️  Generating Files")
             generated_files = self.generate_files(processing_requests)
             self.logger.info(
-                f"⛅️\tGenerated {len(generated_files)} file{science_utils.s_if_plural(generated_files)}:"
-                + "\n\t\t"
-                + "\n\t\t".join(generated_files)
+                f"⛅️  Generated {len(generated_files)} file{science_utils.s_if_plural(generated_files)}:\n\n\t"
+                + "\n\t".join(generated_files)
+                + "\n"
             )
 
             # Load

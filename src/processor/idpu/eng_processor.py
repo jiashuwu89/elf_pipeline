@@ -5,38 +5,35 @@ Classes:
     EngProcessor
 """
 import datetime as dt
-import logging
 import statistics
 
 import pandas as pd
 from elfin.common import models
 from spacepy import pycdf
 
-from processor.science_processor import ScienceProcessor
+from processor.idpu.idpu_processor import IdpuProcessor
 from util.science_utils import dt_to_tt2000
 
 
-class EngProcessor(ScienceProcessor):
+class EngProcessor(IdpuProcessor):
     """Class to generate ENG files"""
 
     # Get IDPU Types from processing request
-
     def generate_files(self, processing_request):
-        # TODO: Fill this in
-        return set()
+        l1_file_name, _ = self.generate_l1_products(processing_request)  # Default param to None -> will generate l0 df
 
-    def gen_level_0(self, collection_time):
-        """ Try to generate level 0, but return empty df if it fails (to keep processing) """
+        return [l1_file_name]
+
+    def generate_l0_df(self, processing_request):
         try:
-            _, lv0_orig_df = super().gen_level_0(collection_time)
-            return None, lv0_orig_df
+            l0_df = self.generate_l0_df(processing_request)
         except RuntimeError as e:
-            self.logger.warning(e)
-            return None, pd.DataFrame()
+            self.logger.info(f"Level 0 DataFrame empty, initializing empty DataFrame: {e}")
+            l0_df = pd.DataFrame()
+        return l0_df
 
-    def process_level_0(self, df):
-        """No processing necessary for ENG level 0"""
-        self.logger.debug("Processing level 0")
+    def process_rejoined_data(self, processing_request, df):
+        """No major processing necessary for ENG level 0"""
         data_bytes = []
         for _, row in df.iterrows():
             if row["data"] is not None:
@@ -46,38 +43,31 @@ class EngProcessor(ScienceProcessor):
         df["data"] = data_bytes
         return df
 
-    def transform_level_0(self, df, collection_date):
+    def transform_l0_df(self, processing_request, l0_df):
         """
         Creates Dataframe using Inputed Data, as well as FC and Battery Monitor
         Data found using EngDownlinkManager
         """
 
-        orig_df = pd.DataFrame()
+        final_df = pd.DataFrame()
 
         # TODO: Rewrite this
-        for _, row in df.iterrows():
+        for _, row in l0_df.iterrows():
             to_add = {"idpu_time": row["idpu_time"]}
             to_add.update(self.extract_data(row["idpu_type"], row["data"], row["idpu_time"]))
+            final_df = final_df.append(to_add, ignore_index=True, sort=False)
 
-            orig_df = orig_df.append(to_add, ignore_index=True, sort=False)
-
-        start = collection_date + dt.timedelta(microseconds=0)
-        end = collection_date + dt.timedelta(days=1) - dt.timedelta(microseconds=1)
-        eng_downlinks_manager = EngDownlinkManager(self.mission_id, start, end)
-
-        final_df = orig_df
-
-        fc_df = eng_downlinks_manager.get_fc()
+        fc_df = self.get_fc_df(processing_request)
         if not fc_df.empty:
             final_df = pd.concat([final_df, fc_df], axis=0, ignore_index=True, sort=True)
         else:
-            self.logger.debug("No FC Data")
+            self.logger.info("No FC Data")
 
-        bmon_df = eng_downlinks_manager.get_bmon_data()
+        bmon_df = self.get_bmon_df(processing_request)
         if not bmon_df.empty:
             final_df = pd.concat([final_df, bmon_df], axis=0, ignore_index=True, sort=True)
         else:
-            self.logger.debug("No Battery Monitor Data")
+            self.logger.info("No Battery Monitor Data")
 
         if final_df.empty:
             raise RuntimeError("Empty df")
@@ -113,27 +103,11 @@ class EngProcessor(ScienceProcessor):
             }
         raise ValueError(f"⚠️ \tWanted data type 14, 15, 16; instead got {data_type}")
 
-    def process_level_1(self, df):
-        pass
-
-    def process_level_2(self, df):
-        pass
-
-
-class EngDownlinkManager:
-    def __init__(self, mission_id, start, end, session=None):
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.session = session
-        self.mission_id = mission_id
-        self.start = start
-        self.end = end
-
-    def get_fc(self):
+    def get_fc_df(self, processing_request):
         """
         Returns a DataFrame of FC Data
         Refer to name_converter dictionary for additional information
         """
-
         name_converter = {
             models.Categoricals.TMP_1: "fc_idpu_temp",
             models.Categoricals.TMP_2: "fc_batt_temp_1",
@@ -145,30 +119,30 @@ class EngDownlinkManager:
         }
 
         query = self.session.query(models.Categorical).filter(
-            models.Categorical.mission_id == self.mission_id,
-            models.Categorical.timestamp >= self.start,
-            models.Categorical.timestamp < self.end,
+            models.Categorical.mission_id == processing_request.mission_id,
+            models.Categorical.timestamp >= processing_request.date,
+            models.Categorical.timestamp < processing_request.date + dt.timedelta(days=1),
             models.Categorical.name.in_(list(name_converter.keys())),
         )
 
-        final_df = pd.DataFrame(
+        fc_df = pd.DataFrame(
             [
                 {"fc_time": pycdf.lib.datetime_to_tt2000(row.timestamp), name_converter[row.name]: row.value}
                 for row in query
             ]
         )
-        return final_df
+        return fc_df
 
-    def get_bmon_data(self):
+    def get_bmon_df(self, processing_request):
         """
         Returns a Dataframe containing Battery Monitor Data
         NOTE: To calculate the values, need to average the two values provided for each time
         """
 
         query = self.session.query(models.BmonData).filter(
-            models.BmonData.mission_id == self.mission_id,
-            models.BmonData.timestamp >= self.start,
-            models.BmonData.timestamp < self.end,
+            models.BmonData.mission_id == processing_request.mission_id,
+            models.BmonData.timestamp >= processing_request.date,
+            models.BmonData.timestamp < processing_request.date + dt.timedelta(days=1),
         )
 
         # TODO: Check if this works
@@ -192,8 +166,11 @@ class EngDownlinkManager:
             }
         )
 
-        final_df = pd.concat([fc_avionics_temp_1, fc_avionics_temp_2], axis=0, ignore_index=True, sort=True)
-        return final_df
+        bmon_df = pd.concat([fc_avionics_temp_1, fc_avionics_temp_2], axis=0, ignore_index=True, sort=True)
+        return bmon_df
+
+    def get_completeness_updater(self, processing_request):
+        return None
 
     def get_cdf_fields(self, processing_request):
         self.logger.debug(f"Getting CDF fields for processing request: {processing_request}")

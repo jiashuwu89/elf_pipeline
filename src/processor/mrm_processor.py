@@ -10,7 +10,6 @@ from metric.completeness import CompletenessUpdater
 from processor.science_processor import ScienceProcessor
 from util.constants import MRM_TYPES
 
-# TODO: Probe name
 # TODO: Processors return sets?
 
 

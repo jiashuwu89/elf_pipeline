@@ -10,14 +10,19 @@ from request.request_getter.request_getter import RequestGetter
 
 class StateRequestGetter(RequestGetter):
     def get(self, pipeline_query):
-        self.logger.info("⚾️\tGetting State Requests")
+        self.logger.info("⚾️  Getting State Requests")
         state_processing_requests = set()
+        if "state" not in pipeline_query.data_products:
+            self.logger.info("⚾️  Got 0 State Requests")
+            return state_processing_requests
+        self.logger.info("Requested relevant products: 'state'")
 
         # Always process certain days
         mission_id = None
         for mission_id in pipeline_query.mission_ids:
-            cur_day = pipeline_query.start_time
-            while cur_day <= pipeline_query.end_time:
+            cur_day = pipeline_query.start_time.date()
+            last_day = pipeline_query.end_time.date()
+            while cur_day <= last_day:
                 state_processing_requests.add(ProcessingRequest(mission_id, "state", cur_day))
                 cur_day += dt.timedelta(days=1)
 
@@ -39,5 +44,5 @@ class StateRequestGetter(RequestGetter):
                 state_processing_requests.add(ProcessingRequest(mission_id, "state", cur))
                 cur += dt.timedelta(days=1)
 
-        self.logger.info(f"⚾️\tGot {len(state_processing_requests)} State processing requests")
+        self.logger.info(f"⚾️  Got {len(state_processing_requests)} State processing requests")
         return state_processing_requests

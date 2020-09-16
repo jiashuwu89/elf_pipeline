@@ -228,7 +228,7 @@ class FgmProcessor(IdpuProcessor):
                 # https://elfin-dev1.igpp.ucla.edu/repos/eng/FPGA/elfin_ns8/idpu_em/source/branches/akhil_branch/embedded/idpu_3
                 if signb == "11":
                     self.logger.debug(
-                        f"⚠️\tGot sign bits 11, skip pkt at idpu_time={row['idpu_time']} numerator={row['numerator']}"
+                        f"⚠️  Got sign bits 11, skip pkt at idpu_time={row['idpu_time']} numerator={row['numerator']}"
                     )
                     break
                 sign = -1 if signb == "01" else 1
