@@ -3,7 +3,7 @@ import datetime as dt
 from data_type.processing_request import ProcessingRequest
 from request.downlink_manager import DownlinkManager
 from request.request_getter.request_getter import RequestGetter
-from util.constants import IDPU_PRODUCTS, PACKET_MAP, SCIENCE_TYPES
+from util.constants import PACKET_MAP, SCIENCE_TYPES
 
 
 class IdpuRequestGetter(RequestGetter):
@@ -27,7 +27,8 @@ class IdpuRequestGetter(RequestGetter):
         refer to science downlinks table
         """
         self.logger.info("🏀  Getting IDPU Requests")
-        idpu_products = self.get_relevant_products(pipeline_query.data_products, SCIENCE_TYPES)
+        data_products = [dp for dp in pipeline_query.data_products if dp != "eng"]
+        idpu_products = self.get_relevant_products(data_products, SCIENCE_TYPES)
         if not idpu_products:
             return set()
         self.logger.info(f"Requested relevant products: {idpu_products}")  # TODO: This accidentally includes 14, 15, 16
@@ -39,7 +40,9 @@ class IdpuRequestGetter(RequestGetter):
         else:
             raise ValueError(f"Expected 'downlink' or 'collection', got {pipeline_query.times}")
 
-        self.downlink_manager.print_downlinks(dl_list, prefix="➜\tObtained Downlinks:")
+        self.downlink_manager.print_downlinks(
+            dl_list, prefix="➜\tRelevant Downlinks:"
+        )  # TODO: Make this more descriptive
         general_processing_requests = self.get_requests_from_downlinks(dl_list)
         self.logger.info(f"🏀  Got {len(general_processing_requests)} requests from downlinks")
         return general_processing_requests

@@ -25,6 +25,7 @@ logging.basicConfig(level=logging.INFO, format=LOG_FORMAT, datefmt=DATE_FORMAT)
 
 class ArgparsePipelineConfig(PipelineConfig):
     def __init__(self, args):
+        print(args.__dict__)
         # Initialize DB connection
         if db.SESSIONMAKER is None:
             db.connect("production")
@@ -32,7 +33,9 @@ class ArgparsePipelineConfig(PipelineConfig):
 
         # Initialize parameters/options from command line
         times = self.get_times(
-            args.func, args.d if hasattr(args, "d") else None, args.c if hasattr(args, "c") else None
+            args.func,
+            args.downlink_time if hasattr(args, "downlink_time") else None,
+            args.collection_time if hasattr(args, "collection_time") else None,
         )
         self.calculate = self.downlink_calculation_necessary(times)
         self.update_db = self.downlink_upload_necessary(args.calculate)
@@ -92,7 +95,9 @@ class ArgparsePipelineQuery(PipelineQuery):
         self.mission_ids = self.get_mission_ids(args.ela, args.elb, args.em3)
         self.data_products = self.get_data_products(args.products if hasattr(args, "products") else None)
         self.times, self.start_time, self.end_time = self.get_times(
-            args.func, args.d if hasattr(args, "d") else None, args.c if hasattr(args, "c") else None
+            args.func,
+            args.downlink_time if hasattr(args, "downlink_time") else None,
+            args.collection_time if hasattr(args, "collection_time") else None,
         )
 
     @staticmethod

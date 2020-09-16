@@ -78,14 +78,15 @@ class DownlinkManager:
         """
         downlinks = []
         for mission_id in pipeline_query.mission_ids:
-            self.logger.info(f"➜  Getting Downlinks for mission {mission_id}")
+            self.logger.info(f"➜  Calculating new Downlinks for mission {mission_id}")
             cur_mission_downlinks = self.calculate_new_downlinks_by_mission_id(
                 mission_id, pipeline_query.start_time, pipeline_query.end_time
             )
-            self.logger.info(
-                f"➜  Got {len(cur_mission_downlinks)} "
+            prefix = (
+                f"➜  Calculated {len(cur_mission_downlinks)} "
                 + f"Downlink{science_utils.s_if_plural(cur_mission_downlinks)} for mission {mission_id}"
             )
+            self.print_downlinks(cur_mission_downlinks, prefix)
             downlinks += cur_mission_downlinks
 
         # TODO: if nodb, need to store downlinks somewhere for the processors to get them!
@@ -208,7 +209,7 @@ class DownlinkManager:
 
         if self.update_db:
             self.logger.info(
-                f"Updating science_downlink table with {len(downlinks)}"
+                f"Updating science_downlink table with {len(downlinks)} "
                 + f"calculated Downlink{science_utils.s_if_plural(downlinks)}"
             )
             self.upload_downlink_entries(downlinks)

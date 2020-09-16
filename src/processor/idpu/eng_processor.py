@@ -26,7 +26,7 @@ class EngProcessor(IdpuProcessor):
 
     def generate_l0_df(self, processing_request):
         try:
-            l0_df = self.generate_l0_df(processing_request)
+            l0_df = super().generate_l0_df(processing_request)
         except RuntimeError as e:
             self.logger.info(f"Level 0 DataFrame empty, initializing empty DataFrame: {e}")
             l0_df = pd.DataFrame()

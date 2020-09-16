@@ -9,11 +9,18 @@ from util.constants import SCIENCE_TYPES
 
 # TODO: For all request getters, make sure that the data product is requested BEFORE getting requests
 # TODO: requests gotten by categoricals and bmon, but what about idpu?
+#   - May need to extract Downlink Manager from IDPU request getter, since it isn't as closely coupled as I previously thought
 class EngRequestGetter(RequestGetter):
     def get(self, pipeline_query):
         self.logger.info("⚽️  Getting ENG Requests")
 
         eng_processing_requests = set()
+
+        if "eng" not in pipeline_query.data_products:
+            self.logger.info("⚽️  Got 0 ENG Requests")
+            return eng_processing_requests
+        self.logger.info("Requested relevant products: 'eng'")
+
         # eng_processing_requests.update(self.get_idpu_requests(pipeline_query))
         eng_processing_requests.update(self.get_categoricals_requests(pipeline_query))
         eng_processing_requests.update(self.get_bmon_requests(pipeline_query))
@@ -26,11 +33,6 @@ class EngRequestGetter(RequestGetter):
         return eng_processing_requests
 
     def get_idpu_requests(self, pipeline_query):
-        idpu_products = self.get_relevant_products(pipeline_query.data_products, SCIENCE_TYPES)
-        if not idpu_products:
-            return set()
-        self.logger.info(f"Requested relevant products: {idpu_products}")
-
         # TODO: How to differentiate between downlink time and collection time
         # TODO: make sure all end times are <, not <=
         query = (

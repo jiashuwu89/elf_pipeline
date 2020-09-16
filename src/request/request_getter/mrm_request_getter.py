@@ -4,7 +4,7 @@ from sqlalchemy.sql import func
 from data_type.processing_request import ProcessingRequest
 from request.request_getter.request_getter import RequestGetter
 from util import science_utils
-from util.constants import MRM_PRODUCTS, MRM_TYPES
+from util.constants import MRM_TYPES
 
 
 class MrmRequestGetter(RequestGetter):

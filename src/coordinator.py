@@ -61,40 +61,40 @@ class Coordinator:
         """Execute the pipeline"""
         try:
             # Extract
-            self.logger.info("🌥  Getting Processing Requests")
+            self.logger.info("🌥 🌥 🌥 🌥 🌥  Getting Processing Requests")
             processing_requests = self.get_processing_requests(pipeline_query)
             self.logger.info(
-                f"🌥  Got {len(processing_requests)} processing requests:\n\n\t"
+                f"🌥 🌥 🌥 🌥 🌥  Got {len(processing_requests)} processing requests:\n\n\t"
                 + "\n\t".join(str(pr) for pr in processing_requests)
                 + "\n"
             )  # TODO: s_if_plural
 
             # Transform
-            self.logger.info("⛅️  Generating Files")
+            self.logger.info("⛅️ ⛅️ ⛅️ ⛅️ ⛅️  Generating Files")
             generated_files = self.generate_files(processing_requests)
             self.logger.info(
-                f"⛅️  Generated {len(generated_files)} file{science_utils.s_if_plural(generated_files)}:\n\n\t"
+                f"⛅️ ⛅️ ⛅️ ⛅️ ⛅️  Generated {len(generated_files)} file{science_utils.s_if_plural(generated_files)}:\n\n\t"
                 + "\n\t".join(generated_files)
                 + "\n"
             )
 
             # Load
-            self.logger.info("🌤\tTransferring Files")
+            self.logger.info("🌤 🌤 🌤 🌤 🌤  Transferring Files")
             transferred_files_count = self.transfer_files(generated_files)
-            self.logger.info(f"🌤\tTransferred {transferred_files_count} files")
+            self.logger.info(f"🌤 🌤 🌤 🌤 🌤  Transferred {transferred_files_count} files")
 
         except Exception as e:
             traceback_msg = traceback.format_exc()
             self.exception_collector.record_exception(e, traceback_msg)
 
-        if self.exception_collector.email_list and self.pipeline_config.email:
-            self.logger.info("🌦\tProblems detected, sending email notification")
+        if self.exception_collector.exception_list and self.pipeline_config.email:
+            self.logger.info("🌦 🌦 🌦 🌦 🌦  Problems detected, sending email notification")
             self.exception_collector.email()
         else:
             self.logger.info(
-                "🌞\tPipeline completed successfully"
-                if not self.exception_collector.email_list
-                else "🌦\tProblems detected"
+                "🌞🌞🌞🌞🌞  Pipeline completed successfully"
+                if not self.exception_collector.exception_list
+                else "🌦 🌦 🌦 🌦 🌦  Problems detected"
             )
 
     def get_processing_requests(self, pipeline_query):

@@ -15,6 +15,7 @@ Pipeline to process packets and generate CDFs.
   - Grow as necessary
 
 ## General TODOs
+- Sort Requests (need to implement comparisons for ProcessingRequest's)
 - ProcessingRequest should have DATE, not DATETIME
 - Standardize processors better
 - Increase logging

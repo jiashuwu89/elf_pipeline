@@ -31,7 +31,7 @@ class IdpuProcessor(ScienceProcessor):
         self.logger.info(f"🔴  Generating Level 0 products for {str(processing_request)}")
         l0_df = self.generate_l0_df(processing_request)
         self.update_completeness_table(processing_request, l0_df)
-        l0_file_name = self.generate_l0_file(processing_request, l0_df.copy())
+        l0_file_name, _ = self.generate_l0_file(processing_request, l0_df.copy())
         return l0_file_name, l0_df
 
     def generate_l0_df(self, processing_request):
@@ -281,13 +281,14 @@ class IdpuProcessor(ScienceProcessor):
         """
         self.logger.info(f"🟢  Generating Level 1 products for {str(processing_request)}")
         l1_df = self.generate_l1_df(processing_request, l0_df)
-        l1_file_name = self.generate_l1_file(processing_request, l1_df.copy())
+        l1_file_name, _ = self.generate_l1_file(processing_request, l1_df.copy())
         return l1_file_name, l1_df
 
     def generate_l1_df(self, processing_request, l0_df):
         self.logger.info(f"🔵  Generating Level 1 DataFrame for {str(processing_request)}")
         if l0_df is None:
-            l0_df = self.generate_l0_df(processing_request.date)
+            self.logger.info("Still need a Level 0 DataFrame, generating now")
+            l0_df = self.generate_l0_df(processing_request)
 
         # Allow derived class to transform data
         l1_df = self.transform_l0_df(processing_request, l0_df)

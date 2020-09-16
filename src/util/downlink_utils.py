@@ -87,8 +87,8 @@ def calculate_offset(df1, df2):
     # Edge Case: Multiple offsets had maximum count, so don't return an offset!
     if list(offset_frequencies.values()).count(count) > 1:
         logger.warning(
-            f"Could not find a single unique offset with maximum count. Multiple offsets had count {count}, so prevent \
-                merging"
+            "Could not find a single unique offset with maximum count. "
+            + f"Multiple offsets had count {count}, so prevent merging"
         )
         return None
 
