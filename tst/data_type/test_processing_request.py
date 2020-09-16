@@ -50,5 +50,9 @@ class TestProcessingRequest:
         pr_3 = ProcessingRequest(self.EM3, self.DATA_PRODUCT, self.DATE)
         assert pr_3.probe == "em3"
 
-    # def test_idpu_types(self):
-    #     pass
+    def test_idpu_types(self):
+        pr_1 = ProcessingRequest(self.MISSION_ID, self.DATA_PRODUCT, self.DATE)
+        assert pr_1.idpu_types == [3, 4]
+
+        pr_2 = ProcessingRequest(self.MISSION_ID, self.ALT_DATA_PRODUCT, self.DATE)
+        assert pr_2.idpu_types == []

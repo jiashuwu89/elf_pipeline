@@ -14,6 +14,11 @@ class TestByteTools:
     def test_get_three_signed_bytes(self):
         pass
 
+    def test_bin_string(self):
+        assert byte_tools.bin_string(b"123") == "001100010011001000110011"
+        assert byte_tools.bin_string(b"\x00") == "00000000"
+        assert byte_tools.bin_string(b"james") == "0110101001100001011011010110010101110011"
+
     def test_get_two_unsigned_bytes(self):
         assert byte_tools.get_two_unsigned_bytes(1) == b"\x00\x01"
         assert byte_tools.get_two_unsigned_bytes(15) == b"\x00\x0f"

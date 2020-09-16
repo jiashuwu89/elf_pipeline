@@ -61,13 +61,26 @@ class Coordinator:
         """Execute the pipeline"""
         try:
             # Extract
+            self.logger.info("🌥\tGetting Processing Requests")
             processing_requests = self.get_processing_requests(pipeline_query)
+            self.logger.info(
+                f"🌥\tGot {len(processing_requests)} processing requests:\n\t\t"
+                + "\n\t\t".join(str(pr) for pr in processing_requests)
+            )  # TODO: s_if_plural
 
             # Transform
+            self.logger.info("⛅️\tGenerating Files")
             generated_files = self.generate_files(processing_requests)
+            self.logger.info(
+                f"⛅️\tGenerated {len(generated_files)} file{science_utils.s_if_plural(generated_files)}:"
+                + "\n\t\t"
+                + "\n\t\t".join(generated_files)
+            )
 
             # Load
-            self.transfer_files(generated_files)
+            self.logger.info("🌤\tTransferring Files")
+            transferred_files_count = self.transfer_files(generated_files)
+            self.logger.info(f"🌤\tTransferred {transferred_files_count} files")
 
         except Exception as e:
             traceback_msg = traceback.format_exc()
@@ -84,23 +97,14 @@ class Coordinator:
             )
 
     def get_processing_requests(self, pipeline_query):
-        self.logger.info("🌥\tGetting Processing Requests")
-        processing_requests = self.request_getter_manager.get_processing_requests(pipeline_query)
-        self.logger.info(f"Got {len(processing_requests)} processing requests")
-        return processing_requests
+        return self.request_getter_manager.get_processing_requests(pipeline_query)
 
     def generate_files(self, processing_requests):
         if not self.generate_files:
             self.logger.info("No files generated")
             return []
 
-        self.logger.info("⛅️\tGenerating Files")
         generated_files = self.processor_manager.generate_files(processing_requests)
-        self.logger.info(
-            f"Generated {len(generated_files)} file{science_utils.s_if_plural(generated_files)}:"
-            + "\n\t\t"
-            + "\n\t\t".join(generated_files)
-        )
 
         return generated_files
 
@@ -109,9 +113,7 @@ class Coordinator:
             self.logger.info("No files transferred")
             return 0
 
-        self.logger.info("🌤\tUploading Files")
         transferred_files_count = self.server_manager.transfer_files(generated_files)
-        self.logger.info(f"Transferred {transferred_files_count} files")
 
         if len(generated_files) != transferred_files_count:
             raise RuntimeError(f"Transferred only {transferred_files_count}/{len(generated_files)} files")

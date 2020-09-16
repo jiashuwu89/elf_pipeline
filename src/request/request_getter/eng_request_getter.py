@@ -26,7 +26,7 @@ class EngRequestGetter(RequestGetter):
         return eng_processing_requests
 
     def get_categoricals_requests(self, pipeline_query):
-        self.logger.info("Getting ENG Categoricals requests")
+        self.logger.info("➜\tGetting ENG Categoricals requests")
         mission_ids = pipeline_query.mission_ids
         start_time = pipeline_query.start_time
         end_time = pipeline_query.end_time
@@ -62,13 +62,13 @@ class EngRequestGetter(RequestGetter):
             categoricals_requests.update(current_requests)
 
         self.logger.info(
-            f"Got {len(categoricals_requests)} "
+            f"➜\tGot {len(categoricals_requests)} "
             + f"ENG Categoricals request{science_utils.s_if_plural(categoricals_requests)}"
         )
         return categoricals_requests
 
     def get_bmon_requests(self, pipeline_query):
-        self.logger.info("Getting ENG Bmon requests")
+        self.logger.info("➜\tGetting ENG Bmon requests")
         mission_ids = pipeline_query.mission_ids
         start_time = pipeline_query.start_time
         end_time = pipeline_query.end_time
@@ -92,5 +92,7 @@ class EngRequestGetter(RequestGetter):
             }
             bmon_requests.update(current_requests)
 
-        self.logger.info(f"Got {len(bmon_requests)} " + f"ENG Bmon request{science_utils.s_if_plural(bmon_requests)}")
+        self.logger.info(
+            f"➜\tGot {len(bmon_requests)} " + f"ENG Bmon request{science_utils.s_if_plural(bmon_requests)}"
+        )
         return bmon_requests

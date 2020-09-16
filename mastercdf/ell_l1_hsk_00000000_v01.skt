@@ -1,0 +1,2336 @@
+! Skeleton table for the "ell_hsk_l1_00000000_v01.cdf" CDF.
+! Generated: Monday, 15-Aug-2012 14:15:34
+! CDF created/modified by CDF V3.1.0
+! Skeleton table created by CDF V3.1.0 
+
+#header
+
+                       CDF NAME: ell_l1_hsk_00000000_v01.cdf
+                  DATA ENCODING: IBMPC
+                       MAJORITY: ROW
+                         FORMAT: SINGLE
+   
+! Variables  G.Attributes  V.Attributes  Records  Dims  Sizes
+! ---------  ------------  ------------  -------  ----  -----
+   0/71          25            25         0/z      0
+
+
+#GLOBALattributes
+
+! Attribute         Entry       Data
+! Name              Number      Type       Value
+! ---------         ------      ----       -----
+
+  "Project"             1:    CDF_CHAR     { "elfinL" } .
+
+  "Source_name"         1:    CDF_CHAR     { "ell>elfin Lomonosov" } .
+
+  "Discipline"          1:    CDF_CHAR     { "Space " -
+                                             "Physics>Magnetospheric " -
+                                             "Science" } .
+
+  "Data_type"           1:    CDF_CHAR     { "HSK" } .
+
+  "Descriptor"          1:    CDF_CHAR     { "L1>L1 Data" } .
+
+  "File_naming_convention"
+                        1:    CDF_CHAR     { "source_descriptor_datatype" } .
+
+  "Data_version"        1:    CDF_CHAR     { "1" } .
+
+  "PI_name"             1:    CDF_CHAR     { "V. Angelopoulos Y. Sphrits" } .
+
+  "PI_affiliation"      1:    CDF_CHAR     { "UCLA, MSU " } .
+
+  "TEXT"                1:    CDF_CHAR     { "  " } .
+
+  "Instrument_type"     1:    CDF_CHAR     { "Engineering" } .
+
+  "Mission_group"       1:    CDF_CHAR     { "elfinL" } .
+
+  "Logical_source"      1:    CDF_CHAR     { "ell_l1_hsk" } .
+
+  "Logical_file_id"     1:    CDF_CHAR     { "ell_l1_hsk_00000000_v01" } .
+
+  "Logical_source_description"
+                        1:    CDF_CHAR     { "ELFINL housekeeping data" } .
+
+  "Time_resolution"     1:    CDF_CHAR     { " " } .
+
+  "Rules_of_use"        1:    CDF_CHAR     { "Open Data for Scientific Use" } .
+
+  "Generated_by"        1:    CDF_CHAR     { "elfinL SOC" } .
+
+  "Generation_date"     1:    CDF_CHAR     { "2011-08-15" } .
+
+  "Acknowledgement"     1:    CDF_CHAR     { "NSF " } .
+
+  "MODS"                1:    CDF_CHAR     { "Rev- 2011-08-15" } .
+
+  "ADID_ref"            1:    CDF_CHAR     { "NSSD0110" } .
+
+  "LINK_TEXT"           1:    CDF_CHAR     { "http://xxxx.igpp.ucla.edu/" -
+                                             "xxxx " } .
+
+  "LINK_TITLE"          1:    CDF_CHAR     { "elfinL Engineering data" } .
+
+  "HTTP_LINK"           1:    CDF_CHAR     { "http://xxxx.igpp.ucla.edu/" -
+                                             "elfinL " } .
+
+
+#VARIABLEattributes
+
+
+  "CATDESC"
+  "DEPEND_0"
+  "DEPEND_1"
+  "DEPEND_2"
+  "DEPEND_3"
+  "DICT_KEY"
+  "DISPLAY_TYPE"
+  "FIELDNAM"
+  "FILLVAL"
+  "FORMAT"
+  "LABLAXIS"
+  "LABL_PTR_1"
+  "LABL_PTR_2"
+  "LABL_PTR_3"
+  "UNITS"
+  "UNIT_PTR"
+  "VALIDMIN"
+  "VALIDMAX"
+  "VAR_TYPE"
+  "SCALETYP"
+  "SCAL_PTR"
+  "VAR_NOTES"
+  "FORM_PTR"
+  "DEPEND_TIME"
+  "DEPEND_EPOCH0"
+  "MONOTON"
+  "VIRTUAL"
+  "FUNCT"
+  "COMPONENT_0"
+  "COMPONENT_1"
+
+
+#variables
+
+! No rVariables.
+
+
+#zVariables
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "range_epoch"   CDF_EPOCH      1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "range_epoch" }
+    "FIELDNAM"    CDF_CHAR     { "range_epoch" }
+    "FILLVAL"     CDF_EPOCH    { 31-Dec-9999 23:59:59.999 }
+    "LABLAXIS"    CDF_CHAR     { "UT" }
+    "UNITS"       CDF_CHAR     { "msec" }
+    "VALIDMIN"    CDF_EPOCH    { 01-Jan-1990 00:00:00.000 }
+    "VALIDMAX"    CDF_EPOCH    { 31-Dec-2029 23:59:59.999 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_l1_hsk_epoch0"
+                  CDF_EPOCH      1       0              F
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "EPOCH0 of elfinL TIME BASE" }
+    "FIELDNAM"    CDF_CHAR     { "ell_l1_hsk_epoch0" }
+    "FILLVAL"     CDF_EPOCH    { 31-Dec-9999 23:59:59.999 }
+    "LABLAXIS"    CDF_CHAR     { "timebase" }
+    "UNITS"       CDF_CHAR     { "msec" }
+    "VALIDMIN"    CDF_EPOCH    { 01-Jan-1900 00:00:00.000 }
+    "VALIDMAX"    CDF_EPOCH    { 31-Dec-2029 23:59:59.999 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "VAR_NOTES"   CDF_CHAR     { "EPOCH of 01-Jan-1970 00:00:00" } .
+
+  ! NRV values follow...
+
+    [] = 01-Jan-1970 00:00:00.000
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_bias_temp"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_bias_temp" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING :  " -
+                                 "Bias Temp" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+ 
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_23v_temp"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_23v_temp" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 23.0 V Temp " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_8v6_temp"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_8v6_temp" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 8.6 V Temp " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_5v7_temp"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_5v7_temp" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING :  " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_5v0_dig_temp"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_5v0_dig_temp" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 5.0 V Digital Temp " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_3v3_temp"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_3v3_temp" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 3.3 V Temp " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+ 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_1v5_dig_temp"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_1v5_dig_temp" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 1.5 V Digital Temp " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_1v5_epd_temp"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_1v5_epd_temp" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 1.5 V EPD Temp " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_1v5_prm_temp"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_1v5_prm_temp" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 1.5 V PRM Temp " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_30_curr_load"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_30_curr_load" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 30.0 Current Load " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_30v_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_30v_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 30.0 V Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_23v_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_23v_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 23.0 V Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_22v_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_22v_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 22.0 V Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_8v6_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_8v6_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 8.6 V Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_8v_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_8v_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 8.0 V Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_5v7_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_5v7_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 5.7 V Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_5v_dig_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_5v_dig_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 5.0 V Digital Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_5v_epd_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_5v_epd_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 5.0 V EPD Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_4v5_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_4v5_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 4.5 V Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_3v3_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_3v3_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 3.3 V Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_1v5_dig_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_5v7_dig_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 1.5 V Digital Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_1v5_epd_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_1v5_epd_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 1.5 V EPD Voltage Monitor  " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_1v5_prm_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_1v5_prm_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : 1.5 V PRM Voltage Monitor  " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_suite_oc_cnt"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_suite_oc_cnt" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Suite OC Counter " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_oc_cnt"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_oc_cnt" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM OC Counter " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_epd_oc_cnt"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_epd_oc_cnt" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : EPD OC Counter " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_can_oc_cnt"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_can_oc_cnt" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : CAN OC Counter " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_pm_flag0"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_pm_flag0" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Power Management Flag0 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_pm_flag1"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_pm_flag1" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Power Management Flag 1 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_pm_flag2"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_pm_flag2" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Power Management Flag 2 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_pm_flag3"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_pm_flag3" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Power Management Flag 3 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_pm_flag4"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_pm_flag4" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Power Management Flag 4 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_pm_flag5"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_pm_flag5" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Power Management Flag 5 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_pm_flag6"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_pm_flag6" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Power Management Flag 6 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_val_fall_p1"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_val_fall_p1" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Valid Fall Before Peak 1 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_pk_stk_hi_p1"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_pk_stk_hi_p1" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Peak Stuck High P1 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_val_fall_e3"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_val_fall_e3" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Valid Fall Before Peak 3 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_val_fall_e2"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_val_fall_e2" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Valid Fall Before Peak 2 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_val_fall_e1"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_val_fall_e1" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Valid Fall Before Peak 1 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_pk_stk_hi_e3"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_pk_stk_hi_e3" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Peak Stuck High E3 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_pk_stk_hi_e2"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_pk_stk_hi_e2" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Peak Stuck High E2 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_pk_stk_hi_e1"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_pk_stk_hi_e1" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Peak Stuck High E1 " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_epd_biasl_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_epd_biasl_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : EPD Bias L Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_epd_biash_volt_mon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_epd_biash_volt_mon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : EPD Bias H Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_epd_fend_temp"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_epd_fend_temp" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : EPD Front End Temp " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_epd_stat_biasl_vmon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_epd_stat_biasl_vmon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : EPD Status Bias L Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_epd_stat_biash_vmon"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_epd_stat_biash_vmon" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : EPD Status Bias H Voltage Monitor " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_epd_stat_fend_temp"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_epd_stat_fend_temp" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : EPD Status Front End Temp " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_8v_mon_lsb"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_8v_mon_lsb" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM 8.0 V Voltage Monitor (LSB) " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_8v_mon_msb"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_8v_mon_msb" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM 8.0 V Voltage Monitor (MSB) " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_3v3_mon_lsb"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_3v3_mon_lsb" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM 3.3 V Voltage Monitor (LSB) " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_3v3_mon_msb"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_3v3_mon_msb" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM 3.3 V Voltage Monitor (MSB) " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_ana_grnd_lsb"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_ana_grnd_lsb" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM Analog Ground (LSB) " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_ana_grnd_msb"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_ana_grnd_msb" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM Analog Ground (MSB) " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_sens_temp_lsb"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_sens_temp_lsb" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM Sensor Temp (LSB) " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_sens_temp_msb"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_sens_temp_msb" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM Sensor Temp (MSB) " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_temp_lsb"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_temp_lsb" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM Temp (LSB) " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_temp_msb"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_temp_msb" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM Temp (MSB) " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_stat_reg_lsb"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_stat_reg_lsb" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM Status Register (LSB) " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_stat_reg_msb"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_stat_reg_msb" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM Status Register (MSB) " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_reg_cnt"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_reg_cnt" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM Register Counter " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_regn_lsb"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_regn_lsb" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : PRM Register N (LSB) " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_prm_regn_msb"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_prm_regn_msb" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING :  PRM Register N (MSB) " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_suite_perr_cnt"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_suite_perr_cnt" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Suite Parity Error Counter " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_can_tx_err_cnt"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_can_tx_err_cnt" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : CAN Tx Error Counter " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_can_rx_err_cnt"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_can_rx_err_cnt" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : CAN Rx Error Counter " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_suite_eeprom_vot_err_cnt"
+                  CDF_REAL8       1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_suite_eeprom_vot_err_cnt" }
+    "CATDESC"     CDF_CHAR     { "HOUSEKEEPING : Suite EEPROM Voting Error Counter " }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_time" }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 255 }
+    "FILLVAL"     CDF_INT4     { 255 }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "LABLAXIS"    CDF_CHAR     { "counts" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_time"
+                  CDF_REAL8      1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_time" }
+    "CATDESC"     CDF_CHAR     { "UTC, start of DF accumulation, in " -
+                                 'seconds since 01-Jan-1970 00:00:00"' }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_epoch0" }
+    "FORMAT"      CDF_CHAR     { "F12.12" }
+    "UNITS"       CDF_CHAR     { "sec" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "VALIDMIN"    CDF_REAL8    { 0.0 }
+    "VALIDMAX"    CDF_REAL8    { 1.0e+37 }
+    "FILLVAL"     CDF_REAL8    { nan.0 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "LABLAXIS"    CDF_CHAR     { "UT" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_deltat"
+                  CDF_REAL4      1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_hsk_deltat, UTC, length of DF " -
+                                 "accumulation, in seconds" }
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_032_deltat" }
+    "FILLVAL"     CDF_REAL4    { nan.0 }
+    "FORMAT"      CDF_CHAR     { "F12.8" }
+    "LABLAXIS"    CDF_CHAR     { "UT" }
+    "UNITS"       CDF_CHAR     { "sec" }
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 5.0e+09 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_hsk_epoch" }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_hsk_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_hsk_epoch0" } 
+    "VAR_NOTES"   CDF_CHAR     { "Unleaped seconds" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_hsk_epoch"
+                  CDF_EPOCH      1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_hsk_epoch" }
+    "FIELDNAM"    CDF_CHAR     { "ell_hsk_epoch" }
+    "FILLVAL"     CDF_EPOCH    { 31-Dec-9999 23:59:59.999 }
+    "LABLAXIS"    CDF_CHAR     { "UT" }
+    "VALIDMIN"    CDF_EPOCH    { 01-Jan-2001 00:00:00.000 }
+    "VALIDMAX"    CDF_EPOCH    { 31-Dec-2100 23:59:59.999 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "VIRTUAL"     CDF_CHAR     { "TRUE" }
+    "FUNCT"       CDF_CHAR     { "comp_ell_epoch" }
+    "COMPONENT_0"
+                  CDF_CHAR     { "ell_hsk_epoch0" }
+    "COMPONENT_1"
+                  CDF_CHAR     { "ell_hsk_time" } .
+
+  ! RV values were not requested.
+
+#end

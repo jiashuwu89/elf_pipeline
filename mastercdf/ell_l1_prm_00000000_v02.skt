@@ -1,0 +1,342 @@
+! Skeleton table for the "ell_l1_prm_00000000_v01.cdf" CDF.
+! Generated: Monday, 15-Aug-2011 12:23:00
+! CDF created/modified by CDF V3.1.0
+! Skeleton table created by CDF V3.1.0 
+
+#header
+
+                       CDF NAME: ell_l1_prm_00000000_v01.cdf
+                  DATA ENCODING: NETWORK
+                       MAJORITY: ROW
+                         FORMAT: SINGLE
+
+! Variables  G.Attributes  V.Attributes  Records  Dims  Sizes
+! ---------  ------------  ------------  -------  ----  -----
+    0/8           25            31         0/z      0
+
+
+#GLOBALattributes
+
+! Attribute         Entry       Data
+! Name              Number      Type       Value
+! ---------         ------      ----       -----
+
+  "Project"             1:    CDF_CHAR     { "ELFINL" } .
+
+  "Source_name"         1:    CDF_CHAR     { "ell>ELFINL Probe A" } .
+
+  "Discipline"          1:    CDF_CHAR     { "Space " -
+                                             "Physics>Magnetospheric " -
+                                             "Science" }
+                        2:    CDF_CHAR     { "Space " -
+                                             "Physics>Interplanetary " -
+                                             "Studies" } .
+
+  "Data_type"           1:    CDF_CHAR     { "PRM" } .
+
+  "Descriptor"          1:    CDF_CHAR     { "L1>L1 DATA" } .
+
+  "Data_version"        1:    CDF_CHAR     { "1" } .
+
+  "PI_name"             1:    CDF_CHAR     { "V. Angelopoulos " -
+                                              "Yuri Sphrits" } .
+
+  "PI_affiliation"      1:    CDF_CHAR     { "UCLA, MSU " } .
+
+  "TEXT"                1:    CDF_CHAR     { "  " } .
+
+  "Instrument_type"     1:    CDF_CHAR     { "Magnetic Fields (space)" } .
+
+  "Mission_group"       1:    CDF_CHAR     { "ELFINL" } .
+
+  "Logical_source"      1:    CDF_CHAR     { "ell_l1_prm" } .
+
+  "Logical_file_id"     1:    CDF_CHAR     { "ell_l1_prm_00000000_v01" } .
+
+  "Logical_source_description"
+                        1:    CDF_CHAR     { "Spacecraft-collected " -
+                                             "fluxgate magnetometer"  } .
+
+  "Time_resolution"     1:    CDF_CHAR     { "1/10-32/2^22mHz" } .
+
+  "Rules_of_use"        1:    CDF_CHAR     { "Open Data for Scientific Use" } .
+
+  "Generated_by"        1:    CDF_CHAR     { "ELFINL SOC" } .
+
+  "Generation_date"     1:    CDF_CHAR     { "2011-08-15" } .
+
+  "Acknowledgement"     1:    CDF_CHAR     { "NSF " } .
+
+  "MODS"                1:    CDF_CHAR     { "Rev- 2011-08-15" } .
+
+  "ADID_ref"            1:    CDF_CHAR     { "NSSD0110" } .
+
+  "LINK_TEXT"           1:    CDF_CHAR     { "http://xxxx.igpp.ucla.edu/xxxx " } .
+
+  "LINK_TITLE"          1:    CDF_CHAR     { "ELFINL PRM sensor data" } .
+
+  "HTTP_LINK"           1:    CDF_CHAR     { "http://xxxx.igpp.ucla.edu/xxxx " } .
+
+  "File_naming_convention"
+                        1:    CDF_CHAR     { "source_descriptor_datatype" } .
+
+
+#VARIABLEattributes
+
+  "CATDESC"
+  "DEPEND_0"
+  "DEPEND_1"
+  "DEPEND_2"
+  "DEPEND_3"
+  "DICT_KEY"
+  "DISPLAY_TYPE"
+  "FIELDNAM"
+  "FILLVAL"
+  "FORMAT"
+  "LABLAXIS"
+  "LABL_PTR_1"
+  "LABL_PTR_2"
+  "LABL_PTR_3"
+  "UNITS"
+  "UNIT_PTR"
+  "VALIDMIN"
+  "VALIDMAX"
+  "VAR_TYPE"
+  "SCALETYP"
+  "SCAL_PTR"
+  "VAR_NOTES"
+  "FORM_PTR"
+  "VIRTUAL"
+  "FUNCT"
+  "COMPONENT_0"
+  "COMPONENT_1"
+  "COMPONENT_2"
+  "DEPEND_TIME"
+  "DEPEND_EPOCH0"
+  "MONOTON"
+
+
+#variables
+
+! No rVariables.
+
+
+#zVariables
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_prm"       CDF_REAL8       1       1     12       T         T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "Magnetic field B in XYZ Sensor " -
+                                 "Coordinates" }
+    "DEPEND_0"    CDF_CHAR     { "ell_prm_epoch16" }
+    "DEPEND_1"    CDF_CHAR     { "ell_prm_compno" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "FIELDNAM"    CDF_CHAR     { "BXYZ Raw Sensor Coordinates, ADC units" }
+    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FORMAT"      CDF_CHAR     { "i8" }
+    "LABL_PTR_1"
+                  CDF_CHAR     { "ell_prm_labl" }
+    "UNIT_PTR"    CDF_CHAR     { "ell_prm_unit" }
+    "VALIDMIN"    CDF_INT4     { -8388608, -8388608, -8388608 }
+    "VALIDMAX"    CDF_INT4     { 8388608, 8388608, 8388608 }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "SCALETYP"    CDF_CHAR     { "linear" }
+    "VAR_NOTES"   CDF_CHAR     { "To convert to nT multiply by ???" }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_prm_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_prm_epoch0" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_prm_labl"
+                  CDF_CHAR      1       1     3        F         T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_prm_labl" }
+    "DICT_KEY"    CDF_CHAR     { "label" }
+    "FIELDNAM"    CDF_CHAR     { "ell_prm_labl" }
+    "FORMAT"      CDF_CHAR     { "A1" }
+    "VAR_TYPE"    CDF_CHAR     { "metadata" } .
+
+  ! NRV values follow...
+
+    [1] = { "X" }
+    [2] = { "Y" }
+    [3] = { "Z" }
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_prm_unit"
+                  CDF_CHAR       3       1     3        F         T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_prm_unit" }
+    "DICT_KEY"    CDF_CHAR     { "label" }
+    "FIELDNAM"    CDF_CHAR     { "ell_prm_unit" }
+    "FORMAT"      CDF_CHAR     { "a20" }
+    "VAR_TYPE"    CDF_CHAR     { "metadata" } .
+
+  ! NRV values follow...
+
+    [1] = { "ADC" }
+    [2] = { "ADC" }
+    [3] = { "ADC" }
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_prm_compno"
+                  CDF_INT4       1       1     3        F         T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "XYZ Component Number" }
+    "DICT_KEY"    CDF_CHAR     { "number" }
+    "FIELDNAM"    CDF_CHAR     { "XYZ sensor coordinate number" }
+    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FORMAT"      CDF_CHAR     { "i2" }
+    "LABL_PTR_1"
+                  CDF_CHAR     { "ell_prm_labl" }
+    "VALIDMIN"    CDF_INT4     { 1, 1, 1 }
+    "VALIDMAX"    CDF_INT4     { 3, 3, 3 }
+    "VAR_TYPE"    CDF_CHAR     { "metadata" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! NRV values follow...
+
+    [1] =  1
+    [2] =  2
+    [3] =  3
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_prm_time"
+                  CDF_REAL8      1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_prm_time, UTC, in seconds since " -
+                                 "01-Jan-1970 00:00:00" }
+    "DEPEND_0"    CDF_CHAR     { "ell_prm_epoch16" }
+    "FIELDNAM"    CDF_CHAR     { "ell_prm_time" }
+    "FILLVAL"     CDF_REAL8    { nan.0 }
+    "FORMAT"      CDF_CHAR     { "F12.8" }
+    "LABLAXIS"    CDF_CHAR     { "UT" }
+    "UNITS"       CDF_CHAR     { "sec" }
+    "VALIDMIN"    CDF_REAL8    { 0.0 }
+    "VALIDMAX"    CDF_REAL8    { 5.0e+09 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "VAR_NOTES"   CDF_CHAR     { "Unleaped seconds" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_prm_epoch16"
+                  CDF_EPOCH16     1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_prm_epoch16" }
+    "FIELDNAM"    CDF_CHAR     { "ell_prm_epoch16" }
+    "FILLVAL"     CDF_EPOCH16   { 31-Dec-9999 23:59:59.999.999.999.999 }
+    "LABLAXIS"    CDF_CHAR     { "UT" }
+    "VALIDMIN"    CDF_EPOCH16   { 15-May-2011 02:27:51.999.999.999.999 }
+    "VALIDMAX"    CDF_EPOCH16   { 31-Dec-2100 23:59:59.999.999.999.999 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "VIRTUAL"     CDF_CHAR     { "TRUE" }
+    "FUNCT"       CDF_CHAR     { "comp_ell_epoch16" }
+    "COMPONENT_0"
+                  CDF_CHAR     { "ell_prm_epoch0" }
+    "COMPONENT_1"
+                  CDF_CHAR     { "ell_prm_time" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_prm_epoch0"
+                  CDF_EPOCH      1       0              F
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "EPOCH0 of PRM TIME BASE" }
+    "FIELDNAM"    CDF_CHAR     { "ell_prm_epoch0" }
+    "FILLVAL"     CDF_EPOCH    { 31-Dec-9999 23:59:59.999 }
+    "LABLAXIS"    CDF_CHAR     { "timebase" }
+    "UNITS"       CDF_CHAR     { "msec" }
+    "VALIDMIN"    CDF_EPOCH    { 01-Jan-1900 00:00:00.000 }
+    "VALIDMAX"    CDF_EPOCH    { 31-Dec-2029 23:59:59.999 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "VAR_NOTES"   CDF_CHAR     { "EPOCH of 01-Jan-1970 00:00:00" } .
+
+  ! NRV values follow...
+
+    [] = 01-Jan-1970 00:00:00.000
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "range_epoch"   CDF_EPOCH      1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "range_epoch" }
+    "FIELDNAM"    CDF_CHAR     { "range_epoch" }
+    "FILLVAL"     CDF_EPOCH    { 31-Dec-9999 23:59:59.999 }
+    "LABLAXIS"    CDF_CHAR     { "UT" }
+    "UNITS"       CDF_CHAR     { "msec" }
+    "VALIDMIN"    CDF_EPOCH    { 01-Jan-1990 00:00:00.000 }
+    "VALIDMAX"    CDF_EPOCH    { 31-Dec-2029 23:59:59.999 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" } .
+
+  ! RV values were not requested.
+
+
+#end

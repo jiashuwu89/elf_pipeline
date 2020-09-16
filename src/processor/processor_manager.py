@@ -22,25 +22,7 @@ class ProcessorManager:
         self.fgm_processor = FgmProcessor(self.pipeline_config)
         self.mrm_processor = MrmProcessor(self.pipeline_config)
         self.state_processor = StateProcessor(self.pipeline_config)
-        self.processors = self.init_processors_map()
-
-    def generate_files(self, processing_requests):
-        """Given requests, generate appropriate files using processors"""
-        files = set()
-
-        for pr in processing_requests:
-            self.logger.info(f"Handling {str(pr)}")
-            try:
-                files.update(self.processors[pr.data_product].generate_files(pr))
-            except Exception as e:
-                traceback_msg = traceback.format_exc()
-                self.exception_collector.record_exception(str(pr), e, traceback_msg)
-
-        return files
-
-    def init_processors_map(self):
-        """Creates a dict mapping data product name to processor"""
-        return {
+        self.processors = {
             "eng": self.eng_processor,
             "epdef": self.epd_processor,
             "epdes": self.epd_processor,
@@ -52,3 +34,19 @@ class ProcessorManager:
             "mrmi": self.mrm_processor,
             "state": self.state_processor,
         }
+
+    def generate_files(self, processing_requests):
+        """Given requests, generate appropriate files using processors"""
+        files = set()
+
+        for pr in processing_requests:
+            self.logger.info(f"🔔🔔🔔\tGenerating files for {str(pr)}")
+            try:
+                generated_files = self.processors[pr.data_product].generate_files(pr)
+                self.logger.info(f"🕶\tSuccessfully generated files: {generated_files}")
+                files.update(generated_files)
+            except Exception as e:
+                traceback_msg = traceback.format_exc()
+                self.exception_collector.record_exception(str(pr), e, traceback_msg)
+
+        return files

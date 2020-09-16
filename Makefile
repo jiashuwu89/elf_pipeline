@@ -48,6 +48,7 @@ test:
 coverage: test
 	@echo "⭐ Checking Code Coverage ⭐"
 	$(PR) coverage html \
+		--precision=2 \
 		--fail-under=$(COVERAGE_LIMIT) \
 		--skip-empty;
 

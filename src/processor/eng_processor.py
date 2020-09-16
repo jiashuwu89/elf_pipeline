@@ -5,6 +5,7 @@ Classes:
     EngProcessor
 """
 import datetime as dt
+import logging
 import statistics
 
 import pandas as pd
@@ -22,7 +23,7 @@ class EngProcessor(ScienceProcessor):
 
     def generate_files(self, processing_request):
         # TODO: Fill this in
-        pass
+        return set()
 
     def gen_level_0(self, collection_time):
         """ Try to generate level 0, but return empty df if it fails (to keep processing) """
@@ -121,6 +122,7 @@ class EngProcessor(ScienceProcessor):
 
 class EngDownlinkManager:
     def __init__(self, mission_id, start, end, session=None):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.session = session
         self.mission_id = mission_id
         self.start = start

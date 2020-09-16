@@ -21,7 +21,7 @@ class PacketInfo:
 
     def __init__(self, packet_id, id, idpu_time, collection_time):
         self.packet_id = packet_id
-        self.id = id  # ID in science_packets table
+        self.id = id  # TODO: ID in science_packets table
         self.idpu_time = idpu_time
         self.collection_time = collection_time
 

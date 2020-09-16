@@ -28,7 +28,7 @@ class IdpuProcessor(ScienceProcessor):
         return [l0_file_name, l1_file_name]
 
     def generate_l0_products(self, processing_request):
-        self.logger.info(">>> Generating Level 0 Products...")
+        self.logger.info(f"🔴\tGenerating Level 0 products for {str(processing_request)}")
         l0_df = self.generate_l0_df(processing_request)
         self.update_completeness_table(processing_request, l0_df)
         l0_file_name = self.generate_l0_file(processing_request, l0_df.copy())
@@ -41,12 +41,10 @@ class IdpuProcessor(ScienceProcessor):
         passed separately (as a list) through process_l0.
         Finally, the individual dataframes are merged and duplicates/empty packets dropped.
         """
-        self.logger.info(f"Creating level 0 DataFrame: {str(processing_request)}")
+        self.logger.info(f"🟠\tGenerating Level 0 DataFrame for {str(processing_request)}")
 
         dl_list = self.downlink_manager.get_relevant_downlinks(processing_request)  # TODO: By COLLECTION Time
-
-        self.logger.info("Relevant downlinks:")
-        self.downlink_manager.print_downlinks(dl_list)
+        self.downlink_manager.print_downlinks(dl_list, "Relevant downlinks")
 
         self.logger.info(f"Initial merging of {len(dl_list)} downlink{s_if_plural(dl_list)}...")
         merged_dfs = self.get_merged_dataframes(dl_list)
@@ -68,87 +66,6 @@ class IdpuProcessor(ScienceProcessor):
             raise RuntimeError(f"Final Dataframe is empty: {str(processing_request)}")
 
         return df
-
-    def update_completeness_table(self, processing_request, l0_df):
-        self.logger.info("Updating completeness table")
-        df = l0_df.copy()
-        df = df[["idpu_time", "data"]].drop_duplicates().dropna()
-        df_times = df["idpu_time"]
-
-        completeness_updater = self.get_completeness_updater(processing_request)
-        completeness_updater.update_completeness_table(df_times)  # TODO: Change EPD to EPDE or EPDI
-
-    @abstractmethod
-    def get_completeness_updater(self, processing_request):
-        raise NotImplementedError
-
-    def generate_l0_file(self, processing_request, l0_df):
-        # Filter fields and duplicates
-        l0_df = l0_df[["idpu_time", "data"]]
-        l0_df = l0_df.drop_duplicates().dropna()
-
-        # Select Data belonging only to a certain day
-        l0_df = l0_df[
-            (l0_df["idpu_time"] >= processing_request.date)
-            & (l0_df["idpu_time"] < processing_request.date + dt.timedelta(days=1))
-        ]
-
-        # TT2000 conversion
-        l0_df["idpu_time"] = l0_df["idpu_time"].apply(pycdf.lib.datetime_to_tt2000)
-
-        if l0_df.empty:
-            raise RuntimeError(f"Empty level 0 DataFrame: {str(processing_request)}")
-
-        # Generate L0 file
-        fname = self.make_filename(processing_request.date, 0, l0_df.shape[0])
-        l0_df.to_csv(fname, index=False)
-
-        return fname, l0_df
-
-    def generate_l1_products(self, processing_request, l0_df=None):
-        """
-        Generates level 1 CDFs for given collection time, optionally provided
-        a level 0 dataframe (otherwise, generate_l0_df will be called again).
-
-        Returns the path and name of the generated level 1 file.
-        """
-        l1_df = self.generate_l1_df(processing_request, l0_df)
-        l1_file_name = self.generate_l1_file(processing_request, l1_df.copy())
-        return l1_file_name, l1_df
-
-    def generate_l1_df(self, processing_request, l0_df):
-        if l0_df is None:
-            l0_df = self.generate_l0_df(processing_request.date)
-
-        # Allow derived class to transform data
-        l1_df = self.transform_l0_df(processing_request, l0_df)
-
-        # Timestamp conversion
-        try:
-            l1_df = l1_df[
-                (l1_df["idpu_time"] >= processing_request.date)
-                & (l1_df["idpu_time"] < processing_request.date + dt.timedelta(days=1))
-            ]
-            l1_df["idpu_time"] = l1_df["idpu_time"].apply(dt_to_tt2000)
-            if l1_df.empty:
-                raise RuntimeError(f"Final Dataframe is empty: {str(processing_request)}")
-
-        except KeyError:
-            self.logger.debug("The column 'idpu_time' does not exist, but it's probably OK")
-
-        return l1_df
-
-    @abstractmethod
-    def transform_l0_df(self, processing_request, l0_df):
-        raise NotImplementedError
-
-    def generate_l1_file(self, processing_request, l1_df):
-        fname = self.make_filename(processing_request, 1)
-        cdf = self.create_cdf(fname)
-        self.fill_cdf(processing_request, cdf, l1_df)
-        cdf.close()
-
-        return fname, l1_df
 
     def get_merged_dataframes(self, downlinks):
         """Merge a list of downlinks, and retrieve their associated dataframes.
@@ -316,3 +233,88 @@ class IdpuProcessor(ScienceProcessor):
         df = df.drop_duplicates("idpu_time", keep="first")
 
         return df.reset_index()
+
+    def update_completeness_table(self, processing_request, l0_df):
+        self.logger.info(f"❓\tUpdating completeness table for {str(processing_request)}")
+        df = l0_df.copy()
+        df = df[["idpu_time", "data"]].drop_duplicates().dropna()
+        df_times = df["idpu_time"]
+
+        completeness_updater = self.get_completeness_updater(processing_request)
+        completeness_updater.update_completeness_table(df_times)  # TODO: Change EPD to EPDE or EPDI
+
+    @abstractmethod
+    def get_completeness_updater(self, processing_request):
+        raise NotImplementedError
+
+    def generate_l0_file(self, processing_request, l0_df):
+        self.logger.info(f"🟡\tGenerating Level 0 file for {str(processing_request)}")
+        # Filter fields and duplicates
+        l0_df = l0_df[["idpu_time", "data"]]
+        l0_df = l0_df.drop_duplicates().dropna()
+
+        # Select Data belonging only to a certain day
+        l0_df = l0_df[
+            (l0_df["idpu_time"] >= processing_request.date)
+            & (l0_df["idpu_time"] < processing_request.date + dt.timedelta(days=1))
+        ]
+
+        # TT2000 conversion
+        l0_df["idpu_time"] = l0_df["idpu_time"].apply(pycdf.lib.datetime_to_tt2000)
+
+        if l0_df.empty:
+            raise RuntimeError(f"Empty level 0 DataFrame: {str(processing_request)}")
+
+        # Generate L0 file
+        fname = self.make_filename(processing_request.date, 0, l0_df.shape[0])
+        l0_df.to_csv(fname, index=False)
+
+        return fname, l0_df
+
+    def generate_l1_products(self, processing_request, l0_df=None):
+        """
+        Generates level 1 CDFs for given collection time, optionally provided
+        a level 0 dataframe (otherwise, generate_l0_df will be called again).
+
+        Returns the path and name of the generated level 1 file.
+        """
+        self.logger.info(f"🟢\tGenerating Level 1 products for {str(processing_request)}")
+        l1_df = self.generate_l1_df(processing_request, l0_df)
+        l1_file_name = self.generate_l1_file(processing_request, l1_df.copy())
+        return l1_file_name, l1_df
+
+    def generate_l1_df(self, processing_request, l0_df):
+        self.logger.info(f"🔵\tGenerating Level 1 DataFrame for {str(processing_request)}")
+        if l0_df is None:
+            l0_df = self.generate_l0_df(processing_request.date)
+
+        # Allow derived class to transform data
+        l1_df = self.transform_l0_df(processing_request, l0_df)
+
+        # Timestamp conversion
+        try:
+            l1_df = l1_df[
+                (l1_df["idpu_time"] >= processing_request.date)
+                & (l1_df["idpu_time"] < processing_request.date + dt.timedelta(days=1))
+            ]
+            l1_df["idpu_time"] = l1_df["idpu_time"].apply(dt_to_tt2000)
+            if l1_df.empty:
+                raise RuntimeError(f"Final Dataframe is empty: {str(processing_request)}")
+
+        except KeyError:
+            self.logger.debug("The column 'idpu_time' does not exist, but it's probably OK")
+
+        return l1_df
+
+    @abstractmethod
+    def transform_l0_df(self, processing_request, l0_df):
+        raise NotImplementedError
+
+    def generate_l1_file(self, processing_request, l1_df):
+        self.logger.info(f"🟣\tGenerating Level 1 DataFrame for {str(processing_request)}")
+        fname = self.make_filename(processing_request, 1)
+        cdf = self.create_cdf(fname)
+        self.fill_cdf(processing_request, cdf, l1_df)
+        cdf.close()
+
+        return fname, l1_df

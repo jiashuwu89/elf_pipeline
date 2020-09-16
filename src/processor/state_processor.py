@@ -90,7 +90,7 @@ class StateProcessor(ScienceProcessor):
 
         if not df:
             raise RuntimeError(
-                f"Couldn't creat csv_df Check /home/elfin-esn/state_data for csv for {processing_request.date}"
+                f"Couldn't create csv_df, check /home/elfin-esn/state_data for csv for {processing_request.date}"
             )
 
         return df.loc[

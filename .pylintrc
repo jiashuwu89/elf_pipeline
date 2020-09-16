@@ -1,12 +1,14 @@
 [MESSAGES CONTROL]
 disable=invalid-name,
         logging-fstring-interpolation,
+        logging-not-lazy,
         fixme,
         missing-module-docstring,
         missing-class-docstring,
         missing-function-docstring,
-        broad-except,
         bad-continuation,
+        broad-except,
+        comparison-with-callable,
         too-few-public-methods
 
 [FORMAT]

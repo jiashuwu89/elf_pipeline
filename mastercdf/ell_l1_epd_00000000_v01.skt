@@ -1,0 +1,609 @@
+! Skeleton table for the "ell_l1_epd_00000000_v01.cdf" CDF.
+! Generated: Monday, 16-Aug-2011 13:31:07
+! CDF created/modified by CDF V3.1.1
+! Skeleton table created by CDF V3.1.0 
+
+#header
+
+                       CDF NAME: ell_l1_epd_00000000_v01.cdf
+                  DATA ENCODING: NETWORK
+                       MAJORITY: ROW
+                         FORMAT: SINGLE
+
+! Variables  G.Attributes  V.Attributes  Records  Dims  Sizes
+! ---------  ------------  ------------  -------  ----  -----
+   0/19          25            28         0/z      0
+
+
+#GLOBALattributes
+
+! Attribute         Entry       Data
+! Name              Number      Type       Value
+! ---------         ------      ----       -----
+
+  "Project"             1:    CDF_CHAR     { "elfinL" } .
+
+  "Source_name"         1:    CDF_CHAR     { "ell>elfin Lomonosov" } .
+
+  "Discipline"          1:    CDF_CHAR     { "Space " -
+                                             "Physics>Magnetospheric " -
+                                             "Science" }
+                        2:    CDF_CHAR     { "Space " -
+                                             "Physics>Interplanetary " -
+                                             "Studies" } .
+
+  "Data_type"           1:    CDF_CHAR     { "EPD" } .
+
+  "Descriptor"          1:    CDF_CHAR     { "L1>L1 Data" } .
+
+  "File_naming_convention"
+                        1:    CDF_CHAR     { "source_datatype_descriptor" } .
+
+  "Data_version"        1:    CDF_CHAR     { "1" } .
+
+  "PI_name"             1:    CDF_CHAR     { "V. Angelopoulos, Y. Sphrits" } .
+
+  "PI_affiliation"      1:    CDF_CHAR     { "UCLA, MSU" } .
+
+  "TEXT"                1:    CDF_CHAR     { "Energetic Partical Detector	" -
+                                             "(EPD)" } .
+
+  "Instrument_type"     1:    CDF_CHAR     { "Particles (space)" } .
+  "Mission_group"       1:    CDF_CHAR     { "elfinL" } .
+
+  "Logical_source"      1:    CDF_CHAR     { "ell_l1_epd" } .
+
+  "Logical_file_id"     1:    CDF_CHAR     { "ell_l1_epd_00000000_v01" } .
+
+  "Logical_source_description"
+                        1:    CDF_CHAR     { "[UNCALIBRATED RAW DATA ONLY] Energetic Partical Detector " -
+                                             "Energy Particles>keV "} . 
+
+  "Time_resolution"     1:    CDF_CHAR     { "3s typical" } .
+
+  "Rules_of_use"        1:    CDF_CHAR     { "Open Data for Scientific Use" } .
+
+  "Generated_by"        1:    CDF_CHAR     { "elfinL SOC" } .
+
+  "Generation_date"     1:    CDF_CHAR     { "2011-08-15" } .
+
+  "Acknowledgement"     1:    CDF_CHAR     { "NSF, NASA " } .
+
+  "MODS"                1:    CDF_CHAR     { "Rev- 2011-08-15" } .
+
+  "ADID_ref"            1:    CDF_CHAR     { "tbd" } .
+
+  "LINK_TEXT"           1:    CDF_CHAR     { "http://xxxx.igpp.ucla.e" -
+                                             "du/elfinL" } .
+
+  "LINK_TITLE"          1:    CDF_CHAR     { "elfinL EPD sensor data" } .
+
+  "HTTP_LINK"           1:    CDF_CHAR     { "http://xxxx.igpp.ucla.e" -
+                                             "du/elfinL" } .
+
+
+#VARIABLEattributes
+
+  "CATDESC"
+  "DEPEND_0"
+  "DEPEND_1"
+  "DEPEND_2"
+  "DEPEND_3"
+  "DICT_KEY"
+  "DISPLAY_TYPE"
+  "FIELDNAM"
+  "FILLVAL"
+  "FORMAT"
+  "LABLAXIS"
+  "LABL_PTR_1"
+  "LABL_PTR_2"
+  "LABL_PTR_3"
+  "UNITS"
+  "UNIT_PTR"
+  "VALIDMIN"
+  "VALIDMAX"
+  "VAR_TYPE"
+  "SCALETYP"
+  "SCAL_PTR"
+  "VAR_NOTES"
+  "FORM_PTR"
+  "DEPEND_TIME"
+  "DEPEND_EPOCH0"
+  "MONOTON"
+  "VIRTUAL"
+  "FUNCT"
+  "COMPONENT_0"
+  "COMPONENT_1"
+  "TDAS_SWEEP_MODE"
+  "TDAS_ANGLE_MODE"
+  "TDAS_ENERGY_TABLE"
+  "TDAS_DENERGY_TABLE"
+  "TDAS_PHI_MODE"
+  "TDAS_DPHI_MODE"
+  "TDAS_THETA_MODE"
+  "TDAS_DTHETA_MODE"
+
+
+#variables
+
+! No rVariables.
+
+
+#zVariables
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "range_epoch"   CDF_EPOCH      1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "range_epoch" }
+    "FIELDNAM"    CDF_CHAR     { "range_epoch" }
+    "FILLVAL"     CDF_EPOCH    { 31-Dec-9999 23:59:59.999 }
+    "LABLAXIS"    CDF_CHAR     { "UT" }
+    "UNITS"       CDF_CHAR     { "msec" }
+    "VALIDMIN"    CDF_EPOCH    { 01-Jan-1990 00:00:00.000 }
+    "VALIDMAX"    CDF_EPOCH    { 31-Dec-2029 23:59:59.999 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_l1_epd_epoch0"
+                  CDF_EPOCH      1       0              F
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "EPOCH0 of elfinL TIME BASE" }
+    "FIELDNAM"    CDF_CHAR     { "ell_l1_epd_epoch0" }
+    "FILLVAL"     CDF_EPOCH    { 31-Dec-9999 23:59:59.999 }
+    "LABLAXIS"    CDF_CHAR     { "timebase" }
+    "UNITS"       CDF_CHAR     { "msec" }
+    "VALIDMIN"    CDF_EPOCH    { 01-Jan-1900 00:00:00.000 }
+    "VALIDMAX"    CDF_EPOCH    { 31-Dec-2029 23:59:59.999 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "VAR_NOTES"   CDF_CHAR     { "EPOCH of 01-Jan-1970 00:00:00" } .
+
+  ! NRV values follow...
+
+    [] = 01-Jan-1970 00:00:00.000
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_epde_energno"
+                  CDF_UINT1      1       1     16       F         T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_epde_energy" }
+    "DICT_KEY"    CDF_CHAR     { "number" }
+    "FIELDNAM"    CDF_CHAR     { "ell_epde_energy" }
+    "FILLVAL"     CDF_UINT1    { 255 }
+    "FORMAT"      CDF_CHAR     { "I3" }
+    "VALIDMIN"    CDF_UINT1    { 0 }
+    "VALIDMAX"    CDF_UINT1    { 255 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" } .
+
+  ! NRV values follow...
+
+    [1] =   1
+    [2] =   2
+    [3] =   3
+    [4] =   4
+    [5] =   5
+    [6] =   6
+    [7] =   7
+    [8] =   8
+    [9] =   9
+    [10] =  10
+    [11] =  11
+    [12] =  12
+    [13] =  13
+    [14] =  14
+    [15] =  15
+    [16] =  16
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_epde"       CDF_REAL8      1       1    17      T         T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"     CDF_CHAR     { "ell_epde" }
+    "DEPEND_0"     CDF_CHAR     { "ell_epd_epoch" }
+    "DEPEND_1"     CDF_CHAR     { "ell_epd_energno" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "spectral" }
+    "CATDESC"     CDF_CHAR     { "[ADC UNITS ONLY] L1 EPD Electro counts" }
+    "FILLVAL"     CDF_UINT1    { 255 }
+    "FORMAT"      CDF_CHAR     { "i6" }
+    "LABL_PTR_1"  CDF_CHAR     { "ell_epde_labl" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "VALIDMIN"    CDF_UINT1    { 0 }
+    "VALIDMAX"    CDF_UINT1    { 255 }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "SCALETYP"    CDF_CHAR     { "log" }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_epd_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_epd_epoch0" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_epde_labl"
+                  CDF_CHAR      5       1     17        F         T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_epde_labl" }
+    "DICT_KEY"    CDF_CHAR     { "label" }
+    "FIELDNAM"    CDF_CHAR     { "ell_epde_labl" }
+    "FORMAT"      CDF_CHAR     { "A5" }
+    "VAR_TYPE"    CDF_CHAR     { "metadata" } .
+
+  ! NRV values follow...
+
+    [1] = { "E1PHA" }
+    [2] = { "E1PHB" }
+    [3] = { "E1PHC" }
+    [4] = { "E1PHD" }
+    [5] = { "E1PHE" }
+    [6] = { "E1PHF" }
+    [7] = { "E1PHG" }
+    [8] = { "E1PHH" }
+    [9] = { "E2PHA" }
+    [10] = { "E2PHB" }
+    [11] = { "E3PHA" }
+    [12] = { "E3PHB" }
+    [13] = { "E4" }
+    [14] = { "E5" }
+    [15] = { "E6" }
+    [16] = { "E7" }
+    [17] = { "E8" }
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_epde_epoch"
+                  CDF_EPOCH      1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { " ell_epde_epoch " }
+    "FIELDNAM"    CDF_CHAR     { " ell_epde_epoch " }
+    "FILLVAL"     CDF_EPOCH    { 31-Dec-9999 23:59:59.999 }
+    "LABLAXIS"    CDF_CHAR     { "UT" }
+    "VALIDMIN"    CDF_EPOCH    { 01-Jan-2001 00:00:00.000 }
+    "VALIDMAX"    CDF_EPOCH    { 31-Dec-2100 23:59:59.999 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "VIRTUAL"     CDF_CHAR     { "TRUE" }
+    "COMPONENT_0"
+                  CDF_CHAR     { "ell_epd_epoch0" }
+    "COMPONENT_1"
+                  CDF_CHAR     { "ell_epde_time" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_epde_time"
+                  CDF_REAL8      1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_epde_time, UTC, " -
+                                 "seconds since 01-Jan-1970 00:00:00" }
+    "DEPEND_0"    CDF_CHAR     { "ell_epde_epoch" }
+    "FIELDNAM"    CDF_CHAR     { "ell_epde_time, tmid" }
+    "FILLVAL"     CDF_REAL8    { nan.0 }
+    "FORMAT"      CDF_CHAR     { "F12.12" }
+    "LABLAXIS"    CDF_CHAR     { "UT" }
+    "UNITS"       CDF_CHAR     { "sec" }
+    "VALIDMIN"    CDF_REAL8    { 0.0 }
+    "VALIDMAX"    CDF_REAL8    { 5.0e+09 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "VAR_NOTES"   CDF_CHAR     { "Unleaped seconds" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_epdi"       CDF_REAL8      1       1     9      T         T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"     CDF_CHAR     { "ell_epdi" }
+    "DEPEND_0"     CDF_CHAR     { "ell_epd_epoch" }
+    "DEPEND_1"     CDF_CHAR     { "ell_epd_epoch" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "CATDESC"     CDF_CHAR     { "[ADC UNITS ONLY] L1 EPD Ion compressed counts" }
+    "FILLVAL"     CDF_UINT1    { 255 }
+    "FORMAT"      CDF_CHAR     { "i6" }
+    "LABL_PTR_1"  CDF_CHAR     { "ell_epdi_labl" }
+    "UNITS"       CDF_CHAR     { " counts" }
+    "VALIDMIN"    CDF_UINT1    { 0 }
+    "VALIDMAX"    CDF_UINT1    { 255 }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "SCALETYP"    CDF_CHAR     { " " }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_epd_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_epd_epoch0" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_epdi_labl"
+                  CDF_CHAR      5       1     9        F         T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_epdi_labl" }
+    "DICT_KEY"    CDF_CHAR     { "label" }
+    "FIELDNAM"    CDF_CHAR     { "ell_epdi_labl" }
+    "FORMAT"      CDF_CHAR     { "A5" }
+    "VAR_TYPE"    CDF_CHAR     { "metadata" } .
+
+  ! NRV values follow...
+
+    [1] = { "P1PHA" }
+    [2] = { "P1PHB" }
+    [3] = { "P1PHC" }
+    [4] = { "P1PHD" }
+    [5] = { "P1PHE" }
+    [6] = { "P1PHF" }
+    [7] = { "P1PHG" }
+    [8] = { "P1PHH" }
+    [9] = { "P2" }
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_epde_err"    CDF_REAL8      1       1      8       T         T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"     CDF_CHAR     { "ell_epde_err" }
+    "DEPEND_0"     CDF_CHAR     { "ell_epde_epoch" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "CATDESC"     CDF_CHAR     { " EPDE Error Counts" }
+    "FILLVAL"     CDF_UINT1    { 255 }
+    "FORMAT"      CDF_CHAR     { "i6" }
+    "LABL_PTR_1"  CDF_CHAR     { "ell_epde_err_labl" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "VALIDMIN"    CDF_UINT1    { 0 }
+    "VALIDMAX"    CDF_UINT1    { 255 }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "SCALETYP"    CDF_CHAR     { " " }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_epd_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_epd_epoch0" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_epde_err_labl"
+                  CDF_CHAR      2       1     8        F         T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_epde_labl" }
+    "DICT_KEY"    CDF_CHAR     { "label" }
+    "FIELDNAM"    CDF_CHAR     { "ell_epde_labl" }
+    "FORMAT"      CDF_CHAR     { "A2" }
+    "VAR_TYPE"    CDF_CHAR     { "metadata" } .
+
+  ! NRV values follow...
+
+    [1] = { "E1" }
+    [2] = { "E2" }
+    [3] = { "E3" }
+    [4] = { "E4" }
+    [5] = { "E5" }
+    [6] = { "E6" }
+    [7] = { "E7" }
+    [8] = { "E8" }
+
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_epdi_err"    CDF_REAL8      1       1      2       T         T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"     CDF_CHAR     { "ell_epdi_err" }
+    "DEPEND_0"     CDF_CHAR     { "ell_epdi_epoch" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "CATDESC"     CDF_CHAR     { " EPDI Error Counts" }
+    "FILLVAL"     CDF_UINT1    { 255 }
+    "FORMAT"      CDF_CHAR     { "i6" }
+    "LABL_PTR_1"  CDF_CHAR     { "ell_epdi_err_labl" }
+    "UNITS"       CDF_CHAR     { "counts" }
+    "VALIDMIN"    CDF_UINT1    { 0 }
+    "VALIDMAX"    CDF_UINT1    { 255 }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "SCALETYP"    CDF_CHAR     { " " }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_epd_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_epd_epoch0" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_epdi_err_labl"
+                  CDF_CHAR      2       1     2        F         T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_epdi_err_labl" }
+    "DICT_KEY"    CDF_CHAR     { "label" }
+    "FIELDNAM"    CDF_CHAR     { "ell_epdi_err_labl" }
+    "FORMAT"      CDF_CHAR     { "A2" }
+    "VAR_TYPE"    CDF_CHAR     { "metadata" } .
+
+  ! NRV values follow...
+
+    [1] = { "P1" }
+    [2] = { "P2" }
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_epd_time"
+                  CDF_REAL8      1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_epd_time, UTC, midpoint of DF " -
+                                 "accumulation, in seconds since " -
+                                 "01-Jan-1970 00:00:00" }
+    "DEPEND_0"    CDF_CHAR     { "ell_epd_epoch" }
+    "FIELDNAM"    CDF_CHAR     { "ell_epd_time" }
+    "FILLVAL"     CDF_REAL8    { nan.0 }
+    "FORMAT"      CDF_CHAR     { "F12.12" }
+    "LABLAXIS"    CDF_CHAR     { "UT" }
+    "UNITS"       CDF_CHAR     { "sec" }
+    "VALIDMIN"    CDF_REAL8    { 0.0 }
+    "VALIDMAX"    CDF_REAL8    { 5.0e+09 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "VAR_NOTES"   CDF_CHAR     { "Unleaped seconds" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_epd_deltat"
+                  CDF_REAL4      1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_epd_deltat, UTC, length of DF " -
+                                 "accumulation, in seconds" }
+    "FIELDNAM"    CDF_CHAR     { "ell_epd_032_deltat" }
+    "FILLVAL"     CDF_REAL4    { nan.0 }
+    "FORMAT"      CDF_CHAR     { "F12.8" }
+    "LABLAXIS"    CDF_CHAR     { "UT" }
+    "UNITS"       CDF_CHAR     { "sec" }
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 5.0e+09 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "DEPEND_0"    CDF_CHAR     { "ell_epd_epoch" }
+    "DEPEND_TIME"
+                  CDF_CHAR     { "ell_epd_time" }
+    "DEPEND_EPOCH0"
+                  CDF_CHAR     { "ell_epd_epoch0" } 
+    "VAR_NOTES"   CDF_CHAR     { "Unleaped seconds" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ell_epd_epoch"
+                  CDF_EPOCH      1       0              T
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ell_epd_epoch" }
+    "FIELDNAM"    CDF_CHAR     { "ell_epd_epoch" }
+    "FILLVAL"     CDF_EPOCH    { 31-Dec-9999 23:59:59.999 }
+    "LABLAXIS"    CDF_CHAR     { "UT" }
+    "VALIDMIN"    CDF_EPOCH    { 01-Jan-2001 00:00:00.000 }
+    "VALIDMAX"    CDF_EPOCH    { 31-Dec-2100 23:59:59.999 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
+    "VIRTUAL"     CDF_CHAR     { "TRUE" }
+    "FUNCT"       CDF_CHAR     { "comp_ell_epoch" }
+    "COMPONENT_0"
+                  CDF_CHAR     { "ell_epd_epoch0" }
+    "COMPONENT_1"
+                  CDF_CHAR     { "ell_epd_time" } .
+
+  ! RV values were not requested.
+
+
+#end

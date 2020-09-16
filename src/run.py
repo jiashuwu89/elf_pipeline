@@ -19,7 +19,7 @@ from util.constants import ALL_MISSIONS, ALL_PRODUCTS, LOOK_BEHIND_DELTA
 
 # Logging Init
 LOG_FORMAT: str = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
-DATE_FORMAT: str = "%Y-%m-%d %H:%M:%S"
+DATE_FORMAT: str = "%H:%M:%S"
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT, datefmt=DATE_FORMAT)
 
 

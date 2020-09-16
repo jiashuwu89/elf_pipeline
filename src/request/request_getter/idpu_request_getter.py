@@ -41,7 +41,7 @@ class IdpuRequestGetter(RequestGetter):
         else:
             raise ValueError(f"Expected 'downlink' or 'collection', got {pipeline_query.times}")
 
-        self.downlink_manager.print_downlinks(dl_list, prefix="Obtained Downlinks:")
+        self.downlink_manager.print_downlinks(dl_list, prefix="➜\tObtained Downlinks:")
         general_processing_requests = self.get_requests_from_downlinks(dl_list)
         self.logger.info(f"🏀\tGot {len(general_processing_requests)} requests from downlinks")
         return general_processing_requests
