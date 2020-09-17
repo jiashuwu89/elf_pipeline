@@ -41,3 +41,9 @@ class PacketInfo:
             f"PacketInfo(packet_id={self.packet_id}, id={self.id}, "
             + f"idpu_time={self.idpu_time}, collection_time={self.collection_time})"
         )
+
+    def __repr__(self):
+        return (
+            f"PacketInfo(packet_id={self.packet_id}, id={self.id}, "
+            + f"idpu_time={self.idpu_time}, collection_time={self.collection_time})"
+        )

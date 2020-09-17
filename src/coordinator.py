@@ -61,15 +61,17 @@ class Coordinator:
 
     def execute_pipeline(self, pipeline_query):
         """Execute the pipeline"""
+        self.logger.info(f"Executing pipeline on query:\n\n{str(pipeline_query)}\n")
         try:
             # Extract
             self.logger.info("🌥 🌥 🌥 🌥 🌥  Getting Processing Requests")
             processing_requests = self.get_processing_requests(pipeline_query)
             self.logger.info(
                 f"🌥 🌥 🌥 🌥 🌥  Got {len(processing_requests)} processing requests:\n\n\t"
-                + "\n\t".join(str(pr) for pr in processing_requests)
+                + "\n\t".join(str(pr) for pr in sorted(processing_requests))
                 + "\n"
             )  # TODO: s_if_plural
+            exit()
 
             # Transform
             self.logger.info("⛅️ ⛅️ ⛅️ ⛅️ ⛅️  Generating Files")

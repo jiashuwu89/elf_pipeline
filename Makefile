@@ -70,4 +70,4 @@ todo:
 
 clean:
 	@echo "⭐ Cleaning Files ⭐"
-	rm -rf .coverage htmlcov doc/build
+	rm -rf .coverage htmlcov doc/build doc/source/pages

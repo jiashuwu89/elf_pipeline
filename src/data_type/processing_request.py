@@ -21,10 +21,21 @@ class ProcessingRequest:
             self.mission_id == other.mission_id and self.data_product == other.data_product and self.date == other.date
         )
 
+    def __lt__(self, other):
+        return (self.mission_id, self.data_product, self.date) < (other.mission_id, other.data_product, other.date)
+
     def __hash__(self):
         return hash((self.mission_id, self.data_product, self.date))
 
     def __str__(self):
+        return (
+            "ProcessingRequest("
+            + f"mission_id={self.mission_id}, "
+            + f"data_product={self.data_product}, "
+            + f"date={self.date})"
+        )
+
+    def __repr__(self):
         return (
             "ProcessingRequest("
             + f"mission_id={self.mission_id}, "

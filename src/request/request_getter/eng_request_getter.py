@@ -36,15 +36,11 @@ class EngRequestGetter(RequestGetter):
     def get_idpu_requests(self, pipeline_query):
         # TODO: How to differentiate between downlink time and collection time
         # TODO: make sure all end times are <, not <=
-        query = (
-            self.session.query(models.SciencePacket.mission_id, func.date(models.SciencePacket.timestamp))
-            .distinct()
-            .filter(
-                models.SciencePacket.mission_id == pipeline_query.mission_id,
-                models.SciencePacket.timestamp >= pipeline_query.start_time,
-                models.SciencePacket.timestamp < pipeline_query.end_time,
-                models.SciencePacket.idpu_type.in_(SCIENCE_TYPES["eng"]),
-            )
+        query = self.session.query(models.SciencePacket.mission_id, func.date(models.SciencePacket.timestamp)).filter(
+            models.SciencePacket.mission_id == pipeline_query.mission_id,
+            models.SciencePacket.timestamp >= pipeline_query.start_time,
+            models.SciencePacket.timestamp < pipeline_query.end_time,
+            models.SciencePacket.idpu_type.in_(SCIENCE_TYPES["eng"]),
         )
 
         return {ProcessingRequest(mission_id, "eng", date) for mission_id, date in query}
@@ -74,7 +70,6 @@ class EngRequestGetter(RequestGetter):
         )
 
         categoricals_requests = {ProcessingRequest(mission_id, "eng", date) for mission_id, date in query}
-
         self.logger.info(
             f"➜  Got {len(categoricals_requests)} "
             + f"ENG Categoricals request{science_utils.s_if_plural(categoricals_requests)}"
@@ -96,7 +91,6 @@ class EngRequestGetter(RequestGetter):
         )
 
         bmon_requests = {ProcessingRequest(mission_id, "eng", date) for mission_id, date in query}
-
         self.logger.info(
             f"➜  Got {len(bmon_requests)} " + f"ENG Bmon request{science_utils.s_if_plural(bmon_requests)}"
         )

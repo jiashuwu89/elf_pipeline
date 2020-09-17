@@ -11,6 +11,8 @@ Contents:
 """
 import datetime as dt
 
+from elfin.common import models
+
 # TODO: Rename for clarity (specify if values are numbers or strings)
 # TODO: Separate into different files by category of constant (mission, data product, etc)
 
@@ -58,6 +60,10 @@ SCIENCE_TYPES = {
 
 # A Dictionary of MRM Types
 MRM_TYPES = {"mrma": "ACB", "mrmi": "IDPU"}
+MRM_ENUM_MAP = {
+    models.MRM_Type.ACB: "mrma",
+    models.MRM_Type.IDPU: "mrmi",
+}
 
 # IDPU types of compressed data, survey data
 COMPRESSED_TYPES = [2, 4, 6, 18, 19, 20]

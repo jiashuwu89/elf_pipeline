@@ -27,3 +27,23 @@ class PipelineQuery(ABC):
         for data_product in data_products:
             idpu_types += SCIENCE_TYPES.get(data_product, [])
         return idpu_types
+
+    def __str__(self):
+        return (
+            "PipelineQuery(\n"
+            + f"\tmission_ids={self.mission_ids},\n"
+            + f"\tdata_products={self.data_products},\n"
+            + f"\ttimes={self.times},\n"
+            + f"\tstart_time={self.start_time},\n"
+            + f"\tend_time={self.end_time}\n)"
+        )
+
+    def __repr__(self):
+        return (
+            "PipelineQuery(\n"
+            + f"\tmission_ids={self.mission_ids},\n"
+            + f"\tdata_products={self.data_products},\n"
+            + f"\ttimes={self.times},\n"
+            + f"\tstart_time={self.start_time},\n"
+            + f"\tend_time={self.end_time}\n)"
+        )
