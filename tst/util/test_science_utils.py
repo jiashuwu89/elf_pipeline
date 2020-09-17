@@ -33,6 +33,11 @@ class TestScienceUtils:
         with pytest.raises(ValueError):
             assert science_utils.hex_to_int(50)
 
+    def test_get_attribute_or_none(self):
+        s = "BLAH"
+        assert science_utils.get_attribute_or_none(s, "__doc__") == s.__doc__
+        assert science_utils.get_attribute_or_none(s, "BLAH") is None
+
     def test_interpolate_attitude(self):
         # TODO: This test case should be beefed up
         # EXAMPLE FUNCTION CALL (using first two entries in ELA attitude file)

@@ -1,4 +1,7 @@
-from src.util import byte_tools
+import pytest
+
+from util import byte_tools
+from util.compression_values import FGM_HUFFMAN
 
 
 class TestByteTools:
@@ -28,5 +31,10 @@ class TestByteTools:
     # def test_bin_string(self):
     #     pass
 
-    # def test_get_huffman(self):
-    #     pass
+    def test_get_huffman(self):
+        assert byte_tools.get_huffman("01100111", FGM_HUFFMAN) == (0, "0111")
+        for key, value in FGM_HUFFMAN.items():
+            assert byte_tools.get_huffman(key, FGM_HUFFMAN) == (value, "")
+
+        with pytest.raises(IndexError):
+            byte_tools.get_huffman("", FGM_HUFFMAN)

@@ -12,9 +12,13 @@ class ServerManager:
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)
 
-        host = HOST
-        transport = paramiko.Transport(host)
+        self.logger.info("Create Transport")
+        transport = paramiko.Transport(HOST)
+
+        self.logger.debug("Connecting")
         transport.connect(username=USERNAME, password=PASSWORD)
+
+        self.logger.debug("Getting SFTP Client from Transport")
         self.sftp_client = paramiko.SFTPClient.from_transport(transport)
 
         self.file_name_converter = FileNameConverter()

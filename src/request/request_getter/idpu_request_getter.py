@@ -42,7 +42,7 @@ class IdpuRequestGetter(RequestGetter):
 
         self.downlink_manager.print_downlinks(
             dl_list, prefix="➜\tRelevant Downlinks:"
-        )  # TODO: Make this more descriptive
+        )  # TODO: Make this message more descriptive
         general_processing_requests = self.get_requests_from_downlinks(dl_list)
         self.logger.info(f"🏀  Got {len(general_processing_requests)} requests from downlinks")
         return general_processing_requests
@@ -55,6 +55,7 @@ class IdpuRequestGetter(RequestGetter):
 
         Returns a set
         """
+        self.logger.debug(f"dl_list={dl_list}")
         delta = dt.timedelta(days=1)
 
         general_processing_requests = set()

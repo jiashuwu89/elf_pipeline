@@ -9,7 +9,8 @@ from util.constants import SCIENCE_TYPES
 
 # TODO: For all request getters, make sure that the data product is requested BEFORE getting requests
 # TODO: requests gotten by categoricals and bmon, but what about idpu?
-#   - May need to extract Downlink Manager from IDPU request getter, since it isn't as closely coupled as I previously thought
+#   - May need to extract Downlink Manager from IDPU request getter, since it isn't as closely coupled
+#     as I previously thought
 class EngRequestGetter(RequestGetter):
     def get(self, pipeline_query):
         self.logger.info("⚽️  Getting ENG Requests")
@@ -41,8 +42,8 @@ class EngRequestGetter(RequestGetter):
             .filter(
                 models.SciencePacket.mission_id == pipeline_query.mission_id,
                 models.SciencePacket.timestamp >= pipeline_query.start_time,
-                models.SciencePacket.timestamp <= pipeline_query.end_time,
-                models.SciencePacket.idpu_type.in_(idpu_products),
+                models.SciencePacket.timestamp < pipeline_query.end_time,
+                models.SciencePacket.idpu_type.in_(SCIENCE_TYPES["eng"]),
             )
         )
 

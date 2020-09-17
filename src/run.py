@@ -23,69 +23,45 @@ DATE_FORMAT: str = "%H:%M:%S"
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT, datefmt=DATE_FORMAT)
 
 
+# TODO: Fix tests (have restructured the CLI)
 class ArgparsePipelineConfig(PipelineConfig):
     def __init__(self, args):
-        print(args.__dict__)
         # Initialize DB connection
         if db.SESSIONMAKER is None:
             db.connect("production")
         self.session = db.SESSIONMAKER()
 
         # Initialize parameters/options from command line
-        times = self.get_times(
-            args.func,
-            args.downlink_time if hasattr(args, "downlink_time") else None,
-            args.collection_time if hasattr(args, "collection_time") else None,
-        )
-        self.calculate = self.downlink_calculation_necessary(times)
-        self.update_db = self.downlink_upload_necessary(args.calculate)
-        self.generate_files = self.file_generation_necessary(args.func)
+        self.update_db = self.db_update_necessary(args.abandon_calculated_downlinks)
+        self.generate_files = self.file_generation_necessary(args.subcommand)
         self.output_dir = self.get_output_dir(args.output_dir)
-        self.upload = self.upload_necessary(args.no_upload, self.generate_files)
-        self.email = self.email_necessary(args.no_email)
+        self.upload = self.upload_necessary(args.withhold_files, self.generate_files)
+        self.email = self.email_necessary(args.quiet)
+
+    # TODO: Rename this method
+    @staticmethod
+    def db_update_necessary(abandon_calculated_downlinks):
+        """Determines if it is necessary to calculate downlinks."""
+        return not abandon_calculated_downlinks
 
     @staticmethod
-    def get_times(func, d, c):
-        if func == "run_daily" or d:
-            return "downlink"
-        if c:
-            return "collection"
-        raise ValueError("Couldn't determine value for times")
-
-    @staticmethod
-    def downlink_calculation_necessary(times):
-        """Determines if it is necessary to calculate downlinks.
-
-        We must calculate downlinks if we are only given downlink times. In
-        the case that we are given collection time, we cannot calculate,
-        since the science_packet table does not contain collection time
-        (instead, we must rely on the science_downlink table)
-        """
-        return times == "downlink"
-
-    @staticmethod
-    def downlink_upload_necessary(calculate):
-        return calculate == "yes"
-
-    @staticmethod
-    def file_generation_necessary(func):
-        return func in ["run_daily", "run_dump"]
+    def file_generation_necessary(subcommand):
+        return subcommand in ["daily", "dump"]
 
     @staticmethod
     def get_output_dir(output_dir):
         if output_dir:
             if not os.path.isdir(output_dir):
                 raise ValueError(f"Bad Output Directory: {output_dir}")
-            return output_dir
-        return tempfile.mkdtemp()
+        return output_dir
 
     @staticmethod
-    def upload_necessary(no_upload, generate_files):
-        return not no_upload and generate_files
+    def upload_necessary(withhold_files, generate_files):
+        return not withhold_files and generate_files
 
     @staticmethod
-    def email_necessary(no_email):
-        return not no_email
+    def email_necessary(quiet):
+        return not quiet
 
 
 class ArgparsePipelineQuery(PipelineQuery):
@@ -93,11 +69,10 @@ class ArgparsePipelineQuery(PipelineQuery):
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.mission_ids = self.get_mission_ids(args.ela, args.elb, args.em3)
-        self.data_products = self.get_data_products(args.products if hasattr(args, "products") else None)
+        self.data_products = self.get_data_products(args.products)
         self.times, self.start_time, self.end_time = self.get_times(
-            args.func,
-            args.downlink_time if hasattr(args, "downlink_time") else None,
-            args.collection_time if hasattr(args, "collection_time") else None,
+            args.downlink_time,
+            args.collection_time,
         )
 
     @staticmethod
@@ -119,15 +94,13 @@ class ArgparsePipelineQuery(PipelineQuery):
     @staticmethod
     def get_data_products(products):
         if not products:
-            return ALL_PRODUCTS.copy()
+            raise ValueError("Products should not be null!")
         return products
 
     @staticmethod
-    def get_times(func, d, c):
-        if func == "run_daily":
-            times = "downlink"
-            end_time = dt.datetime(*dt.datetime.utcnow().timetuple()[:4])
-            start_time = end_time - LOOK_BEHIND_DELTA
+    def get_times(d, c):
+        if d and c:
+            raise RuntimeError("Cannot have both downlink time and collection time range")
         elif d:
             times = "downlink"
             start_time = dateparser(d[0], tzinfos=0)
@@ -148,50 +121,68 @@ class CLIHandler:
         self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)  # TODO: Log to file
         self.argparser: argparse.ArgumentParser = self.get_argparser()
 
-    def get_argparser(self):
+    # TODO: ELA, ELB, EM3 Options should be options for subcommand, not top level
+    @staticmethod
+    def get_argparser():
         """ Get argparser for parsing arguments """
-        self.logger.debug("Creating argparser")
-
         argparser = argparse.ArgumentParser(description="Process Science Data from ELFIN")
+
+        # General Options
+        argparser.add_argument("-v", "--verbose", help="Use DEBUG log level", action="store_true")
+        argparser.add_argument(
+            "-w", "--withhold-files", help="Avoid uploading L0/L1 files to the server", action="store_true"
+        )
+        argparser.add_argument("-q", "--quiet", help="If problems occur, don't notify via email", action="store_true")
+        argparser.add_argument(
+            "-o",
+            "--output-dir",
+            help="Directory to output generated files (Default: temporary directory)",
+            action="store",
+            default=tempfile.mkdtemp(),
+            metavar="DIR",
+        )
+
+        # Require subcommands
         subcommands = argparser.add_subparsers(required=True, dest="subcommand")
 
         # daily subcommand
         sub_daily = subcommands.add_parser(
-            "daily", help="run daily processing", description="Process all science packets received over the last day"
+            "daily",
+            help="Run daily processing",
+            description="Process all science packets received over the last day. \
+                Functionally equivalent to a 'dump' of all missions and all \
+                data products over the last 5 hours, uploading all calculated \
+                downlinks",
         )
-        sub_daily.set_defaults(func="run_daily")
+        end_time = dt.datetime(*dt.datetime.utcnow().timetuple()[:4])
+        start_time = end_time - LOOK_BEHIND_DELTA
+        sub_daily.set_defaults(
+            subcommand="daily",
+            ela=True,
+            elb=True,
+            em3=False,
+            abandon_calculated_downlinks=False,
+            downlink_time=[start_time.strftime("%Y-%m-%d %H:%M:%S"), end_time.strftime("%Y-%m-%d %H:%M:%S")],
+            products=ALL_PRODUCTS,
+        )
 
         # dump subcommand
         sub_dump = subcommands.add_parser(
             "dump",
-            help="selectively process science data",
+            help="Selectively process science data",
             description="Reprocess and generate a dump of specific science data \
-                products. If collection time is specified, the downlinks table \
-                will be ignored. Otherwise, the table will be updated unless \
-                --no-db is used.",
+                products.",
         )
-        sub_dump.set_defaults(func="run_dump")
-        sub_dump_time_group = sub_dump.add_mutually_exclusive_group(required=True)
-        sub_dump_time_group.add_argument(
-            "-c",
-            "--collection-time",
-            help="process data collected in the range [START, END)",
-            action="store",
-            nargs=2,
-            metavar=("START", "END"),
+        sub_dump.set_defaults(
+            subcommand="dump",
+            collection_time=None,
+            downlink_time=None,
         )
-        sub_dump_time_group.add_argument(
-            "-d",
-            "--downlink-time",
-            help="process data downlinked in the range [START, END)",
-            action="store",
-            nargs=2,
-            metavar=("START", "END"),
-        )
+        sub_dump = CLIHandler.add_common_options(sub_dump)
         sub_dump.add_argument(
             "-p",
             "--products",
-            help="process data belonging to PRODUCTS",
+            help="Process data belonging to PRODUCTS",
             action="store",
             nargs="+",
             choices=ALL_PRODUCTS,
@@ -202,11 +193,31 @@ class CLIHandler:
         # downlinks subcommand
         sub_downlinks = subcommands.add_parser(
             "downlinks",
-            help="calculate/list downlink entries",
+            help="Calculate/List downlink entries",
             description="Scan downlinked science packets and group them into downlink entries",
         )
-        sub_downlinks.set_defaults(func="run_downlinks")
-        sub_downlinks.add_argument(
+        sub_downlinks.set_defaults(
+            subcommand="downlinks", collection_time=None, downlink_time=None, products=ALL_PRODUCTS
+        )
+        sub_downlinks = CLIHandler.add_common_options(sub_downlinks)
+
+        return argparser
+
+    @staticmethod
+    def add_common_options(sub_parser):
+        # Missions
+        sub_parser.add_argument("-1", "--ela", help="Process ELA data", action="store_true")
+        sub_parser.add_argument("-2", "--elb", help="Process ELB data", action="store_true")
+        sub_parser.add_argument("-3", "--em3", help="Process EM3 data", action="store_true")
+
+        sub_parser.add_argument(
+            "-a",
+            "--abandon-calculated-downlinks",
+            help="Avoid updating the science_downlink table with downlinks that were calculated during execution",
+            action="store_true",
+        )
+        sub_parser_time_group = sub_parser.add_mutually_exclusive_group(required=True)
+        sub_parser_time_group.add_argument(
             "-c",
             "--collection-time",
             help="generate downlink entries in the range [START, END) using collection time",
@@ -214,7 +225,7 @@ class CLIHandler:
             nargs=2,
             metavar=("START", "END"),
         )
-        sub_downlinks.add_argument(
+        sub_parser_time_group.add_argument(
             "-d",
             "--downlink-time",
             help="generate downlink entries in the range [START, END)",
@@ -223,35 +234,7 @@ class CLIHandler:
             metavar=("START", "END"),
         )
 
-        # Options
-        argparser.add_argument("--ela", help="Process ELA data", action="store_true")
-        argparser.add_argument("--elb", help="Process ELB data", action="store_true")
-        argparser.add_argument("--em3", help="Process EM3 data", action="store_true")
-        argparser.add_argument(
-            "--calculate",
-            help="mode for calculating downlink entries (from science_packets \
-                table). If set to nodb, will be calculated but not uploaded. \
-                Choices: (yes/no/nodb), Default: yes",
-            action="store",
-            choices=["yes", "no", "nodb"],
-            default="yes",
-        )
-        # TODO: Replace calculate option with upload_to_db option
-
-        argparser.add_argument("-v", "--verbose", help="use DEBUG log level", action="store_true")
-        argparser.add_argument("-n", "--no-upload", help="don't upload L0/L1 files to the server", action="store_true")
-        argparser.add_argument(
-            "-ne", "--no-email", help="don't send warning emails to people in the email list", action="store_true"
-        )
-        argparser.add_argument(
-            "-o",
-            "--output-dir",
-            help="directory in which to output generated files (if not specified, a temporary directory created)",
-            action="store",
-            metavar="DIR",
-        )
-
-        return argparser
+        return sub_parser
 
     def run(self):
         """ Get arguments and perform processing, noting the duration """
@@ -261,8 +244,15 @@ class CLIHandler:
         args: argparse.ArgumentParser = self.argparser.parse_args()
 
         if args.verbose:
-            self.logger.info("Logging level set to 'DEBUG'")
-            self.logger.setLevel(logging.DEBUG)
+            # https://stackoverflow.com/questions/12158048/changing-loggings-basicconfig-which-is-already-set
+
+            # Remove all handlers associated with the root logger object.
+            for handler in logging.root.handlers[:]:
+                logging.root.removeHandler(handler)
+
+            # Reconfigure logging again, this time with a file.
+            logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT, datefmt=DATE_FORMAT)
+            self.logger.debug("Logging level set to 'DEBUG'")
 
         pipeline_config = ArgparsePipelineConfig(args)
         coordinator: Coordinator = Coordinator(pipeline_config)

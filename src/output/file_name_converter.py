@@ -38,20 +38,25 @@ class FileNameConverter:
         # TODO: Give example file names and how they are interpreted
         file_name = file_path.split("/")[-1]
         if "state" not in file_name:
-            mission, level, data_type, _ = file_name.split("_")
+            mission, level, data_type, date, _ = file_name.split("_")
         else:
-            mission, level, _, data_type, _ = file_name.split("_")
+            mission, level, _, data_type, date, _ = file_name.split("_")
             data_type = "state_" + data_type
 
-        self.logger.debug(f"Path {file_path} -> file={file_name} mission={mission} level={level} data_type={data_type}")
+        self.logger.debug(
+            f"Path {file_path} -> file={file_name} mission={mission}"
+            + f"level={level} data_type={data_type} date={date}"
+        )
         return FileInfo(file_name, mission, int(level[-1]), data_type)
 
     def get_dest(self, file_info):
-        return f"{SERVER_BASE_DIR}/\
-            {file_info.mission}/\
-            {file_info.level}/\
-            {self.data_product_paths[file_info.data_type][file_info.level]}/\
-            {file_info.file_name}"
+        return (
+            f"{SERVER_BASE_DIR}/"
+            + f"{file_info.mission}/"
+            + f"{file_info.level}/"
+            + f"{self.data_product_paths[file_info.data_type][file_info.level]}/"
+            + f"{file_info.file_name}"
+        )
 
 
 class FileInfo:

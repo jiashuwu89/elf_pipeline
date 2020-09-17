@@ -33,6 +33,13 @@ def hex_to_int(hex_data: str):
     return twos_comp(65536 * int(hex_data[0:2], 16) + 256 * int(hex_data[2:4], 16) + int(hex_data[4:6], 16))
 
 
+def get_attribute_or_none(args, attribute):
+    if hasattr(args, attribute):
+        return getattr(args, attribute)
+    else:
+        return None
+
+
 def interpolate_attitude(S_init, t_init, S_fin, t_fin):
     """Wynne's Function to perform attitude interpolation.
 

@@ -73,7 +73,8 @@ class Coordinator:
             self.logger.info("⛅️ ⛅️ ⛅️ ⛅️ ⛅️  Generating Files")
             generated_files = self.generate_files(processing_requests)
             self.logger.info(
-                f"⛅️ ⛅️ ⛅️ ⛅️ ⛅️  Generated {len(generated_files)} file{science_utils.s_if_plural(generated_files)}:\n\n\t"
+                f"⛅️ ⛅️ ⛅️ ⛅️ ⛅️  Generated {len(generated_files)} file{science_utils.s_if_plural(generated_files)}:"
+                + "\n\n\t"
                 + "\n\t".join(generated_files)
                 + "\n"
             )
