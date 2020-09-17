@@ -23,11 +23,11 @@ before_script:
   - apt-get update && apt-get upgrade
   - apt-get install -y gfortran
   - >
-      cd /tmp 
-      && curl -O https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf36_4/linux/cdf36_4-dist-all.tar.gz 
-      && tar xzf cdf36_4-dist-all.tar.gz 
-      && cd cdf36_4-dist 
-      && make OS=linux ENV=gnu CURSES=yes FORTRAN=no UCOPTIONS=-O2 SHARED=yes all 
+      cd /tmp
+      && curl -OL https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf36_4/linux/cdf36_4-dist-all.tar.gz
+      && tar xzf cdf36_4-dist-all.tar.gz
+      && cd cdf36_4-dist
+      && make OS=linux ENV=gnu CURSES=yes FORTRAN=no UCOPTIONS=-O2 SHARED=yes all
       && sudo make INSTALLDIR=/usr/local/cdf install
   - python -V  # Print out python version for debugging
   - pip install poetry
