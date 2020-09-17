@@ -20,10 +20,10 @@ stages:
   - release
 
 before_script:
+  - apt-get install gfortran
   - python -V  # Print out python version for debugging
   - pip install poetry
   - poetry install
-  - apt-get install gfortran
 
 check-style:
   stage: Static Analysis
