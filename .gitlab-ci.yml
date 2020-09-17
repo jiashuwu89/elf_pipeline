@@ -1,13 +1,15 @@
 
-image: python:latest
 
-# Change pip's cache directory to be inside the project directory since we can
-# only cache local items.
 variables:
+  # Change pip's cache directory to be inside the project directory since we can
+  # only cache local items.
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  PIPENV_VENV_IN_PROJECT: 1
-  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+  # Update this variable whenever a new development image is compiled.
+  DEV_IMAGE: git.elfin.ucla:5050/science-processing/pipeline-refactor/dev-image:fef5d134
+
+# Use a custom docker image that contains our development environment
+# (CDF, gFortran, and Poetry). See docker/ for more details.
+image: ${DEV_IMAGE}
 
 cache:
   paths:
@@ -20,18 +22,7 @@ stages:
   - release
 
 before_script:
-  - >
-      pushd /tmp
-      && curl -OL https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf36_4/linux/cdf36_4-dist-all.tar.gz
-      && tar xzf cdf36_4-dist-all.tar.gz
-      && pushd cdf36_4-dist
-      && make OS=linux ENV=gnu CURSES=yes FORTRAN=no UCOPTIONS=-O2 SHARED=yes all
-      && make INSTALLDIR=/usr/local/cdf install
-      && pushd +2
-  - apt-get update && apt-get upgrade
-  - apt-get install -y gfortran
   - python -V  # Print out python version for debugging
-  - pip install poetry
   - poetry install
 
 check-style:
