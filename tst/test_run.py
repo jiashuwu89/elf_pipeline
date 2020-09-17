@@ -129,8 +129,8 @@ class TestCLIHandler:
             "em3": False,
             "abandon_calculated_products": True,
             "select_downlinks_by_collection_time": True,
-            "start-time": "2019-1-1",
-            "end-time": "2019-2-2",
+            "start_time": "2019-1-1",
+            "end_time": "2019-2-2",
             "products": ["epdef", "epdif", "epdes", "epdis", "fgf", "fgs", "eng", "mrma", "mrmi", "state"],
         }
 
@@ -146,7 +146,7 @@ class TestCLIHandler:
             "em3": False,
             "abandon_calculated_products": False,
             "select_downlinks_by_collection_time": False,
-            "start-time": "2020-12-01",
-            "end-time": "2020-12-2",
+            "start_time": "2020-12-01",
+            "end_time": "2020-12-2",
             "products": ["epdef", "epdif"],
         }
