@@ -20,7 +20,7 @@ stages:
   - release
 
 before_script:
-  - apt-get update && sudo apt-get upgrade
+  - apt-get update && apt-get upgrade
   - apt-get install gfortran
   - python -V  # Print out python version for debugging
   - pip install poetry
