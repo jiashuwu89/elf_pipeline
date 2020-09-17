@@ -3,7 +3,12 @@ import logging
 import paramiko
 
 from output.file_name_converter import FileNameConverter
-from util.credentials import HOST, PASSWORD, USERNAME
+
+try:
+    from util.credentials import HOST, PASSWORD, USERNAME
+except ModuleNotFoundError:
+    HOST, PASSWORD, USERNAME = "", "", ""
+
 
 # TODO: Logging in separate file
 
