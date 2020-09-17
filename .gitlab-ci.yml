@@ -23,6 +23,7 @@ before_script:
   - python -V  # Print out python version for debugging
   - pip install poetry
   - poetry install
+  - apt-get install gfortran
 
 check-style:
   stage: Static Analysis

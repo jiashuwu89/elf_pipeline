@@ -16,11 +16,11 @@ class TestArgparsePipelineConfig:
         assert ArgparsePipelineConfig.file_generation_necessary("dump") is True
         assert ArgparsePipelineConfig.file_generation_necessary("downlinks") is False
 
-    def test_get_output_dir(self):
-        assert ArgparsePipelineConfig.get_output_dir(os.getcwd()) == os.getcwd()
+    def test_validate_output_dir(self):
+        assert ArgparsePipelineConfig.validate_output_dir(os.getcwd()) == os.getcwd()
 
         with pytest.raises(ValueError):
-            ArgparsePipelineConfig.get_output_dir("/BAD_DIRECTORY")
+            ArgparsePipelineConfig.validate_output_dir("/BAD_DIRECTORY")
 
     def test_upload_necessary(self):
         assert ArgparsePipelineConfig.upload_necessary(True, True) is False

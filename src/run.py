@@ -34,11 +34,10 @@ class ArgparsePipelineConfig(PipelineConfig):
         # Initialize parameters/options from command line
         self.update_db = self.db_update_necessary(args.abandon_calculated_downlinks)
         self.generate_files = self.file_generation_necessary(args.subcommand)
-        self.output_dir = self.get_output_dir(args.output_dir)
+        self.output_dir = self.validate_output_dir(args.output_dir)
         self.upload = self.upload_necessary(args.withhold_files, self.generate_files)
         self.email = self.email_necessary(args.quiet)
 
-    # TODO: Rename this method
     @staticmethod
     def db_update_necessary(abandon_calculated_downlinks):
         """Determines if it is necessary to calculate downlinks."""
@@ -49,7 +48,7 @@ class ArgparsePipelineConfig(PipelineConfig):
         return subcommand in ["daily", "dump"]
 
     @staticmethod
-    def get_output_dir(output_dir):
+    def validate_output_dir(output_dir):
         if output_dir:
             if not os.path.isdir(output_dir):
                 raise ValueError(f"Bad Output Directory: {output_dir}")
