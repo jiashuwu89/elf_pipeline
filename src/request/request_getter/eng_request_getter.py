@@ -26,6 +26,8 @@ class EngRequestGetter(RequestGetter):
         eng_processing_requests.update(self.get_categoricals_requests(pipeline_query))
         eng_processing_requests.update(self.get_bmon_requests(pipeline_query))
 
+        eng_processing_requests = {pr for pr in eng_processing_requests if pr.date.year != 2000}
+
         # TODO: s if plural
         self.logger.info(
             f"⚽️  Got {len(eng_processing_requests)} "
@@ -36,14 +38,19 @@ class EngRequestGetter(RequestGetter):
     def get_idpu_requests(self, pipeline_query):
         # TODO: How to differentiate between downlink time and collection time
         # TODO: make sure all end times are <, not <=
+        self.logger.info("➜  Getting ENG IDPU requests")
         query = self.session.query(models.SciencePacket.mission_id, func.date(models.SciencePacket.timestamp)).filter(
             models.SciencePacket.mission_id == pipeline_query.mission_id,
             models.SciencePacket.timestamp >= pipeline_query.start_time,
             models.SciencePacket.timestamp < pipeline_query.end_time,
             models.SciencePacket.idpu_type.in_(SCIENCE_TYPES["eng"]),
         )
+        idpu_requests = {ProcessingRequest(mission_id, "eng", date) for mission_id, date in query}
 
-        return {ProcessingRequest(mission_id, "eng", date) for mission_id, date in query}
+        self.logger.info(
+            f"➜  Got {len(idpu_requests)} " + f"ENG IDPU request{science_utils.s_if_plural(idpu_requests)}"
+        )
+        return idpu_requests
 
     def get_categoricals_requests(self, pipeline_query):
         self.logger.info("➜  Getting ENG Categoricals requests")
@@ -66,7 +73,7 @@ class EngRequestGetter(RequestGetter):
                 models.Packet.timestamp < pipeline_query.end_time,
                 models.Categorical.name.in_(categoricals),
             )
-            .join(models.Packet)
+            .join(models.Packet, models.Categorical.packet_id == models.Packet.id)
         )
 
         categoricals_requests = {ProcessingRequest(mission_id, "eng", date) for mission_id, date in query}
@@ -87,7 +94,7 @@ class EngRequestGetter(RequestGetter):
                 models.Packet.timestamp >= pipeline_query.start_time,
                 models.Packet.timestamp < pipeline_query.end_time,
             )
-            .join(models.Packet)
+            .join(models.Packet, models.BmonData.packet_id == models.Packet.id)
         )
 
         bmon_requests = {ProcessingRequest(mission_id, "eng", date) for mission_id, date in query}

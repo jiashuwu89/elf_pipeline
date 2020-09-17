@@ -1,6 +1,7 @@
 import datetime as dt
 import os
 
+import dateutil
 import pytest
 
 from run import ArgparsePipelineConfig, ArgparsePipelineQuery, CLIHandler
@@ -51,17 +52,22 @@ class TestArgparsePipelineQuery:
             ArgparsePipelineQuery.get_data_products([])
 
     def test_get_times(self):
-        time_range = ["2020-09-08", "2020-09-12"]
+        assert ArgparsePipelineQuery.get_times(True) == "collection"
+        assert ArgparsePipelineQuery.get_times(False) == "downlink"
+
+    def test_validate_time(self):
+        start_time_str = "2020-09-08"
+        end_time_str = "2020-09-12"
         start_time = dt.datetime(2020, 9, 8)
-        stop_time = dt.datetime(2020, 9, 12)
-        assert ArgparsePipelineQuery.get_times(time_range, None) == ("downlink", start_time, stop_time)
-        assert ArgparsePipelineQuery.get_times(None, time_range) == ("collection", start_time, stop_time)
+        end_time = dt.datetime(2020, 9, 12)
+
+        assert ArgparsePipelineQuery.validate_time(start_time_str, end_time_str) == (start_time, end_time)
 
         with pytest.raises(RuntimeError):
-            ArgparsePipelineQuery.get_times(time_range, time_range)
+            ArgparsePipelineQuery.validate_time(end_time_str, start_time_str)
 
-        with pytest.raises(RuntimeError):
-            ArgparsePipelineQuery.get_times(None, None)
+        with pytest.raises(dateutil.parser._parser.ParserError):
+            ArgparsePipelineQuery.validate_time("BLAH", 5)
 
 
 # TODO: Rename CLIHandler for consistency
@@ -82,7 +88,7 @@ class TestCLIHandler:
             "ela": True,
             "elb": True,
             "em3": False,
-            "abandon_calculated_downlinks": False,
+            "abandon_calculated_products": False,
             "products": ["epdef", "epdif", "epdes", "epdis", "fgf", "fgs", "eng", "mrma", "mrmi", "state"],
         }
 
@@ -90,7 +96,7 @@ class TestCLIHandler:
         for key, value in DICT_1.items():
             assert args_1.__dict__[key] == value
 
-        args_2 = argparser.parse_args(["-o", ".", "dump", "--ela", "-d", "2020-09-09", "2020-10-10", "--elb"])
+        args_2 = argparser.parse_args(["-o", ".", "dump", "--ela", "2020-09-09", "2020-10-10", "--elb"])
         assert args_2.__dict__ == {
             "verbose": False,
             "withhold_files": False,
@@ -100,14 +106,15 @@ class TestCLIHandler:
             "ela": True,
             "elb": True,
             "em3": False,
-            "abandon_calculated_downlinks": False,
-            "collection_time": None,
-            "downlink_time": ["2020-09-09", "2020-10-10"],
+            "abandon_calculated_products": False,
+            "select_downlinks_by_collection_time": False,
+            "start-time": "2020-09-09",
+            "end-time": "2020-10-10",
             "products": ["epdef", "epdif", "epdes", "epdis", "fgf", "fgs", "eng", "mrma", "mrmi", "state"],
         }
 
         args_3 = argparser.parse_args(
-            ["--verbose", "--withhold-files", "--quiet", "-o", ".", "downlinks", "-c", "2019-1-1", "2019-2-2", "-a"]
+            ["--verbose", "--withhold-files", "--quiet", "-o", ".", "downlinks", "-a", "-c", "2019-1-1", "2019-2-2"]
         )
         # raise ValueError(args_3.__dict__)
 
@@ -120,13 +127,14 @@ class TestCLIHandler:
             "ela": False,
             "elb": False,
             "em3": False,
-            "abandon_calculated_downlinks": True,
-            "collection_time": ["2019-1-1", "2019-2-2"],
-            "downlink_time": None,
+            "abandon_calculated_products": True,
+            "select_downlinks_by_collection_time": True,
+            "start-time": "2019-1-1",
+            "end-time": "2019-2-2",
             "products": ["epdef", "epdif", "epdes", "epdis", "fgf", "fgs", "eng", "mrma", "mrmi", "state"],
         }
 
-        args_4 = argparser.parse_args(["-o", "..", "dump", "-d", "2020-12-01", "2020-12-2", "-p", "epdef", "epdif"])
+        args_4 = argparser.parse_args(["-o", "..", "dump", "2020-12-01", "2020-12-2", "-p", "epdef", "epdif"])
         assert args_4.__dict__ == {
             "verbose": False,
             "withhold_files": False,
@@ -136,8 +144,9 @@ class TestCLIHandler:
             "ela": False,
             "elb": False,
             "em3": False,
-            "abandon_calculated_downlinks": False,
-            "collection_time": None,
-            "downlink_time": ["2020-12-01", "2020-12-2"],
+            "abandon_calculated_products": False,
+            "select_downlinks_by_collection_time": False,
+            "start-time": "2020-12-01",
+            "end-time": "2020-12-2",
             "products": ["epdef", "epdif"],
         }

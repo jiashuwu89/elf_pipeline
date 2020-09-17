@@ -19,6 +19,7 @@ class IdpuProcessor(ScienceProcessor):
     def __init__(self, pipeline_config):
         super().__init__(pipeline_config)
 
+        self.update_db = pipeline_config.update_db
         self.downlink_manager = DownlinkManager(pipeline_config)
 
     def generate_files(self, processing_request):
@@ -30,7 +31,8 @@ class IdpuProcessor(ScienceProcessor):
     def generate_l0_products(self, processing_request):
         self.logger.info(f"🔴  Generating Level 0 products for {str(processing_request)}")
         l0_df = self.generate_l0_df(processing_request)
-        self.update_completeness_table(processing_request, l0_df)
+        if self.update_db:
+            self.update_completeness_table(processing_request, l0_df)
         l0_file_name, _ = self.generate_l0_file(processing_request, l0_df.copy())
         return l0_file_name, l0_df
 
@@ -84,6 +86,10 @@ class IdpuProcessor(ScienceProcessor):
         Returns:
         - a tuple of: (concatenated dataframe, list of merged dataframes)
         """
+        downlinks = [
+            dl for dl in downlinks if dl.first_packet_info.science_packet_id and dl.last_packet_info.science_packet_id
+        ]
+        downlinks = sorted(downlinks)
 
         # TODO: Sort Downlinks by Downlink Time, and then by size
         if not downlinks:
@@ -241,8 +247,10 @@ class IdpuProcessor(ScienceProcessor):
         df_times = df["idpu_time"]
 
         completeness_updater = self.get_completeness_updater(processing_request)
-        if completeness_updater:
-            completeness_updater.update_completeness_table(df_times)  # TODO: Change EPD to EPDE or EPDI
+        if completeness_updater:  # TODO: Why is this if
+            completeness_updater.update_completeness_table(
+                processing_request, df_times
+            )  # TODO: Change EPD to EPDE or EPDI
 
     @abstractmethod
     def get_completeness_updater(self, processing_request):

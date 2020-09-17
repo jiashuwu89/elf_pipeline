@@ -71,7 +71,6 @@ class Coordinator:
                 + "\n\t".join(str(pr) for pr in sorted(processing_requests))
                 + "\n"
             )  # TODO: s_if_plural
-            exit()
 
             # Transform
             self.logger.info("⛅️ ⛅️ ⛅️ ⛅️ ⛅️  Generating Files")
@@ -92,14 +91,14 @@ class Coordinator:
             traceback_msg = traceback.format_exc()
             self.exception_collector.record_exception(e, traceback_msg)
 
-        if self.exception_collector.exception_list and self.pipeline_config.email:
+        if self.exception_collector.count and self.pipeline_config.email:
             self.logger.info("🌦 🌦 🌦 🌦 🌦  Problems detected, sending email notification")
             self.exception_collector.email()
         else:
             self.logger.info(
                 "🌞🌞🌞🌞🌞  Pipeline completed successfully"
-                if not self.exception_collector.exception_list
-                else "🌦 🌦 🌦 🌦 🌦  Problems detected"
+                if not self.exception_collector.count
+                else f"🌦 🌦 🌦 🌦 🌦  Detected {self.exception_collector.count} problems"  # TODO: s_if_plural
             )
 
     def get_processing_requests(self, pipeline_query):

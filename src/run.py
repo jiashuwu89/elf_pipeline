@@ -23,7 +23,6 @@ DATE_FORMAT: str = "%H:%M:%S"
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT, datefmt=DATE_FORMAT)
 
 
-# TODO: Fix tests (have restructured the CLI)
 class ArgparsePipelineConfig(PipelineConfig):
     def __init__(self, args):
         # Initialize DB connection
@@ -32,16 +31,16 @@ class ArgparsePipelineConfig(PipelineConfig):
         self.session = db.SESSIONMAKER()
 
         # Initialize parameters/options from command line
-        self.update_db = self.db_update_necessary(args.abandon_calculated_downlinks)
+        self.update_db = self.db_update_necessary(args.abandon_calculated_products)
         self.generate_files = self.file_generation_necessary(args.subcommand)
         self.output_dir = self.validate_output_dir(args.output_dir)
         self.upload = self.upload_necessary(args.withhold_files, self.generate_files)
         self.email = self.email_necessary(args.quiet)
 
     @staticmethod
-    def db_update_necessary(abandon_calculated_downlinks):
-        """Determines if it is necessary to calculate downlinks."""
-        return not abandon_calculated_downlinks
+    def db_update_necessary(abandon_calculated_products):
+        """Determines if it is necessary to upload products that were calculated."""
+        return not abandon_calculated_products
 
     @staticmethod
     def file_generation_necessary(subcommand):
@@ -69,10 +68,9 @@ class ArgparsePipelineQuery(PipelineQuery):
 
         self.mission_ids = self.get_mission_ids(args.ela, args.elb, args.em3)
         self.data_products = self.get_data_products(args.products)
-        self.times, self.start_time, self.end_time = self.get_times(
-            args.downlink_time,
-            args.collection_time,
-        )
+        self.times = self.get_times(args.select_downlinks_by_collection_time)
+        print(args.__dict__)
+        self.start_time, self.end_time = self.validate_time(args.start_time, args.end_time)
 
     @staticmethod
     def get_mission_ids(ela, elb, em3):
@@ -97,20 +95,18 @@ class ArgparsePipelineQuery(PipelineQuery):
         return products
 
     @staticmethod
-    def get_times(d, c):
-        if d and c:
-            raise RuntimeError("Cannot have both downlink time and collection time range")
-        elif d:
-            times = "downlink"
-            start_time = dateparser(d[0], tzinfos=0)
-            end_time = dateparser(d[1], tzinfos=0)
-        elif c:
-            times = "collection"
-            start_time = dateparser(c[0], tzinfos=0)
-            end_time = dateparser(c[1], tzinfos=0)
-        else:
-            raise RuntimeError("Need either downlink time or collection time range")
-        return (times, start_time, end_time)
+    def get_times(collection):
+        return "collection" if collection else "downlink"
+
+    @staticmethod
+    def validate_time(start_time, end_time):
+        start_time = dateparser(start_time, tzinfos=0)
+        end_time = dateparser(end_time, tzinfos=0)
+
+        if start_time >= end_time:
+            raise RuntimeError(f"Start time {start_time} should be earlier than end time {end_time}")
+
+        return start_time, end_time
 
 
 class CLIHandler:
@@ -127,15 +123,15 @@ class CLIHandler:
         argparser = argparse.ArgumentParser(description="Process Science Data from ELFIN")
 
         # General Options
-        argparser.add_argument("-v", "--verbose", help="Use DEBUG log level", action="store_true")
+        argparser.add_argument("-v", "--verbose", help="use DEBUG log level", action="store_true")
         argparser.add_argument(
-            "-w", "--withhold-files", help="Avoid uploading L0/L1 files to the server", action="store_true"
+            "-w", "--withhold-files", help="avoid uploading L0/L1 files to the server", action="store_true"
         )
-        argparser.add_argument("-q", "--quiet", help="If problems occur, don't notify via email", action="store_true")
+        argparser.add_argument("-q", "--quiet", help="if problems occur, don't notify via email", action="store_true")
         argparser.add_argument(
             "-o",
             "--output-dir",
-            help="Directory to output generated files (Default: temporary directory)",
+            help="specify directory to output generated files (Default: temporary directory)",
             action="store",
             default=tempfile.mkdtemp(),
             metavar="DIR",
@@ -160,7 +156,7 @@ class CLIHandler:
             ela=True,
             elb=True,
             em3=False,
-            abandon_calculated_downlinks=False,
+            abandon_calculated_products=False,
             downlink_time=[start_time.strftime("%Y-%m-%d %H:%M:%S"), end_time.strftime("%Y-%m-%d %H:%M:%S")],
             products=ALL_PRODUCTS,
         )
@@ -169,35 +165,18 @@ class CLIHandler:
         sub_dump = subcommands.add_parser(
             "dump",
             help="Selectively process science data",
-            description="Reprocess and generate a dump of specific science data \
-                products.",
+            description="Reprocess and generate a dump of specific science data products.",
         )
-        sub_dump.set_defaults(
-            subcommand="dump",
-            collection_time=None,
-            downlink_time=None,
-        )
+        sub_dump.set_defaults(subcommand="dump")
         sub_dump = CLIHandler.add_common_options(sub_dump)
-        sub_dump.add_argument(
-            "-p",
-            "--products",
-            help="Process data belonging to PRODUCTS",
-            action="store",
-            nargs="+",
-            choices=ALL_PRODUCTS,
-            default=ALL_PRODUCTS,
-            metavar="PRODUCTS",
-        )
 
         # downlinks subcommand
         sub_downlinks = subcommands.add_parser(
             "downlinks",
             help="Calculate/List downlink entries",
-            description="Scan downlinked science packets and group them into downlink entries",
+            description="scan downlinked science packets and group them into downlink entries",
         )
-        sub_downlinks.set_defaults(
-            subcommand="downlinks", collection_time=None, downlink_time=None, products=ALL_PRODUCTS
-        )
+        sub_downlinks.set_defaults(subcommand="downlinks")
         sub_downlinks = CLIHandler.add_common_options(sub_downlinks)
 
         return argparser
@@ -205,33 +184,37 @@ class CLIHandler:
     @staticmethod
     def add_common_options(sub_parser):
         # Missions
-        sub_parser.add_argument("-1", "--ela", help="Process ELA data", action="store_true")
-        sub_parser.add_argument("-2", "--elb", help="Process ELB data", action="store_true")
-        sub_parser.add_argument("-3", "--em3", help="Process EM3 data", action="store_true")
+        sub_parser.add_argument("-1", "--ela", help="process ELA data", action="store_true")
+        sub_parser.add_argument("-2", "--elb", help="process ELB data", action="store_true")
+        sub_parser.add_argument("-3", "--em3", help="process EM3 data", action="store_true")
 
         sub_parser.add_argument(
             "-a",
-            "--abandon-calculated-downlinks",
-            help="Avoid updating the science_downlink table with downlinks that were calculated during execution",
+            "--abandon-calculated-products",
+            help="avoid updating the science_downlink table with products that were calculated during execution "
+            + "(for example, downlinks or completeness)",
             action="store_true",
         )
-        sub_parser_time_group = sub_parser.add_mutually_exclusive_group(required=True)
-        sub_parser_time_group.add_argument(
+        sub_parser.add_argument(
             "-c",
-            "--collection-time",
-            help="generate downlink entries in the range [START, END) using collection time",
-            action="store",
-            nargs=2,
-            metavar=("START", "END"),
+            "--select-downlinks-by-collection-time",
+            help="for IDPU data types, utilize collection times in the science_downlinks table to determine days to"
+            + "process (as opposed to gathering IDPU data through calculating downlinks",
+            action="store_true",
         )
-        sub_parser_time_group.add_argument(
-            "-d",
-            "--downlink-time",
-            help="generate downlink entries in the range [START, END)",
+        sub_parser.add_argument(
+            "-p",
+            "--products",
+            help="process data belonging to PRODUCTS",
             action="store",
-            nargs=2,
-            metavar=("START", "END"),
+            nargs="+",
+            choices=ALL_PRODUCTS,
+            default=ALL_PRODUCTS,
+            metavar="PRODUCTS",
         )
+
+        sub_parser.add_argument("start_time", help="process data beginning on this day", action="store")
+        sub_parser.add_argument("end_time", help="process data before this day", action="store")
 
         return sub_parser
 

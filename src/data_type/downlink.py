@@ -16,6 +16,18 @@ class Downlink:
             and self.last_packet_info == other.last_packet_info
         )
 
+    def __lt__(self, other):
+        self_tuple = (
+            self.first_packet_info.idpu_time,
+            self.last_packet_info.science_packet_id - self.first_packet_info.science_packet_id,
+        )
+        other_tuple = (
+            other.first_packet_info.idpu_time,
+            other.last_packet_info.science_packet_id - other.first_packet_info.science_packet_id,
+        )
+
+        return self_tuple < other_tuple
+
     def __hash__(self):
         return hash((self.mission_id, self.idpu_type, self.denominator, self.first_packet_info, self.last_packet_info))
 

@@ -18,7 +18,7 @@ class CompletenessUpdater:
         self.completeness_config = completeness_config
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def update_completeness_table(self, times):
+    def update_completeness_table(self, processing_request, times):
         """Update ScienceZoneCompleteness table, if possible
 
         Input: series of sorted, not-none times
@@ -64,7 +64,7 @@ class CompletenessUpdater:
                 .filter(
                     models.TimeIntervals.start_time <= sz_end_time.to_pydatetime(),
                     models.TimeIntervals.end_time >= sz_start_time.to_pydatetime(),
-                    models.TimeIntervals.mission_id == self.completeness_config.mission_id,
+                    models.TimeIntervals.mission_id == processing_request.mission_id,
                     models.TimeIntervals.interval_type == "ExecutionTime",
                     models.Intent.intent_type == self.completeness_config.intent_type,
                 )
@@ -92,19 +92,26 @@ class CompletenessUpdater:
             estimated_total = math.ceil(collection_duration / median_diff)
             percent_completeness = 100 * obtained / estimated_total
 
+            # Support idpu_type column in db
+            # TODO: Deprecate!!
+            if self.processing_request.idpu_types:
+                idpu_type = self.processing_request.idpu_types[0]
+            else:
+                idpu_type = -1
+
             # Remove previous entries that correspond to this new entry
             self.session.query(models.ScienceZoneCompleteness).filter(
-                models.ScienceZoneCompleteness.mission_id == self.completeness_config.mission_id,
-                models.ScienceZoneCompleteness.idpu_type == self.completeness_config.idpu_type,
-                models.ScienceZoneCompleteness.data_type == self.completeness_config.data_type,
+                models.ScienceZoneCompleteness.mission_id == self.processing_request.mission_id,
+                models.ScienceZoneCompleteness.idpu_type == idpu_type,
+                models.ScienceZoneCompleteness.data_type == self.processing_request.data_type,
                 models.ScienceZoneCompleteness.sz_start_time <= sz_end_time.to_pydatetime(),
                 models.ScienceZoneCompleteness.sz_end_time >= sz_start_time.to_pydatetime(),
             ).delete()
 
             entry = models.ScienceZoneCompleteness(
-                mission_id=self.completeness_config.mission_id,
-                idpu_type=self.completeness_config.idpu_type,  # TODO: Need to deprecate this column at some point
-                data_type=self.completeness_config.data_type,
+                mission_id=self.processing_request.mission_id,
+                idpu_type=idpu_type,  # TODO: Need to deprecate this column at some point
+                data_type=self.processing_request.data_type,
                 sz_start_time=str(start_time),
                 sz_end_time=str(end_time),
                 completeness=float(percent_completeness),  # TODO: Need to deprecate this column at some point

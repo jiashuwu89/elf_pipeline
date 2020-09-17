@@ -29,6 +29,8 @@ class DownlinkManager:
         self.session = pipeline_config.session
         self.update_db = pipeline_config.update_db
 
+        self.saved_downlinks = []
+
     def print_downlinks(self, downlinks, prefix="Downlinks"):
         """Prints the collection of downlinks given, in a formatted fashion"""
         if downlinks:  # TODO: Fix this
@@ -174,8 +176,8 @@ class DownlinkManager:
                     except ValueError as e:
                         # Start a New Downlink if this seems to be a bad packet
                         self.logger.warning(
-                            f"⚠️ New Downlink, skipping current packet (ID: {science_packet.id}) due to unreadable \
-                                datetime {science_packet.data[:16]}: {e}"
+                            f"⚠️ New Downlink, skipping current packet (ID: {science_packet.science_packet_id})"
+                            + f"due to unreadable datetime {science_packet.data[:16]}: {e}"
                         )
                         first_id = None
                         continue
@@ -213,6 +215,9 @@ class DownlinkManager:
                 + f"calculated Downlink{science_utils.s_if_plural(downlinks)}"
             )
             self.upload_downlink_entries(downlinks)
+        else:
+            self.logger.info("Locally storing calculated downlinks")
+            self.saved_downlinks = downlinks.copy()
 
         return downlinks
 
@@ -226,8 +231,8 @@ class DownlinkManager:
             q = self.session.query(models.ScienceDownlink.id).filter(
                 models.ScienceDownlink.mission_id == d.mission_id,
                 models.ScienceDownlink.idpu_type == d.idpu_type,
-                models.ScienceDownlink.first_packet == d.first_packet_info.id,
-                models.ScienceDownlink.last_packet == d.last_packet_info.id,
+                models.ScienceDownlink.first_packet == d.first_packet_info.science_packet_id,
+                models.ScienceDownlink.last_packet == d.last_packet_info.science_packet_id,
                 models.ScienceDownlink.first_time == d.first_packet_info.idpu_time,
                 models.ScienceDownlink.last_time == d.last_packet_info.idpu_time,
                 models.ScienceDownlink.first_collection_time == d.first_packet_info.collection_time,
@@ -242,8 +247,8 @@ class DownlinkManager:
                 mission_id=d.mission_id,
                 idpu_type=d.idpu_type,
                 denominator=d.denominator,
-                first_packet=d.first_packet_info.id,
-                last_packet=d.last_packet_info.id,
+                first_packet=d.first_packet_info.science_packet_id,
+                last_packet=d.last_packet_info.science_packet_id,
                 first_time=d.first_packet_info.idpu_time,
                 last_time=d.last_packet_info.idpu_time,
                 first_collection_time=d.first_packet_info.collection_time,
@@ -264,19 +269,23 @@ class DownlinkManager:
             models.ScienceDownlink.last_collection_time >= processing_request.date,
         )
 
-        downlinks = []
+        downlinks = set()
 
         for row in query:  # TODO: Check first_packet/last_packet
             # TODO: Bad Nones
             first_packet_info = PacketInfo(None, row.first_packet, row.first_time, row.first_collection_time)
             last_packet_info = PacketInfo(None, row.last_packet, row.last_time, row.last_collection_time)
             downlink = Downlink(row.mission_id, row.idpu_type, row.denominator, first_packet_info, last_packet_info)
-            downlinks.append(downlink)
+            downlinks.add(downlink)
+
+        # Local downlinks that weren't uploaded to the database
+        for downlink in self.saved_downlinks:
+            downlinks.add(downlink)
 
         if not downlinks:
             raise RuntimeError(f"No Downlinks found for processing request {processing_request}")
 
-        return downlinks
+        return list(downlinks)
 
     def get_df_from_downlink(self, downlink) -> pd.DataFrame:
         """
@@ -293,8 +302,8 @@ class DownlinkManager:
                 models.SciencePacket.mission_id == downlink.mission_id,
                 # May need to delete this in order to get packets with no idpu_type
                 models.SciencePacket.idpu_type == downlink.idpu_type,
-                models.SciencePacket.id >= downlink.first_packet_info.id,
-                models.SciencePacket.id <= downlink.last_packet_info.id,
+                models.SciencePacket.id >= downlink.first_packet_info.science_packet_id,  # TODO: This is wrong
+                models.SciencePacket.id <= downlink.last_packet_info.science_packet_id,  # TODO: This is wrong
             )
             .join(models.Packet)
         )
@@ -331,21 +340,21 @@ class DownlinkManager:
         missing_numerators = all_numerators[~all_numerators.isin(existing_numerators)]
 
         missing_frames = {
-            "mission_id": downlink.mission_id,
-            "idpu_type": downlink.idpu_type,
-            "numerator": missing_numerators,
-            "denominator": denominator,
             "id": None,
             "packet_id": None,
-            "timestamp": None,
+            "source": None,
+            "mission_id": downlink.mission_id,
+            "idpu_type": downlink.idpu_type,
             "idpu_time": None,
+            "timestamp": None,
+            "numerator": missing_numerators,
+            "denominator": denominator,
             "data": None,
             "packet_data": None,
-            "source": None,
         }
         missing_df = pd.DataFrame(data=missing_frames)
 
         formatted_df = reduced_df.append(missing_df, sort=False)
-        formatted_df = reduced_df.sort_values("numerator").reset_index(drop=True)
+        formatted_df = formatted_df.sort_values("numerator").reset_index(drop=True)
 
         return formatted_df

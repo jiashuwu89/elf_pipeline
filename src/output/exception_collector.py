@@ -56,3 +56,7 @@ class ExceptionCollector:
         body = "\n".join(self.exception_list)
 
         return subject + seperator + body
+
+    @property
+    def count(self):
+        return self.exception_list

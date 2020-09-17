@@ -26,6 +26,7 @@ class IdpuRequestGetter(RequestGetter):
         collection time data necessarily (compressed packets). We MUST refer
         refer to science downlinks table
         """
+        # TODO: Refactor so that downlink manager is outside of the request getter
         self.logger.info("🏀  Getting IDPU Requests")
         data_products = [dp for dp in pipeline_query.data_products if dp != "eng"]
         idpu_products = self.get_relevant_products(data_products, SCIENCE_TYPES)

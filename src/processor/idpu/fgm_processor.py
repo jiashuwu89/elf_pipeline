@@ -18,8 +18,6 @@ from util.science_utils import hex_to_int
 
 # TODO: Hardcoded values -> Constants
 
-# TODO: remove packet_id
-
 
 class FgmProcessor(IdpuProcessor):
     def __init__(self, pipeline_config):
@@ -61,9 +59,7 @@ class FgmProcessor(IdpuProcessor):
 
             df["10hz_mode"] = to_add
             df = self.drop_packets_by_freq(processing_request, df)
-            df = df[
-                ["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "10hz_mode", "packet_id"]
-            ]
+            df = df[["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "10hz_mode"]]
         else:
             self.logger.warning("⚠️ Detected neither compressed nor uncompressed data.")
 
@@ -99,7 +95,6 @@ class FgmProcessor(IdpuProcessor):
             "ax2": l0_df.data.str.slice(6, 12).apply(hex_to_int),
             "ax3": l0_df.data.str.slice(12, 18).apply(hex_to_int),
             "status": l0_df.data.str.slice(18, 24).apply(hex_to_int),
-            "packet_id": l0_df["packet_id"],
         }
 
         l1_df = pd.DataFrame(l1)
@@ -179,7 +174,7 @@ class FgmProcessor(IdpuProcessor):
 
         # Holds the values obtained by decompressing each row.
         # Later is used to create the final DataFrame
-        # vals is a list of tuples: (time, list of ax1 and ax2 and ax 3, bool indicating compression mode, packet_id)
+        # vals is a list of tuples: (time, list of ax1 and ax2 and ax 3, bool indicating compression mode)
         vals = []
 
         # Variables that keep track of last time, frequency
@@ -191,7 +186,6 @@ class FgmProcessor(IdpuProcessor):
             data = row["data"]
             ts = row["idpu_time"]  # ts == timestamp == current time
             num = row["numerator"]
-            packet_id = [x for x in row["packet_id"]]
 
             # find sampling rate based off of difference in time between 2 downlinked packets
             if prev_time:
@@ -208,7 +202,7 @@ class FgmProcessor(IdpuProcessor):
             ]
 
             # Now, we've received the first decompressed row
-            vals.append((ts, list(start), is_10hz, packet_id, num))
+            vals.append((ts, list(start), is_10hz, num))
 
             # The rest of the data is put into bs so the code can look for more values
             bs = byte_tools.bin_string(data[17:])
@@ -256,7 +250,7 @@ class FgmProcessor(IdpuProcessor):
                 if ind == 2:
                     ts += dt.timedelta(seconds=(0.1 if is_10hz else 0.0125))  # packets are 100ms apart (10Hz)
                     vals.append(
-                        (ts, list(start), is_10hz, [], num)
+                        (ts, list(start), is_10hz, num)
                     )  # packet_id # TODO: Find a better way to handle packets, not just the first one
                 ind = (ind + 1) % 3
 
@@ -268,12 +262,11 @@ class FgmProcessor(IdpuProcessor):
         new_num = []
         new_denom = len(vals) - 1
         new_packets = []
-        packet_ids = []
         track10hz = []
 
         # This loops through all of vals, adding to the lists to prepare for creating the returned DataFrame
         for i, val in enumerate(vals):
-            ts, [ax1, ax2, ax3], is_10hz, p_id, num = val
+            ts, [ax1, ax2, ax3], is_10hz, num = val
 
             # Do this only if it is 10 or 80 hz (a valid frequency)
             if isinstance(is_10hz, bool):
@@ -292,7 +285,6 @@ class FgmProcessor(IdpuProcessor):
                 #     since it doesn't seem to be used, I've left it out of the DF that's returned
                 new_time.append(val[0])  # Is this just ts?
                 track10hz.append(val[2])  # This is how the code keeps track of frequency
-                packet_ids.append(p_id)
 
         # Forming the final DF, preparing it (keep the correct frequency), then returning it
         df = pd.DataFrame(
@@ -303,10 +295,10 @@ class FgmProcessor(IdpuProcessor):
                 "numerator": orig_num,
                 "denominator": new_denom,
                 "data": new_packets,
-                "packet_id": packet_ids,
                 "10hz_mode": track10hz,
             }
         )
+        df.to_csv("fgm.csv")
         df = self.drop_packets_by_freq(processing_request, df)
 
         return df
@@ -316,10 +308,10 @@ class FgmProcessor(IdpuProcessor):
         # TODO: ENUM
         if processing_request.data_product == "fgf":
             self.logger.debug("DataFrame contains fgf data")
-            df = df[df["10hz_mode"] is False]
+            df = df[df["10hz_mode"] == False]
         elif processing_request.data_product == "fgs":
             self.logger.debug("DataFrame contains fgs data")
-            df = df[df["10hz_mode"] is True]
+            df = df[df["10hz_mode"] == True]
         else:
             raise ValueError("Invalid data_product_name")
 
@@ -348,7 +340,7 @@ class FgmProcessor(IdpuProcessor):
         rounded_idpu_time = rounded_idpu_time.round("ms")
         df["rounded_idpu_time"] = rounded_idpu_time
         df = df.drop_duplicates("rounded_idpu_time", keep="first")
-        df = df[["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "10hz_mode", "packet_id"]]
+        df = df[["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "10hz_mode"]]
 
         return df.reset_index()
 
