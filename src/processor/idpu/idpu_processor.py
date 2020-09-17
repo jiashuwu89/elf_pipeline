@@ -1,4 +1,4 @@
-"""Base processor for all processors of IDPU data
+"""Base processor for all processors of IDPU data.
 
 IDPU data processors usually need some methods to perform decompression
 """
@@ -16,6 +16,14 @@ from util.science_utils import dt_to_tt2000, s_if_plural
 
 
 class IdpuProcessor(ScienceProcessor):
+    """A processor that serves as the base for processors of IDPU data.
+
+    Parameters
+    ----------
+    pipeline_config : PipelineConfig
+        An object storing user-defined settings for the pipeline
+    """
+
     def __init__(self, pipeline_config):
         super().__init__(pipeline_config)
 
@@ -70,21 +78,23 @@ class IdpuProcessor(ScienceProcessor):
         return df
 
     def get_merged_dataframes(self, downlinks):
-        """Merge a list of downlinks, and retrieve their associated dataframes.
+        """Merges a list of downlinks and retrieves associated dataframes.
 
         Downlinks are merged only if they refer to the same physical range of
-        packets onboard the MSP (they have matching IDPU_TYPE and overlapping IDPU_TIME)
+        packets onboard the MSP (they have matching IDPU_TYPE and overlapping
+        IDPU_TIME)
 
-        The resulting dataframe is sorted by:
-        1. Packet Type
-        2. IDPU Time
+        The resulting dataframe is sorted by Packet Type, then IDPU Time
 
-        Parameters:
-        - downlinks: a tuple of the form `(mission_id, packet_type, first_time, last_time, denom,
-            first_id, last_id, first_collect_time, last_collect_time)`
+        Parameters
+        ----------
+        downlinks : list
+            A list of Downlink objects
 
-        Returns:
-        - a tuple of: (concatenated dataframe, list of merged dataframes)
+        Returns
+        -------
+        list
+            A list of DataFrames of data that was merged
         """
         downlinks = [
             dl for dl in downlinks if dl.first_packet_info.science_packet_id and dl.last_packet_info.science_packet_id

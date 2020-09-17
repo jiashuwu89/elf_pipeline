@@ -164,18 +164,29 @@ class StateProcessor(ScienceProcessor):
         cdf[f"{processing_request.probe}_sun"] = final_df["_sun"]
 
     def get_attitude(self, processing_request):
-        """
-        For each minute in the day beginning on [start_time], find the attitude solution
-        or the closest solution (up to 30 days difference).
+        """Get a DataFrame of Attitude data.
+
+        For each minute in the day beginning on [start_time], find the
+        attitude solution or the closest solution (up to 30 days difference).
 
         Approach:
-        1. Create DataFrame
-        2. Find potential attitude solutions with a time difference of at most 30 days
-            - Find the first solutions above/below the range (start_time, end_time), and
-              hold onto anything between them (including the found solutions)
-        3. Fill in DataFrame
-            - TODO: Interpolation is performed, but seems to disagree with XiaoJia's code
-        4. Return DataFrame
+            - Create DataFrame
+            - Find potential attitude solutions with a time difference of at
+              most 30 days.Find the first solutions above/below the range
+              (start_time, end_time), and hold onto anything between them
+              (including the found solutions)
+            - Fill in DataFrame
+            - Return DataFrame
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+            An object containing information about the desired request
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame of closest attitude solutions
         """
 
         def get_q_dict(q):

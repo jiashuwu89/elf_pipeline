@@ -10,8 +10,8 @@ from util.constants import MASTERCDF_DIR
 
 
 class ScienceProcessor(ABC):
-    """
-    Base class used for all data product processing from the database.
+    """Base class used for all data product processing from the database.
+
     Implements some basic functionalities common to all data products.
     """
 
@@ -25,10 +25,38 @@ class ScienceProcessor(ABC):
 
     @abstractmethod
     def generate_files(self, processing_request):
+        """Given a ProcessingRequest, creates all relevant files.
+
+        To be overridden by derived classes.
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+
+        Returns
+        -------
+        list
+            A list of file names of the generated files
+        """
         raise NotImplementedError
 
     def make_filename(self, processing_request, level, size=None):
-        """Constructs the appropriate filename for a L0/L1/L2 file, and returns the full path (level is int)"""
+        """Constructs the appropriate filename for a L0/L1/L2 file.
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+        level : int
+            The level of the file, currently either 0 or 1
+        size : int, optional
+            The size (number of rows) of the associated DataFrame, required
+            if level is 0
+
+        Returns
+        -------
+        str
+            The full path and filename associated with the ProcessingRequest
+        """
         formatted_date = processing_request.date.strftime("%Y%m%d")
         fname = f"{processing_request.probe}_l{level}_{processing_request.data_product}_{formatted_date}"
         if level == 0:
@@ -43,13 +71,19 @@ class ScienceProcessor(ABC):
 
     # TODO: Rename to indicate that an EMPTY cdf will be created to be filled in
     def create_cdf(self, fname):
-        """
-        Gets or creates a CDF with the desired fname. If existing path is
-        specified, it would check to see if the correct CDF exists.
-        If it does not exist, a new cdf will be created with the master cdf.
-            fname - a string that includes the  target file path along with
-            the target file name of the desired file.
-                The file name is of the data product format used.
+        """Creates a CDF with the desired fname, using the correct mastercdf.
+
+        If a corresponding file already exists, it will be removed.
+
+        Parameters
+        ----------
+        fname : str
+            The target path and filename of the file to be created
+
+        Returns
+        -------
+        pycdf.CDF
+            A CDF object associated with the given filename
         """
         fname_parts = fname.split("/")[-1].split("_")
         probe = fname_parts[0]
@@ -65,12 +99,19 @@ class ScienceProcessor(ABC):
         return pycdf.CDF(fname, master_cdf)
 
     def fill_cdf(self, processing_request, df, cdf):
-        """Inserts data from df into a CDF file
+        """Inserts data from df into a CDF file.
 
         Parameters
-        ==========
-        df
-        cdf
+        ----------
+        processing_request : ProcessingRequest
+        df : pd.DataFrame
+            A DataFrame of science data to be used in the CDF
+        cdf : pycdf.CDF
+            The CDF object to receive science data
+
+        Returns
+        -------
+        None
         """
         cdf_fields = self.get_cdf_fields(processing_request)
         for key in cdf_fields:
@@ -86,6 +127,19 @@ class ScienceProcessor(ABC):
                 cdf[cdf_field_name] = data
 
     def get_cdf_fields(self, processing_request):
-        """Get CDF Fields to help populate the CDF, override if necessary"""
+        """Get CDF Fields to help populate the CDF.
+
+        To be overridden if necessary. By default, the method specifies that
+        no CDF fields are necessary.
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+
+        Returns
+        -------
+        dict
+            A dictionary mapping CDF fields to DataFrame column names
+        """
         self.logger.debug(f"No CDF fields for {str(processing_request)}")
         return {}

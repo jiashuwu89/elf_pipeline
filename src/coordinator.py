@@ -1,9 +1,9 @@
 """A class to coordinate the main tasks of the pipeline.
+
 These tasks are:
-    - (Extract) Determining what new data was obtained and what files should
-    be created
-    - (Transform) Creation of new files
-    - (Load) Uploading of new files, and reporting errors
+#. Extract: Determining what new data was obtained and files to be created
+#. Transform: Creation of new files
+#. Load: Uploading of new files, and reporting errors
 """
 import logging
 import traceback

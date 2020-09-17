@@ -1,9 +1,4 @@
-"""Class to generate ENG files
-
-Classes:
-
-    FgmProcessor
-"""
+"""Class to generate FGM files"""
 import datetime as dt
 
 import numpy as np
@@ -147,23 +142,35 @@ class FgmProcessor(IdpuProcessor):
         return None
 
     def decompress_df(self, processing_request, df):
-        """
-        Decompresses a compressed df,
-        returns a DataFrame of the data as though it were never compressed
+        """Decompresses a compressed df of FGM data.
 
         Best attempt to explain what's going on:
-        - Prepare DataFrame for decompression
-        - Loop through each row of the DataFrame (First Loop)
-            - Each row starts off with the 'header', or original values
-            - Then, we get 'non-header' packets that were appended to the row
-                - To get the values for non-headers, we need to find reassemble the deltas and
-                apply them to the packet before, similarly to EPD
-                - We know the time difference because FGM is collected at either 10 Hz or 80 Hz
-        - Once we have all the data from the DataFrame, put it into a new DataFrame to return,
-        where the new DataFrame mimics a DataFrame of uncompressed Data (Second Loop)
+        * Prepare DataFrame for decompression
+        * Loop through each row of the DataFrame (First Loop). Each row starts
+        off with the 'header', or original values. Then, we get 'non-header'
+        packets that were appended to the row. To get the values for non-
+        headers, we need to find reassemble the deltas and apply them to the
+        packet before, similarly to EPD (we know the time difference because
+        FGM is collected at either 10 Hz or 80 Hz)
+        * Once we have all the data from the DataFrame, put it into a new
+        DataFrame to return, where the new DataFrame mimics a DataFrame of
+        uncompressed Data (Second Loop)
 
-        NOTE: The above explanation may have slightly incorrect syntax because I didn't
-        write this and because I was looking through EPD Decompression before this
+        NOTE: The above explanation may have slightly incorrect syntax because
+        I didn't write this and because I was looking through EPD
+        decompression before this
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+            An object specifying details about the requested processing
+        df : pd.DataFrame
+            A DataFrame of compressed FGM data
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame of FGM data, as though it were never compressed
         """
 
         # Preparing the DataFrame that was received

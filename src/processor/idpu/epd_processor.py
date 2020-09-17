@@ -1,14 +1,9 @@
-"""
-This class processes level 0 and level 1 epdef, epdes, epdif, and epdis
-and builds upon the science processor class.
+"""This class processes level 0/1 epdef, epdes, epdif, and epdis data.
 
-The science processor class handles pulling data from the database
-as well as inputting data into the CSV's. The epd_processor class
-handles decompression of epd, filtering of data based on collection
-frequency, and formatting of epd related data into a database.
-
-All collected data should be brought in as pandas Dataframes for
-this class to work correctly
+The epd_processor class handles several things, including:
+* Decompression of epd
+* Filtering of data based on collection frequency
+* Formatting of epd related data into a database.
 """
 # TODO: This is just copied from the original epd_processor.py. Needs to be refactored
 
@@ -72,25 +67,38 @@ class EpdProcessor(IdpuProcessor):
         return df
 
     def decompress_df(self, df, num_sectors, table):
-        """
-        Decompresses a DataFrame of compressed packets
+        """Decompresses a DataFrame of compressed packets
 
         How EPD Compression Works:
-        - Each sector has 16 bins associated with it (0 - 15)
-        - One period is 16 sectors
-        - Each packet corresponds to one period
-        - Think of packets in groups of 10:
-            - 1 Header packet, which holds the actual values
-            - 9 Non-header packets, which don't store the actual values but the change
-            that needs to be applied to the previous packet in order to get the value
-            (ex. if the actual value is 5, and the previous value is 3, then 2 will be stored)
-        - For ALL packets, these 'delta' values aren't actually stored :O
-            - The sign is either + or -, which is stored for NON-HEADER packets.
-            - There is a table of 255 values. Instead of storing the actual values or deltas
-            (depending on if it's a header or non-header), ALL PACKETS hold the indices of
-            the closest values.
-            - These indexes are further reduced in size through Huffman Compression
-            - Find the table and the Huffman Compression decoder in parse_log.py
+        * Each sector has 16 bins associated with it (0 - 15)
+        * One period is 16 sectors
+        * Each packet corresponds to one period
+        * Think of packets in groups of 10: 1 Header packet, which holds the
+        actual values; and 9 Non-header packets, which don't store the actual
+        values but the change that needs to be applied to the previous packet
+        in order to get the value (ex. if the actual value is 5, and the
+        previous value is 3, then 2 will be stored)
+        * For ALL packets, these 'delta' values aren't actually stored. The
+        sign is either + or -, which is stored for NON-HEADER packets. There
+        is a table of 255 values. Instead of storing the actual values or
+        deltas (depending on if it's a header or non-header), ALL PACKETS hold
+        the indices of the closest values. These indexes are further reduced
+        in size through Huffman Compression. Find the table and the Huffman
+        Compression decoder in parse_log.py
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            DataFrame of EPD data to be decompressed
+        num_sectors : int
+            The number of sectors to be used in calculations
+        table : dict
+            The table to be referenced for Huffman compression
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame of decompressed data
         """
 
         def find_lossy_idx(data_packet_in_bytes):
@@ -307,18 +315,17 @@ class EpdProcessor(IdpuProcessor):
         return l1_df
 
     def parse_periods(self, processing_request, df):
-        """
-        Parse EPD bin readings into a pandas DataFrame
-        Tasks:
-        - Loop through each row, each is a full revolution
-            - convert data to bytes using function, then read in bins 0-15 for sectors 0-f
-        - return same DataFrame structure as before
+        """Parse EPD bin readings into a pandas DataFrame.
+
+        Explanation:
+        * Loop through each row, each is a full revolution. Convert data to
+        bytes using function, then read in bins 0-15 for sectors 0-F
+        * Return same DataFrame structure as before
         """
 
         def get_context(data):
-            """
-            For a given row of data, finds (from parsing the data) and returns a tuple of:
-            (spin period, time, and data for bins)
+            """For a given row of data, finds (from parsing the data) and
+            returns a tuple of: (spin period, time, and data for bins)
             """
             data = str(data)
             spin_period = int(data[0:4], 16)
