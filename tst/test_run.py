@@ -108,8 +108,8 @@ class TestCLIHandler:
             "em3": False,
             "abandon_calculated_products": False,
             "select_downlinks_by_collection_time": False,
-            "start-time": "2020-09-09",
-            "end-time": "2020-10-10",
+            "start_time": "2020-09-09",
+            "end_time": "2020-10-10",
             "products": ["epdef", "epdif", "epdes", "epdis", "fgf", "fgs", "eng", "mrma", "mrmi", "state"],
         }
 
