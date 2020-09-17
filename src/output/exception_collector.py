@@ -3,8 +3,12 @@ import logging
 import smtplib
 import time
 
-from util.credentials import EMAIL_PASSWORD, EMAIL_USERNAME
 from util.science_utils import s_if_plural
+
+try:
+    from util.credentials import EMAIL_PASSWORD, EMAIL_USERNAME
+except ModuleNotFoundError:
+    EMAIL_PASSWORD, EMAIL_USERNAME = "", ""
 
 
 class ExceptionCollector:
