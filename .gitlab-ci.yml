@@ -21,15 +21,13 @@ stages:
 
 before_script:
   - >
-      CUR_DIR=$(pwd)
-      && echo $(CUR_DIR)
-      && cd /tmp
+      pushd /tmp
       && curl -OL https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf36_4/linux/cdf36_4-dist-all.tar.gz
       && tar xzf cdf36_4-dist-all.tar.gz
-      && cd cdf36_4-dist
+      pushd cdf36_4-dist
       && make OS=linux ENV=gnu CURSES=yes FORTRAN=no UCOPTIONS=-O2 SHARED=yes all
       && make INSTALLDIR=/usr/local/cdf install
-      && cd $(CUR_DIR)
+      && pushd +2
   - apt-get update && apt-get upgrade
   - apt-get install -y gfortran
   - python -V  # Print out python version for debugging
