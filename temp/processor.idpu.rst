@@ -4,6 +4,14 @@ processor.idpu package
 Submodules
 ----------
 
+processor.idpu.eng\_processor module
+------------------------------------
+
+.. automodule:: processor.idpu.eng_processor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 processor.idpu.epd\_processor module
 ------------------------------------
 

@@ -8,8 +8,15 @@ PR=poetry run
 # TODO: Add poetry stuff
 
 
-.PHONY: all format check-style test coverage doc todo clean help
+.PHONY: help all format check-style test coverage doc todo clean
 
+
+help:
+	@echo "⭐ Available Targets ⭐"
+	@grep -E "^[a-z\-]+:" Makefile | sed "s/:[ a-z-]*//g"
+
+
+# TODO: Fix this, a bit of a misnomer
 
 all: format check-style test coverage doc
 	@echo "⭐ ALL targets ⭐";
@@ -64,7 +71,3 @@ todo:
 clean:
 	@echo "⭐ Cleaning Files ⭐"
 	rm -rf .coverage htmlcov doc/build
-
-help:
-	@echo "⭐ Available Targets ⭐"
-	@grep -E "^[a-z\-]+:" Makefile | sed "s/:[ a-z-]*//g"

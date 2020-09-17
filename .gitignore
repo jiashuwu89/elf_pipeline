@@ -1,6 +1,7 @@
 src/util/credentials.py
 **/__pycache__
 doc/build
+doc/source/pages
 env
 htmlcov
 .coverage

@@ -12,14 +12,6 @@ Subpackages
 Submodules
 ----------
 
-processor.eng\_processor module
--------------------------------
-
-.. automodule:: processor.eng_processor
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 processor.mrm\_processor module
 -------------------------------
 

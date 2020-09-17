@@ -22,6 +22,8 @@ from util.constants import DAILY_EMAIL_LIST
 class Coordinator:
     """Coordinator class to coordinate the pipeline.
 
+    Attributes
+    ----------
     mission_ids
         list containing subset of 1, 2, 3 for ELA, ELB, EM3 (respectively)
     times
