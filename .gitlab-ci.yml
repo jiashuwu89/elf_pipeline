@@ -21,7 +21,7 @@ stages:
 
 before_script:
   - apt-get update && apt-get upgrade
-  - apt-get install gfortran
+  - apt-get install -y gfortran
   - python -V  # Print out python version for debugging
   - pip install poetry
   - poetry install
