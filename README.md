@@ -15,19 +15,20 @@ Pipeline to process packets and generate CDFs.
   - Grow as necessary
 
 ## General TODOs
+- Rename Downlink -> ScienceDownlink
 - Sort Requests (need to implement comparisons for ProcessingRequest's)
 - ProcessingRequest should have DATE, not DATETIME
 - Standardize processors better
 - Increase logging
 - Set up CI/CD Pipeline
 - Types for all variables
+  - https://github.com/pandas-dev/pandas/issues/14468
 - Favor f-string over string concat, other string creation techniques
 - Unify time notation to use only:
   - Datetime (abbreviated dt)
   - Date
 - Take out all hardcoded times/dates/deltas -> constants.py
-- "types" directory?
-  - Enums for values
+- Enums for values
 - Increase Testing
 
 ## Tests to write (in order of easiest to hardest)

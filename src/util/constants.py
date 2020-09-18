@@ -1,13 +1,15 @@
-"""constants.py: Commonly used constants throughout science processing.
+"""Commonly used constants throughout science processing.
 
 This file holds some information about the mission, specifically information
 that helps with science processing (ex. data products). These were originally
 spread throughout the various files but it seems convenient to store them in
 a common location.
 
-Contents:
-- Items related to Data Products
-- Directory paths
+The contents include data structures storing information concerning:
+    * missions
+    * data products
+    * directory paths
+    * other constants
 """
 import datetime as dt
 

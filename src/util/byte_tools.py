@@ -1,8 +1,10 @@
 """Utilities to operate on data in the form of bytes"""
+import datetime as dt
+
 import elfin.libelfin.utils as _utils
 
 
-def little_e_to_big_e(data):
+def little_e_to_big_e(data: bytes) -> bytes:
     temp = b""
     while data:
         temp += data[1:2] + data[0:1]
@@ -10,19 +12,19 @@ def little_e_to_big_e(data):
     return temp
 
 
-def raw_idpu_bytes_to_datetime(x):
+def raw_idpu_bytes_to_datetime(x: bytes) -> dt.datetime:
     return _utils.timestamp_to_datetime(little_e_to_big_e(x[0:8]), "idpu")
 
 
-def get_signed(b):
+def get_signed(b: bytes) -> int:
     return int.from_bytes(b, "big", signed=True)
 
 
-def get_three_signed_bytes(i):
+def get_three_signed_bytes(i: int) -> bytes:
     return i.to_bytes(3, "big", signed=True)
 
 
-def get_two_unsigned_bytes(i):
+def get_two_unsigned_bytes(i: int) -> bytes:
     try:
         return i.to_bytes(2, "big")
     except OverflowError:

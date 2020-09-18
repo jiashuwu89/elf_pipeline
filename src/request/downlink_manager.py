@@ -31,8 +31,16 @@ class DownlinkManager:
 
         self.saved_downlinks = []
 
-    def print_downlinks(self, downlinks, prefix="Downlinks"):
-        """Prints the collection of downlinks given, in a formatted fashion"""
+    def print_downlinks(self, downlinks, prefix: str = "Downlinks") -> None:
+        """Prints the collection of downlinks given, in a formatted fashion.
+
+        Parameters
+        ----------
+        downlinks : List[Downlink]
+            Any list of Downlink objects
+        prefix : str
+            A string to be inserted before the Downlinks
+        """
         if downlinks:  # TODO: Fix this
             msg = (
                 f"{prefix} (Got {len(downlinks)} Total Downlink{science_utils.s_if_plural(downlinks)}):\n\n"
@@ -43,20 +51,23 @@ class DownlinkManager:
             msg = f"{prefix} No downlinks!"
         self.logger.info(msg)
 
-    def get_downlinks_by_collection_time(self, query):
-        """
-        Fetch all science downlinks whose collection data overlaps with range of dates
+    def get_downlinks_by_collection_time(self, pipeline_query):
+        """Fetch all downlinks matching query, based on collection time.
 
-        Returns:
-            A list of downlinks, of the format
-            (mission_id, packet_type, first_time, last_time, denom,
-            first_id, last_id, first collection time, last collection time)
+        Parameters
+        ----------
+        pipeline_query : PipelineQuery
+
+        Returns
+        -------
+        List[Downlink]
+            A List of Downlinks that fulfill the query
         """
         sql_query = self.session.query(models.ScienceDownlink).filter(
-            models.ScienceDownlink.idpu_type.in_(query.data_products),
-            models.ScienceDownlink.mission_id.in_(query.mission_ids),
-            models.ScienceDownlink.first_collection_time <= query.end_time,
-            models.ScienceDownlink.last_collection_time >= query.start_time,
+            models.ScienceDownlink.idpu_type.in_(pipeline_query.data_products),
+            models.ScienceDownlink.mission_id.in_(pipeline_query.mission_ids),
+            models.ScienceDownlink.first_collection_time <= pipeline_query.end_time,
+            models.ScienceDownlink.last_collection_time >= pipeline_query.start_time,
         )
 
         downlinks = []
@@ -68,15 +79,19 @@ class DownlinkManager:
         return downlinks
 
     def get_downlinks_by_downlink_time(self, pipeline_query):
-        """
-        Calculate new science downlinks by scanning through the
-        list of science packets received within a range of dates
+        """Fetch all downlinks matching query, based on downlink time.
 
-        - start_time and end_time are downlink times (called 'timestamp' in table)
-        - All Mission IDs, any idpu types
+        Obtains downlinks by calculating science Downlinks and selecting
+        Downlinks that fulfill the query
 
-        Returns:
-            A list of downlinks
+        Parameters
+        ----------
+        pipeline_query : PipelineQuery
+
+        Returns
+        -------
+        List[Downlink]
+            A List of Downlinks that fulfill the query
         """
         downlinks = []
         for mission_id in pipeline_query.mission_ids:
@@ -99,8 +114,23 @@ class DownlinkManager:
         ]
 
     # HELPER FOR get_downlinks_by_downlink_time, should be private
-    def calculate_new_downlinks_by_mission_id(self, mission_id, start_time, end_time):
-        """All downlinks for a specific mission, between two times"""
+    def calculate_new_downlinks_by_mission_id(self, mission_id: int, start_time: dt.datetime, end_time: dt.datetime):
+        """Use science packets to calculate downlinks for a specific mission.
+
+        Parameters
+        ----------
+        mission_id : int
+            Specifies data from ELA, ELB, or EM3
+        start_time : dt.datetime
+            The time of the first possible packet
+        end_time : dt.datetime
+            The time which all valid packets precede
+
+        Returns
+        -------
+        List[Downlink]
+            A List of Downlinks that were calculated using given parameters
+        """
         downlinks = []
 
         query = self.session.query(models.SciencePacket).filter(
@@ -222,10 +252,15 @@ class DownlinkManager:
         return downlinks
 
     # HELPER FOR get_downlinks_by_downlink_time, should be private
-    def upload_downlink_entries(self, downlinks):
-        """
-        Uploads a list of downlink entries to the database as
-        ScienceDownlink objects. Duplicate entries are ignored.
+    def upload_downlink_entries(self, downlinks) -> None:
+        """Uploads Downlinks to the science_downlink table in the database
+
+        Duplicate entries are ignored.
+
+        Parameters
+        ----------
+        List[Downlink]
+            The collection of Downlink objects to send to the table
         """
         for d in downlinks:
             q = self.session.query(models.ScienceDownlink.id).filter(
@@ -261,7 +296,20 @@ class DownlinkManager:
         self.session.commit()
 
     def get_relevant_downlinks(self, processing_request):
-        """Get Downlinks that are relevant to the processing request"""
+        """Get Downlinks that are relevant to the processing request.
+
+        Searches the science_downlink table for downlinks that fulfill the
+        criteria presented in the given ProcessingRequest
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+
+        Returns
+        -------
+        List[Downlink]
+            A List of Downlinks that were calculated using given parameters
+        """
         query = self.session.query(models.ScienceDownlink).filter(
             models.ScienceDownlink.mission_id == processing_request.mission_id,
             models.ScienceDownlink.idpu_type.in_(processing_request.idpu_types),
@@ -288,11 +336,25 @@ class DownlinkManager:
         return list(downlinks)
 
     def get_df_from_downlink(self, downlink) -> pd.DataFrame:
-        """
-        This function takes in a downlink, and returns a DataFrame corresponding to the processed data.
-        It gets the data, fixes the data, then formats it
-        """
+        """Converts a Downlink to a DataFrame of science data.
 
+        Obtains relevant data from the science_packet table, and performs
+        minimal formatting.
+
+        TODO: Consider moving additional formatting to this method (ex.
+        inserting empty rows)
+
+        Parameters
+        ----------
+        downlink : Downlink
+            The Downlink object for which a DataFrame is desired
+
+        Returns
+        -------
+        pd.DataFrame
+            A slightly formatted DataFrame containing all data associated with
+            the given Downlink
+        """
         # Fetching Downlink Data
         q = (
             self.session.query(

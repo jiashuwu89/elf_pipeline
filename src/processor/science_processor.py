@@ -3,6 +3,7 @@ import os
 from abc import ABC, abstractmethod
 
 import numpy as np
+import pandas as pd
 from spacepy import pycdf
 
 from request.downlink_manager import DownlinkManager  # TODO: Split Downlink Manager
@@ -40,7 +41,7 @@ class ScienceProcessor(ABC):
         """
         raise NotImplementedError
 
-    def make_filename(self, processing_request, level, size=None):
+    def make_filename(self, processing_request, level: int, size: int = None) -> str:
         """Constructs the appropriate filename for a L0/L1/L2 file.
 
         Parameters
@@ -70,7 +71,7 @@ class ScienceProcessor(ABC):
         return f"{self.output_dir}/{fname}"
 
     # TODO: Rename to indicate that an EMPTY cdf will be created to be filled in
-    def create_cdf(self, fname):
+    def create_cdf(self, fname: str) -> pycdf.CDF:
         """Creates a CDF with the desired fname, using the correct mastercdf.
 
         If a corresponding file already exists, it will be removed.
@@ -98,7 +99,7 @@ class ScienceProcessor(ABC):
 
         return pycdf.CDF(fname, master_cdf)
 
-    def fill_cdf(self, processing_request, df, cdf):
+    def fill_cdf(self, processing_request, df: pd.DataFrame, cdf: pycdf.CDF) -> None:
         """Inserts data from df into a CDF file.
 
         Parameters
@@ -112,6 +113,7 @@ class ScienceProcessor(ABC):
         Returns
         -------
         None
+            The CDF is modified in-place
         """
         cdf_fields = self.get_cdf_fields(processing_request)
         for key in cdf_fields:

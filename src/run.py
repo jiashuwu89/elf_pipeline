@@ -8,6 +8,7 @@ import datetime as dt
 import logging
 import os
 import tempfile
+from typing import List
 
 from dateutil.parser import parse as dateparser
 from elfin.common import db
@@ -38,27 +39,27 @@ class ArgparsePipelineConfig(PipelineConfig):
         self.email = self.email_necessary(args.quiet)
 
     @staticmethod
-    def db_update_necessary(abandon_calculated_products):
+    def db_update_necessary(abandon_calculated_products: bool) -> bool:
         """Determines if it is necessary to upload products that were calculated."""
         return not abandon_calculated_products
 
     @staticmethod
-    def file_generation_necessary(subcommand):
+    def file_generation_necessary(subcommand: str) -> bool:
         return subcommand in ["daily", "dump"]
 
     @staticmethod
-    def validate_output_dir(output_dir):
+    def validate_output_dir(output_dir: str) -> str:
         if output_dir:
             if not os.path.isdir(output_dir):
                 raise ValueError(f"Bad Output Directory: {output_dir}")
         return output_dir
 
     @staticmethod
-    def upload_necessary(withhold_files, generate_files):
+    def upload_necessary(withhold_files: bool, generate_files: bool) -> bool:
         return not withhold_files and generate_files
 
     @staticmethod
-    def email_necessary(quiet):
+    def email_necessary(quiet: bool) -> bool:
         return not quiet
 
 
@@ -73,7 +74,7 @@ class ArgparsePipelineQuery(PipelineQuery):
         self.start_time, self.end_time = self.validate_time(args.start_time, args.end_time)
 
     @staticmethod
-    def get_mission_ids(ela, elb, em3):
+    def get_mission_ids(ela: bool, elb: bool, em3: bool) -> List[int]:
         """Determine which missions to process, defaulting to ELA and ELB only"""
         mission_ids = []
 
@@ -89,17 +90,17 @@ class ArgparsePipelineQuery(PipelineQuery):
         return mission_ids
 
     @staticmethod
-    def get_data_products(products):
+    def get_data_products(products: List[str]) -> List[str]:
         if not products:
             raise ValueError("Products should not be null!")
         return products
 
     @staticmethod
-    def get_times(collection):
+    def get_times(collection: bool) -> str:
         return "collection" if collection else "downlink"
 
     @staticmethod
-    def validate_time(start_time, end_time):
+    def validate_time(start_time: str, end_time: str):
         start_time = dateparser(start_time, tzinfos=0)
         end_time = dateparser(end_time, tzinfos=0)
 

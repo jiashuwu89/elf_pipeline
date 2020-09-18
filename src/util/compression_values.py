@@ -1,6 +1,7 @@
 """Compression Values, used to decompress compressed data
-- Items related to FGM Compression
-- Items related to EPD Compression
+
+This contains structures relating primarily to FGM and EPD decompression,
+which rely on Huffman encoding.
 """
 
 # FGM Compression Information

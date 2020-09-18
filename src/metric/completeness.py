@@ -94,24 +94,24 @@ class CompletenessUpdater:
 
             # Support idpu_type column in db
             # TODO: Deprecate!!
-            if self.processing_request.idpu_types:
-                idpu_type = self.processing_request.idpu_types[0]
+            if processing_request.idpu_types:
+                idpu_type = processing_request.idpu_types[0]
             else:
                 idpu_type = -1
 
             # Remove previous entries that correspond to this new entry
             self.session.query(models.ScienceZoneCompleteness).filter(
-                models.ScienceZoneCompleteness.mission_id == self.processing_request.mission_id,
+                models.ScienceZoneCompleteness.mission_id == processing_request.mission_id,
                 models.ScienceZoneCompleteness.idpu_type == idpu_type,
-                models.ScienceZoneCompleteness.data_type == self.processing_request.data_type,
+                models.ScienceZoneCompleteness.data_type == processing_request.data_type,
                 models.ScienceZoneCompleteness.sz_start_time <= sz_end_time.to_pydatetime(),
                 models.ScienceZoneCompleteness.sz_end_time >= sz_start_time.to_pydatetime(),
             ).delete()
 
             entry = models.ScienceZoneCompleteness(
-                mission_id=self.processing_request.mission_id,
+                mission_id=processing_request.mission_id,
                 idpu_type=idpu_type,  # TODO: Need to deprecate this column at some point
-                data_type=self.processing_request.data_type,
+                data_type=processing_request.data_type,
                 sz_start_time=str(start_time),
                 sz_end_time=str(end_time),
                 completeness=float(percent_completeness),  # TODO: Need to deprecate this column at some point

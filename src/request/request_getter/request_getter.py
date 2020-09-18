@@ -3,6 +3,13 @@ from abc import ABC, abstractmethod
 
 
 class RequestGetter(ABC):
+    """Object to obtain ProcessingRequests, given the PipelineQuery.
+
+    Parameters
+    ----------
+    pipeline_config : PipelineConfig
+    """
+
     def __init__(self, pipeline_config):
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -10,6 +17,19 @@ class RequestGetter(ABC):
 
     @abstractmethod
     def get(self, pipeline_query):
+        """Given a PipelineQuery, determines what needs to be processed.
+
+        Should be overriden by derived classes
+
+        Parameters
+        ----------
+        pipeline_query : PipelineQuery
+
+        Returns
+        -------
+        Set[ProcessingRequests]
+            All ProcessingRequests related to the particular RequestGetter
+        """
         raise NotImplementedError
 
     @staticmethod

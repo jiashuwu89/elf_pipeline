@@ -2,21 +2,27 @@
 import logging
 import multiprocessing
 from collections import defaultdict
+from typing import Optional
 
 import pandas as pd
 
 
-def calculate_offset(df1, df2):
-    """
-    Calculates the offset required to merge two downlink dataframes that have
-    already been formatted (through a call to format_downlinks())
+def calculate_offset(df1: pd.DataFrame, df2: pd.DataFrame) -> Optional[int]:
+    """Calculates offset required to merge 2 formatted downlink DataFrames.
 
     Offset is calculated such that df1[i + offset] aligns with df2[i]. We either
     take the most common such offset, or else state that there is no offset if
     there is no majority (> half), or we could not find a good offset
 
-    Returns:
-        Offset if valid offset found, otherwise None
+    Parameters
+    ----------
+    df1, df2
+        DataFrames that have been formatted by the `format_downlinks` method
+
+    Returns
+    -------
+    int or None
+        Offset if valid offset found, None if not
     """
     logger = logging.getLogger(calculate_offset.__name__)
 
@@ -36,7 +42,7 @@ def calculate_offset(df1, df2):
             if count > half_min:
                 return 0
 
-    offset_frequencies = defaultdict(int)
+    offset_frequencies: defaultdict = defaultdict(int)
     indexes1 = s1[s1.notnull()].index
 
     # Keep track of the difference between packets in s1 and s2 that are the same
@@ -95,17 +101,27 @@ def calculate_offset(df1, df2):
     return offset
 
 
-def merge_downlinks(sf1, sf2, offset):
-    """
-    Merges two downlinks together, given an offset amount
-        (where sf1[i + offset] aligns with sf2[i] for all i)
-
-    Returns: The merged dataframe, of the same format
+def merge_downlinks(sf1: pd.DataFrame, sf2: pd.DataFrame, offset: int) -> pd.DataFrame:
+    """Merges two downlinks together, given an offset amount
 
     Steps
     - Start with sf1 and sf2
     - Look through sf2[:overlap] for not null
     - Append sf2[overlap:] to sf1
+
+    Parameters
+    ----------
+    sf1, sf2 : pd.DataFrame
+        Formatted Pandas DataFrames with science data
+    offset : int
+        The offset between DataFrames, where sf1[i + offset] aligns with
+        sf2[i] for all i
+
+    Returns
+    -------
+    pd.DataFrame
+        The merged dataframe, of the same format
+
     """
     # Make sure sf1 occurs before sf2
     if offset < 0:
