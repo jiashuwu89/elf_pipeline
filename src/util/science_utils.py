@@ -38,8 +38,7 @@ def hex_to_int(hex_data: str):
 def get_attribute_or_none(args, attribute):
     if hasattr(args, attribute):
         return getattr(args, attribute)
-    else:
-        return None
+    return None
 
 
 def interpolate_attitude(S_init, t_init, S_fin, t_fin):

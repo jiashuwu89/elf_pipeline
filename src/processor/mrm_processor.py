@@ -61,6 +61,7 @@ class MrmProcessor(ScienceProcessor):
 
         return mrm_df
 
+    # TODO: Just use the ScienceProcessor fill_cdf
     def fill_cdf(self, processing_request, df, cdf):
         self.logger.debug("Filling MRM CDF")
         probe = processing_request.probe

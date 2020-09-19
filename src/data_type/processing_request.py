@@ -1,7 +1,7 @@
 """Defines a class to describe a processing job that must be performed."""
 
 from util import science_utils
-from util.constants import MISSION_DICT, SCIENCE_TYPES
+from util.constants import MISSION_DICT
 
 
 class ProcessingRequest:

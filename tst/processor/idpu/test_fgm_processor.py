@@ -30,7 +30,8 @@ class SafeTestPipelineConfig(PipelineConfig):
 class TestFgmProcessor:
 
     # TODO: Rename to generate_products?
-    # TODO: Check old FGM files. It seems that some of their data does not fall under the correct file (out of the range of the day)
+    # TODO: Check old FGM files. It seems that some of their data does not fall under the
+    # correct file (out of the range of the day)
     def test_generate_files(self):
         pr = ProcessingRequest(1, "fgs", dt.date(2020, 7, 1))
         fgm_processor = FgmProcessor(SafeTestPipelineConfig())

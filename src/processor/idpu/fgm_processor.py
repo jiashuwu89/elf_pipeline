@@ -29,7 +29,6 @@ class FgmProcessor(IdpuProcessor):
 
         NOTE: idpu_time is formatted as a datetime
         """
-
         df = df.dropna(subset=["idpu_time", "data"])
         df = df.reset_index(drop=True)
 
@@ -99,9 +98,6 @@ class FgmProcessor(IdpuProcessor):
         l1_df["data"] = l1_df[["ax1", "ax2", "ax3"]].values.tolist()
 
         return l1_df
-
-    def process_level_2(self, df):
-        pass
 
     def is10hz_sampling_rate(self, first_ts, second_ts):
         """
@@ -305,7 +301,6 @@ class FgmProcessor(IdpuProcessor):
                 "10hz_mode": track10hz,
             }
         )
-        df.to_csv("fgm.csv")
         df = self.drop_packets_by_freq(processing_request, df)
 
         return df
@@ -336,7 +331,6 @@ class FgmProcessor(IdpuProcessor):
         idpu_type will be preserved. idpu_type is ordered in the same order as
         self.idpu_types
         """
-
         df = pd.concat(dfs)
         df["idpu_type"] = df["idpu_type"].astype("category").cat.set_categories(idpu_types, ordered=True)
 

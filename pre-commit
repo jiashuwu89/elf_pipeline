@@ -1,6 +1,10 @@
 #!/bin/sh
 # Based on https://proandroiddev.com/ooga-chaka-git-hooks-to-enforce-code-quality-11ce8d0d23cb
 
+# Using pre-commit
+# - Add symbolic link to hooks directory: `cd .git/hooks && ln -s ../../pre-commit pre-commit`
+# - Make sure this file is executable by using `chmod`
+
 echo "Running 'make format'"
 poetry run make format
 status=$?

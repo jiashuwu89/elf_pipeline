@@ -42,3 +42,8 @@ class TestPacketInfo:
     def test_str(self):
         pi = PacketInfo(self.PACKET_ID, self.ID, self.IDPU_TIME, self.COLLECTION_TIME)
         assert isinstance(str(pi), str)
+
+    def test_repr(self):
+        pi = PacketInfo(self.PACKET_ID, self.ID, self.IDPU_TIME, self.COLLECTION_TIME)
+        assert isinstance(pi.__repr__(), str)
+        assert pi.__repr__() == str(pi)

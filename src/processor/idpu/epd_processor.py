@@ -36,6 +36,7 @@ class EpdProcessor(IdpuProcessor):
             - Otherwise, something went wrong
         """
 
+        # TODO: unify with fgm_processor
         types = df["idpu_type"].values
         uncompressed = 3 in types or 5 in types
         compressed = 4 in types or 6 in types
@@ -423,9 +424,6 @@ class EpdProcessor(IdpuProcessor):
         ].values.tolist()
         return df
 
-    def process_level_2(self, df):
-        pass
-
     #####################
     # Utility Functions #
     #####################
@@ -482,7 +480,7 @@ class EpdProcessor(IdpuProcessor):
         data_product_type = f"p{processing_request.data_product[-2:]}"
         return {
             data_product_type: "data",
-            data_product_type + "_time": "idpu_time",
-            data_product_type + "_sectnum": "sec_num",
-            data_product_type + "_spinper": "spin_period",
+            f"{data_product_type}_time": "idpu_time",
+            f"{data_product_type}_sectnum": "sec_num",
+            f"{data_product_type}_spinper": "spin_period",
         }

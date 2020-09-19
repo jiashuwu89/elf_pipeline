@@ -62,3 +62,8 @@ class TestDownlink:
     def test_str(self):
         dl = Downlink(1, 1, 1000, self.PACKET_INFO_1, self.PACKET_INFO_2)
         assert isinstance(str(dl), str)
+
+    def test_repr(self):
+        dl = Downlink(1, 1, 1000, self.PACKET_INFO_1, self.PACKET_INFO_2)
+        assert isinstance(dl.__repr__(), str)
+        assert dl.__repr__() == str(dl)
