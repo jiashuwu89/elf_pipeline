@@ -45,6 +45,9 @@ class IdpuRequestGetter(RequestGetter):
             dl_list, prefix="➜\tRelevant Downlinks:"
         )  # TODO: Make this message more descriptive
         general_processing_requests = self.get_requests_from_downlinks(dl_list)
+        general_processing_requests = [
+            pr for pr in general_processing_requests if pr.data_product in pipeline_query.data_products
+        ]  # TODO: This is a hacky fix. Check why mapping 1 -> fgs and fgf, etc
         self.logger.info(f"🏀  Got {len(general_processing_requests)} requests from downlinks")
         return general_processing_requests
 

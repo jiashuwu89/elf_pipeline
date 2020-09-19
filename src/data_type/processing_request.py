@@ -1,5 +1,6 @@
 """Defines a class to describe a processing job that must be performed."""
 
+from util import science_utils
 from util.constants import MISSION_DICT, SCIENCE_TYPES
 
 
@@ -50,4 +51,4 @@ class ProcessingRequest:
 
     @property
     def idpu_types(self):
-        return SCIENCE_TYPES.get(self.data_product, [])
+        return science_utils.convert_data_product_to_idpu_types(self.data_product)

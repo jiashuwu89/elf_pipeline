@@ -16,7 +16,7 @@ from metric.completeness import CompletenessUpdater
 from processor.idpu.idpu_processor import IdpuProcessor
 from util import byte_tools
 from util.compression_values import EPD_HUFFMAN, EPD_LOSSY_VALS
-from util.constants import EPD_CALIBRATION_DIR
+from util.constants import EPD_CALIBRATION_DIR, VALID_NUM_SECTORS
 
 # EPD_ENERGIES = [[50., 70., 110., 160., 210., 270., 345., 430., 630., 900., 1300., 1800., 2500., 3000., 3850., 4500.]]
 
@@ -30,10 +30,10 @@ class EpdProcessor(IdpuProcessor):
 
     def process_rejoined_data(self, processing_request, df):
         """
-        Given an EPD dataframe...
-        - If uncompressed data, go to update_uncompressed_df
-        - If compressed data, decompress the data
-        - Otherwise, something went wrong
+        The logic is as follows: Given an EPD dataframe...
+            - If uncompressed data, go to update_uncompressed_df
+            - If compressed data, decompress the data
+            - Otherwise, something went wrong
         """
 
         types = df["idpu_type"].values
@@ -275,7 +275,7 @@ class EpdProcessor(IdpuProcessor):
         # Add the time
         bytes_data = spin_period_bytes + collection_time_bytes
         num_sectors = len(measured_values) / 16
-        if num_sectors not in (4, 16):  # TODO: make into enum?
+        if num_sectors not in VALID_NUM_SECTORS:  # TODO: make into enum?
             raise ValueError(f"Bad Number of Sectors: {num_sectors}")
 
         num_bins = 0

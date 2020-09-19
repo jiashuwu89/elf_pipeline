@@ -117,7 +117,6 @@ class CLIHandler:
         self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)  # TODO: Log to file
         self.argparser: argparse.ArgumentParser = self.get_argparser()
 
-    # TODO: ELA, ELB, EM3 Options should be options for subcommand, not top level
     @staticmethod
     def get_argparser():
         """ Get argparser for parsing arguments """

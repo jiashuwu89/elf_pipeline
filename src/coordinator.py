@@ -67,10 +67,11 @@ class Coordinator:
             self.logger.info("🌥 🌥 🌥 🌥 🌥  Getting Processing Requests")
             processing_requests = self.get_processing_requests(pipeline_query)
             self.logger.info(
-                f"🌥 🌥 🌥 🌥 🌥  Got {len(processing_requests)} processing requests:\n\n\t"
+                f"🌥 🌥 🌥 🌥 🌥  Got {len(processing_requests)} "
+                + f"processing request{science_utils.s_if_plural(processing_requests)}:\n\n\t"
                 + "\n\t".join(str(pr) for pr in sorted(processing_requests))
                 + "\n"
-            )  # TODO: s_if_plural
+            )
 
             # Transform
             self.logger.info("⛅️ ⛅️ ⛅️ ⛅️ ⛅️  Generating Files")
@@ -98,7 +99,8 @@ class Coordinator:
             self.logger.info(
                 "🌞🌞🌞🌞🌞  Pipeline completed successfully"
                 if not self.exception_collector.count
-                else f"🌦 🌦 🌦 🌦 🌦  Detected {self.exception_collector.count} problems"  # TODO: s_if_plural
+                else f"🌦 🌦 🌦 🌦 🌦  Detected {self.exception_collector.count} "
+                + f"problem{science_utils.s_if_plural(self.exception_collector.exception_list)}"
             )
 
     def get_processing_requests(self, pipeline_query):

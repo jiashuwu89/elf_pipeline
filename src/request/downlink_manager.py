@@ -63,9 +63,10 @@ class DownlinkManager:
         List[Downlink]
             A List of Downlinks that fulfill the query
         """
+        idpu_types = science_utils.convert_data_products_to_idpu_types(pipeline_query.data_products)
         sql_query = self.session.query(models.ScienceDownlink).filter(
-            models.ScienceDownlink.idpu_type.in_(pipeline_query.data_products),
             models.ScienceDownlink.mission_id.in_(pipeline_query.mission_ids),
+            models.ScienceDownlink.idpu_type.in_(idpu_types),
             models.ScienceDownlink.first_collection_time <= pipeline_query.end_time,
             models.ScienceDownlink.last_collection_time >= pipeline_query.start_time,
         )
@@ -106,7 +107,6 @@ class DownlinkManager:
             self.print_downlinks(cur_mission_downlinks, prefix)
             downlinks += cur_mission_downlinks
 
-        # TODO: if nodb, need to store downlinks somewhere for the processors to get them!
         return [
             dl
             for dl in downlinks

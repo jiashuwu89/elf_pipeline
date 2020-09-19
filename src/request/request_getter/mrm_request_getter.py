@@ -6,6 +6,8 @@ from request.request_getter.request_getter import RequestGetter
 from util import science_utils
 from util.constants import MRM_ENUM_MAP, MRM_TYPES
 
+# TODO: Have RequestGetter add data to ProcessingRequest to avoid repeat queries
+
 
 class MrmRequestGetter(RequestGetter):
     def get(self, pipeline_query):

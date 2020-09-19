@@ -16,7 +16,6 @@ import datetime as dt
 from elfin.common import models
 
 # TODO: Rename for clarity (specify if values are numbers or strings)
-# TODO: Separate into different files by category of constant (mission, data product, etc)
 
 # Missions
 MISSION_DICT = {1: "ela", 2: "elb", 3: "em3"}
@@ -75,12 +74,15 @@ SURVEY_TYPES = [19, 20]
 IDL_SCRIPT_VERSION = 8
 
 # Directory Paths
+# TODO: Get good paths
 STATE_CSV_DIR = "/home/elfin-esn/state_data/"
 # MASTERCDF_DIR = "/home/elfin-esn/OPS/science/trunk/science_processing/mastercdf"
-MASTERCDF_DIR = "../mastercdf"
+MASTERCDF_DIR = "/Users/jamesking/Desktop/elfin/OPS/science/refactor/mastercdf"
 EPD_CALIBRATION_DIR = "/home/elfin-esn/OPS/science/trunk/science_processing/calibration"
 SERVER_BASE_DIR = "/themis/data/elfin"
 
 # Misc
 LOOK_BEHIND_DELTA = dt.timedelta(hours=5)  # Begin search this far behind for packets
 DAILY_EMAIL_LIST = ["jcking1034@gmail.com"]
+
+VALID_NUM_SECTORS = [4, 16]  # EPD-related values

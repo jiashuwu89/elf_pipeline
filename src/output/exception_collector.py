@@ -45,7 +45,7 @@ class ExceptionCollector:
         with smtplib.SMTP("smtp.gmail.com", 587) as email_manager:
             email_manager.starttls()
             email_manager.login(EMAIL_USERNAME, EMAIL_PASSWORD)
-            email_manager.sendmail(EMAIL_USERNAME, self.email_list, self.generate_email())  # TODO: Check EMAIL_USERNAME
+            email_manager.sendmail(EMAIL_USERNAME, self.email_list, self.generate_email())
 
             time.sleep(1)
 

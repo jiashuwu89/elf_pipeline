@@ -48,4 +48,4 @@ class RequestGetterManager:
         processing_requests.update(EngRequestGetter(self.pipeline_config).get(pipeline_query))
         processing_requests.update(StateRequestGetter(self.pipeline_config).get(pipeline_query))
 
-        return processing_requests
+        return sorted(processing_requests)

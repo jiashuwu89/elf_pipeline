@@ -5,6 +5,7 @@ IDPU data processors usually need some methods to perform decompression
 import datetime as dt
 from abc import abstractmethod
 
+import numpy as np
 import pandas as pd
 from elfin.libelfin.utils import compute_crc
 from spacepy import pycdf
@@ -101,7 +102,6 @@ class IdpuProcessor(ScienceProcessor):
         ]
         downlinks = sorted(downlinks)
 
-        # TODO: Sort Downlinks by Downlink Time, and then by size
         if not downlinks:
             raise RuntimeError("No Downlinks to merge!")
 
@@ -211,7 +211,7 @@ class IdpuProcessor(ScienceProcessor):
             "idpu_type": idpu_type,
             "idpu_time": None,
             "data": None,
-            "numerator": pd.Series(missing_numerators),
+            "numerator": pd.Series(missing_numerators),  # TODO: avoid warning by adding "", dtype=np.float64"
             "denominator": denominator,
             "packet_data": None,
             "timestamp": None,
@@ -274,8 +274,8 @@ class IdpuProcessor(ScienceProcessor):
 
         # Select Data belonging only to a certain day
         l0_df = l0_df[
-            (l0_df["idpu_time"] >= processing_request.date)
-            & (l0_df["idpu_time"] < processing_request.date + dt.timedelta(days=1))
+            (l0_df["idpu_time"] >= np.datetime64(processing_request.date))
+            & (l0_df["idpu_time"] < np.datetime64(processing_request.date + dt.timedelta(days=1)))
         ]
 
         # TT2000 conversion
@@ -285,7 +285,7 @@ class IdpuProcessor(ScienceProcessor):
             raise RuntimeError(f"Empty level 0 DataFrame: {str(processing_request)}")
 
         # Generate L0 file
-        fname = self.make_filename(processing_request.date, 0, l0_df.shape[0])
+        fname = self.make_filename(processing_request, 0, l0_df.shape[0])
         l0_df.to_csv(fname, index=False)
 
         return fname, l0_df
@@ -314,8 +314,8 @@ class IdpuProcessor(ScienceProcessor):
         # Timestamp conversion
         try:
             l1_df = l1_df[
-                (l1_df["idpu_time"] >= processing_request.date)
-                & (l1_df["idpu_time"] < processing_request.date + dt.timedelta(days=1))
+                (l1_df["idpu_time"] >= np.datetime64(processing_request.date))
+                & (l1_df["idpu_time"] < np.datetime64(processing_request.date + dt.timedelta(days=1)))
             ]
             l1_df["idpu_time"] = l1_df["idpu_time"].apply(dt_to_tt2000)
             if l1_df.empty:
@@ -334,7 +334,7 @@ class IdpuProcessor(ScienceProcessor):
         self.logger.info(f"🟣  Generating Level 1 DataFrame for {str(processing_request)}")
         fname = self.make_filename(processing_request, 1)
         cdf = self.create_cdf(fname)
-        self.fill_cdf(processing_request, cdf, l1_df)
+        self.fill_cdf(processing_request, l1_df, cdf)
         cdf.close()
 
         return fname, l1_df

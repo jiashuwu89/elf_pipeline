@@ -28,7 +28,6 @@ class EngRequestGetter(RequestGetter):
 
         eng_processing_requests = {pr for pr in eng_processing_requests if pr.date.year != 2000}
 
-        # TODO: s if plural
         self.logger.info(
             f"⚽️  Got {len(eng_processing_requests)} "
             + f"ENG processing request{science_utils.s_if_plural(eng_processing_requests)}"

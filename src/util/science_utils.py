@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 from spacepy import pycdf
 
+from util.constants import SCIENCE_TYPES
+
 np.set_printoptions(precision=20)
 
 
@@ -121,3 +123,14 @@ def interpolate_attitude(S_init, t_init, S_fin, t_fin):
         interpolated_atts.append(S_gei / np.linalg.norm(S_gei))
 
     return np.array(t_arr_minres), np.array(interpolated_atts)
+
+
+def convert_data_product_to_idpu_types(data_product):
+    return SCIENCE_TYPES.get(data_product, [])
+
+
+def convert_data_products_to_idpu_types(data_products):
+    idpu_types = []
+    for product in data_products:
+        idpu_types += convert_data_product_to_idpu_types(product)
+    return idpu_types

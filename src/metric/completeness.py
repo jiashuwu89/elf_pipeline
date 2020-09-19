@@ -8,22 +8,33 @@ from elfin.common import models
 
 from util.science_utils import s_if_plural
 
-# TODO: Remove IDPU_Type
-# TODO: Convert to Enum?
+# TODO: Convert CompletenessConfig to Enum?
 
 
 class CompletenessUpdater:
+    """An object to calculate and report the completeness of data.
+
+    Parameters
+    ----------
+    session
+    completeness_config : CompletenessConfig
+        An object storing configuration options to be used when calculating
+        completeness
+    """
+
     def __init__(self, session, completeness_config):
         self.session = session
         self.completeness_config = completeness_config
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def update_completeness_table(self, processing_request, times):
+    def update_completeness_table(self, processing_request, times) -> None:
         """Update ScienceZoneCompleteness table, if possible
 
-        Input: series of sorted, not-none times
-
-        TODO: update to take in CompletenessConfig
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+        times : pd.Series
+            A series of sorted, not-null times...
         """
         # Edge case: empty Series
         if times.empty:
@@ -90,19 +101,10 @@ class CompletenessUpdater:
             # Get Percent Completeness
             obtained = len(sz)
             estimated_total = math.ceil(collection_duration / median_diff)
-            percent_completeness = 100 * obtained / estimated_total
-
-            # Support idpu_type column in db
-            # TODO: Deprecate!!
-            if processing_request.idpu_types:
-                idpu_type = processing_request.idpu_types[0]
-            else:
-                idpu_type = -1
 
             # Remove previous entries that correspond to this new entry
             self.session.query(models.ScienceZoneCompleteness).filter(
                 models.ScienceZoneCompleteness.mission_id == processing_request.mission_id,
-                models.ScienceZoneCompleteness.idpu_type == idpu_type,
                 models.ScienceZoneCompleteness.data_type == processing_request.data_type,
                 models.ScienceZoneCompleteness.sz_start_time <= sz_end_time.to_pydatetime(),
                 models.ScienceZoneCompleteness.sz_end_time >= sz_start_time.to_pydatetime(),
@@ -110,15 +112,15 @@ class CompletenessUpdater:
 
             entry = models.ScienceZoneCompleteness(
                 mission_id=processing_request.mission_id,
-                idpu_type=idpu_type,  # TODO: Need to deprecate this column at some point
                 data_type=processing_request.data_type,
                 sz_start_time=str(start_time),
                 sz_end_time=str(end_time),
-                completeness=float(percent_completeness),  # TODO: Need to deprecate this column at some point
                 num_received=obtained,
                 num_expected=estimated_total,
                 insert_date=str(dt.datetime.now()),
             )
 
             self.session.add(entry)
-            self.session.commit()
+
+        self.session.flush()
+        self.session.commit()
