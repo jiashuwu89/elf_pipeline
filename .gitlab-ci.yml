@@ -35,8 +35,8 @@ test:
   stage: Static Analysis
   script:
   - poetry run make coverage
-  - coverage report -m
-  - coverage-badge
+  - poetry run coverage report -m
+  - poetry run coverage-badge
   artifacts:
     paths:
       - htmlcov/
