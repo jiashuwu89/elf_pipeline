@@ -58,6 +58,10 @@ coverage: test
 	$(PR) coverage html \
 		--precision=2 \
 		--skip-empty;
+	$(PR) coverage report \
+		-m \
+		--precision=2 \
+		--skip-empty;
 
 doc:
 	@echo "⭐ Generating Documentation ⭐"
