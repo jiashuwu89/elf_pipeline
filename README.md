@@ -30,6 +30,7 @@ Pipeline to process packets and generate CDFs.
 - Take out all hardcoded times/dates/deltas -> constants.py
 - Enums for values
 - Increase Testing
+- Code coverage in CI/CD (badge might be nice)
 
 ## Tests to write (in order of easiest to hardest)
 - byte_tools

@@ -308,7 +308,6 @@ class FgmProcessor(IdpuProcessor):
     def drop_packets_by_freq(self, processing_request, df):
         """ Returns a DataFrame with either 10 hz (fgs) or 80 hz (fgf) """
         # TODO: ENUM
-        breakpoint()
         if processing_request.data_product == "fgf":
             self.logger.debug("DataFrame contains fgf data")
             df = df[~df["10hz_mode"]]  # TODO: Check this (was previously df = df[df["10hz_mode"] == False])

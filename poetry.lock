@@ -208,6 +208,14 @@ version = "5.3"
 toml = ["toml"]
 
 [[package]]
+category = "dev"
+description = "Generate coverage badges for Coverage.py."
+name = "coverage-badge"
+optional = false
+python-versions = "*"
+version = "1.0.1"
+
+[[package]]
 category = "main"
 description = "croniter provides iteration for datetime object with cron like format"
 name = "croniter"
@@ -1459,7 +1467,7 @@ version = "2.0.0"
 heapdict = "*"
 
 [metadata]
-content-hash = "fc8dde228f127aadc2a6da8a52e7e0caf13fdc0e3a08126cc5294ff374a93ad0"
+content-hash = "d2ee066cbbe98d5c08c13597535f7a57cc93037e18934b9485bd461e919b70d5"
 lock-version = "1.0"
 python-versions = "^3.8"
 
@@ -1612,6 +1620,10 @@ coverage = [
     {file = "coverage-5.3-cp39-cp39-win32.whl", hash = "sha256:cb7df71de0af56000115eafd000b867d1261f786b5eebd88a0ca6360cccfaca7"},
     {file = "coverage-5.3-cp39-cp39-win_amd64.whl", hash = "sha256:47a11bdbd8ada9b7ee628596f9d97fbd3851bd9999d398e9436bd67376dbece7"},
     {file = "coverage-5.3.tar.gz", hash = "sha256:280baa8ec489c4f542f8940f9c4c2181f0306a8ee1a54eceba071a449fb870a0"},
+]
+coverage-badge = [
+    {file = "coverage-badge-1.0.1.tar.gz", hash = "sha256:142fd121f3bd14956aff3c45bff6f8bc37bd74c6350626a950ebb6accb24276e"},
+    {file = "coverage_badge-1.0.1-py2.py3-none-any.whl", hash = "sha256:3796de21b4e190d38beb8806956946fbdb02fe3a2a7452b460a9cff958009833"},
 ]
 croniter = [
     {file = "croniter-0.3.34-py2.py3-none-any.whl", hash = "sha256:15597ef0639f8fbab09cbf8c277fa8c65c8b9dbe818c4b2212f95dbc09c6f287"},
