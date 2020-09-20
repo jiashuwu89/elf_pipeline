@@ -28,7 +28,7 @@ class IdpuRequestGetter(RequestGetter):
         """
         # TODO: Refactor so that downlink manager is outside of the request getter
         self.logger.info("🏀  Getting IDPU Requests")
-        idpu_products = self.get_relevant_products(data_products, SCIENCE_TYPES)
+        idpu_products = self.get_relevant_products(pipeline_query.data_products, SCIENCE_TYPES)
         if not idpu_products:
             return set()
         self.logger.info(f"Requested relevant products: {idpu_products}")
