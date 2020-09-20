@@ -59,4 +59,4 @@ class ExceptionCollector:
 
     @property
     def count(self):
-        return self.exception_list
+        return len(self.exception_list)

@@ -477,10 +477,11 @@ class EpdProcessor(IdpuProcessor):
         raise ValueError(f"Bad data_product: {processing_request.data_product}")
 
     def get_cdf_fields(self, processing_request):
+        probe = processing_request.probe
         data_product_type = f"p{processing_request.data_product[-2:]}"
         return {
-            data_product_type: "data",
-            f"{data_product_type}_time": "idpu_time",
-            f"{data_product_type}_sectnum": "sec_num",
-            f"{data_product_type}_spinper": "spin_period",
+            f"{probe}_{data_product_type}": "data",
+            f"{probe}_{data_product_type}_time": "idpu_time",
+            f"{probe}_{data_product_type}_sectnum": "sec_num",
+            f"{probe}_{data_product_type}_spinper": "spin_period",
         }

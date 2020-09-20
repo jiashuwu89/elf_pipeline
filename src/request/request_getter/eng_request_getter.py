@@ -38,7 +38,9 @@ class EngRequestGetter(RequestGetter):
         # TODO: How to differentiate between downlink time and collection time
         # TODO: make sure all end times are <, not <=
         self.logger.info("➜  Getting ENG IDPU requests")
-        query = self.session.query(models.SciencePacket.mission_id, func.date(models.SciencePacket.timestamp)).filter(
+        query = self.pipeline_config.session.query(
+            models.SciencePacket.mission_id, func.date(models.SciencePacket.timestamp)
+        ).filter(
             models.SciencePacket.mission_id == pipeline_query.mission_id,
             models.SciencePacket.timestamp >= pipeline_query.start_time,
             models.SciencePacket.timestamp < pipeline_query.end_time,

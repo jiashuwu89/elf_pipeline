@@ -18,13 +18,32 @@ class SafeTestPipelineConfig(PipelineConfig):
     def __init__(self):
         if db.SESSIONMAKER is None:
             db.connect("production")
-        self.session = db.SESSIONMAKER()
-        self.calculate = False
-        self.update_db = False
-        self.generate_files = True
-        self.output_dir = tempfile.mkdtemp()
-        self.upload = False
-        self.email = False
+        self._session = db.SESSIONMAKER()
+        self._output_dir = tempfile.mkdtemp()
+
+    @property
+    def session(self):
+        return self._session
+
+    @property
+    def update_db(self):
+        return False
+
+    @property
+    def generate_files(self):
+        return True
+
+    @property
+    def output_dir(self):
+        return self._output_dir
+
+    @property
+    def upload(self):
+        return False
+
+    @property
+    def email(self):
+        return False
 
 
 class TestFgmProcessor:
@@ -35,7 +54,9 @@ class TestFgmProcessor:
     def test_generate_files(self):
         pr = ProcessingRequest(1, "fgs", dt.date(2020, 7, 1))
         fgm_processor = FgmProcessor(SafeTestPipelineConfig())
-        generated_l0_file, generated_l1_file = fgm_processor.generate_files(pr)
+        generated_files = fgm_processor.generate_files(pr)
+        assert len(generated_files) == 2
+        generated_l0_file, generated_l1_file = generated_files
 
         assert filecmp.cmp(generated_l0_file, f"{TEST_DATA_DIR}/pkt/ela_l0_fgs_20200701_21137.pkt")
 

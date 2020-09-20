@@ -9,7 +9,18 @@ disable=invalid-name,
         bad-continuation,
         broad-except,
         comparison-with-callable,
-        too-few-public-methods
+        too-few-public-methods,
+        locally-disabled
+
+[TYPECHECK]
+generated-members=models.Categorical.*,
+        models.Event.*,
+        models.ScienceDownlink.*,
+        models.Packet.*,
+        models.Intent.*,
+        models.SciencePacket.*,
+        models.BmonData.*,
+        pd.DatetimeIndex
 
 [FORMAT]
 max-line-length=120

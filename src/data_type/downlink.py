@@ -1,11 +1,18 @@
 class Downlink:
-    def __init__(self, mission_id, idpu_type, denominator, first_packet_info, last_packet_info):
+    def __init__(self, mission_id, idpu_type, first_packet_info, last_packet_info):
         self.mission_id = mission_id
         self.idpu_type = idpu_type
-        self.denominator = denominator
 
         self.first_packet_info = first_packet_info
         self.last_packet_info = last_packet_info
+
+    @property
+    def denominator(self):
+        first_denominator = self.first_packet_info.denominator
+        last_denominator = self.last_packet_info.denominator
+        if first_denominator != last_denominator:
+            raise RuntimeError(f"Packet denominators differ: {first_denominator} != {last_denominator}")
+        return first_denominator
 
     def __eq__(self, other):
         return (
@@ -35,7 +42,7 @@ class Downlink:
         return "\n".join(
             [
                 "Downlink(",
-                f"\tmission_id={self.mission_id}, idpu_type={self.idpu_type}, denominator={self.denominator}",
+                f"\tmission_id={self.mission_id}, idpu_type={self.idpu_type}, denominator={self.denominator}, ",
                 f"\tFirst: {str(self.first_packet_info)}",
                 f"\tSecond: {str(self.last_packet_info)})",
             ]
@@ -45,7 +52,7 @@ class Downlink:
         return "\n".join(
             [
                 "Downlink(",
-                f"\tmission_id={self.mission_id}, idpu_type={self.idpu_type}, denominator={self.denominator}",
+                f"\tmission_id={self.mission_id}, idpu_type={self.idpu_type}, denominator={self.denominator}, ",
                 f"\tFirst: {str(self.first_packet_info)}",
                 f"\tSecond: {str(self.last_packet_info)})",
             ]

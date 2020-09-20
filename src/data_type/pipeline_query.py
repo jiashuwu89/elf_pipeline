@@ -1,28 +1,48 @@
-from abc import ABC
+import datetime as dt
+import logging
+from abc import ABC, abstractmethod
+from typing import List
 
-from util.constants import SCIENCE_TYPES
+from dateutil.parser import parse as dateparser
+
+from util.constants import ALL_MISSIONS, SCIENCE_TYPES
 
 
 class PipelineQuery(ABC):
-    """A class to hold the query to the pipeline, what the user has requested
+    """A class to hold the query to the pipeline; what the user requested"""
 
-    Attributes
-    ----------
-    mission_ids: List[int]
-        Mission IDs (ELA=1, ELB=2, EM3=3)
-    data_products: List[str]
-        Data products ("fgf", "epdef", "state", etc.)
-    times
-        Specifies if the times should be interpreted as downlink or collection
-        times
-    start_time: dt.datetime
-        The earliest time for data to occur
-    end_time: dt.datetime
-        The time which all data must precede
-    """
+    @property
+    @abstractmethod
+    def mission_ids(self) -> List[int]:
+        """List of mission IDs with the mapping: ELA=1 ELB=2 EM3=3"""
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def data_products(self) -> List[str]:
+        """List of data products ("fgf", "epdef", "state", etc.)"""
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def times(self) -> str:
+        """Specifies if times are downlink or collection times"""
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def start_time(self) -> dt.datetime:
+        """The earliest time for data to occur"""
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def end_time(self) -> dt.datetime:
+        """The time which all data must precede"""
+        raise NotImplementedError
 
     @staticmethod
-    def data_products_to_idpu_types(data_products):
+    def data_products_to_idpu_types(data_products: List[str]) -> List[str]:
         idpu_types = []
         for data_product in data_products:
             idpu_types += SCIENCE_TYPES.get(data_product, [])
@@ -47,3 +67,72 @@ class PipelineQuery(ABC):
             + f"\tstart_time={self.start_time},\n"
             + f"\tend_time={self.end_time}\n)"
         )
+
+
+class ArgparsePipelineQuery(PipelineQuery):
+    def __init__(self, args):
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.debug(args.__dict__)
+
+        self.args = args
+
+        self._mission_ids = self.get_mission_ids(args.ela, args.elb, args.em3)
+        self._data_products = self.get_data_products(args.products)
+        self._times = self.get_times(args.select_downlinks_by_collection_time)
+        self._start_time, self._end_time = self.validate_time(args.start_time, args.end_time)
+
+    @property
+    def mission_ids(self):
+        return self._mission_ids
+
+    @property
+    def data_products(self):
+        return self._data_products
+
+    @property
+    def times(self):
+        return self._times
+
+    @property
+    def start_time(self):
+        return self._start_time
+
+    @property
+    def end_time(self):
+        return self._end_time
+
+    @staticmethod
+    def get_mission_ids(ela: bool, elb: bool, em3: bool) -> List[int]:
+        """Determine which missions to process, defaulting to ELA and ELB only"""
+        mission_ids = []
+
+        if ela:
+            mission_ids.append(1)
+        if elb:
+            mission_ids.append(2)
+        if em3:
+            mission_ids.append(3)
+        if len(mission_ids) == 0:
+            mission_ids = ALL_MISSIONS.copy()
+
+        return mission_ids
+
+    @staticmethod
+    def get_data_products(products: List[str]) -> List[str]:
+        if not products:
+            raise ValueError("Products should not be null!")
+        return products
+
+    @staticmethod
+    def get_times(collection: bool) -> str:
+        return "collection" if collection else "downlink"
+
+    @staticmethod
+    def validate_time(start_time: str, end_time: str):
+        start_time = dateparser(start_time, tzinfos=0)
+        end_time = dateparser(end_time, tzinfos=0)
+
+        if start_time >= end_time:
+            raise RuntimeError(f"Start time {start_time} should be earlier than end time {end_time}")
+
+        return start_time, end_time

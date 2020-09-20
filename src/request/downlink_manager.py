@@ -73,9 +73,9 @@ class DownlinkManager:
 
         downlinks = []
         for dl in sql_query:
-            first_packet_info = PacketInfo(None, dl.first_packet, dl.first_time, dl.first_collection_time)
-            last_packet_info = PacketInfo(None, dl.last_packet, dl.last_time, dl.last_collection_time)
-            downlinks.append(Downlink(dl.mission_id, dl.idpu_type, dl.denominator, first_packet_info, last_packet_info))
+            first_packet_info = PacketInfo(dl.first_packet, dl.first_time, dl.first_collection_time, dl.denominator)
+            last_packet_info = PacketInfo(dl.last_packet, dl.last_time, dl.last_collection_time, dl.denominator)
+            downlinks.append(Downlink(dl.mission_id, dl.idpu_type, first_packet_info, last_packet_info))
 
         return downlinks
 
@@ -174,11 +174,9 @@ class DownlinkManager:
 
                 # flush the existing downlink
                 if cur_packet_type is not None and first_idpu_time is not None and last_idpu_time is not None:
-                    first_packet_info = PacketInfo(None, first_id, first_idpu_time, first_collection_time)
-                    last_packet_info = PacketInfo(None, last_id, last_idpu_time, last_collection_time)
-                    downlinks.append(
-                        Downlink(mission_id, cur_packet_type, cur_denom, first_packet_info, last_packet_info)
-                    )
+                    first_packet_info = PacketInfo(first_id, first_idpu_time, first_collection_time, cur_denom)
+                    last_packet_info = PacketInfo(last_id, last_idpu_time, last_collection_time, cur_denom)
+                    downlinks.append(Downlink(mission_id, cur_packet_type, first_packet_info, last_packet_info))
 
                 cur_packet_type = None
                 first_idpu_time = None
@@ -233,9 +231,9 @@ class DownlinkManager:
 
         # flush the final downlink
         if cur_packet_type is not None and first_idpu_time is not None and last_idpu_time is not None:
-            first_packet_info = PacketInfo(None, first_id, first_idpu_time, first_collection_time)
-            last_packet_info = PacketInfo(None, last_id, last_idpu_time, last_collection_time)
-            downlinks.append(Downlink(mission_id, cur_packet_type, cur_denom, first_packet_info, last_packet_info))
+            first_packet_info = PacketInfo(first_id, first_idpu_time, first_collection_time, cur_denom)
+            last_packet_info = PacketInfo(last_id, last_idpu_time, last_collection_time, cur_denom)
+            downlinks.append(Downlink(mission_id, cur_packet_type, first_packet_info, last_packet_info))
 
         downlinks.sort(key=lambda x: x.idpu_type)
 
@@ -321,9 +319,9 @@ class DownlinkManager:
 
         for row in query:  # TODO: Check first_packet/last_packet
             # TODO: Bad Nones
-            first_packet_info = PacketInfo(None, row.first_packet, row.first_time, row.first_collection_time)
-            last_packet_info = PacketInfo(None, row.last_packet, row.last_time, row.last_collection_time)
-            downlink = Downlink(row.mission_id, row.idpu_type, row.denominator, first_packet_info, last_packet_info)
+            first_packet_info = PacketInfo(row.first_packet, row.first_time, row.first_collection_time, row.denominator)
+            last_packet_info = PacketInfo(row.last_packet, row.last_time, row.last_collection_time, row.denominator)
+            downlink = Downlink(row.mission_id, row.idpu_type, first_packet_info, last_packet_info)
             downlinks.add(downlink)
 
         # Local downlinks that weren't uploaded to the database

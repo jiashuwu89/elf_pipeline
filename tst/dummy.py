@@ -13,13 +13,32 @@ class DummyPipelineConfig(PipelineConfig):
     def __init__(self):
         if db.SESSIONMAKER is None:
             db.connect("production")
-        self.session = db.SESSIONMAKER()
-        self.calculate = False
-        self.update_db = False
-        self.generate_files = False
-        self.output_dir = tempfile.mkdtemp()
-        self.upload = False
-        self.email = False
+        self._session = db.SESSIONMAKER()
+        self._output_dir = tempfile.mkdtemp()
+
+    @property
+    def session(self):
+        return self._session
+
+    @property
+    def update_db(self):
+        return False
+
+    @property
+    def generate_files(self):
+        return False
+
+    @property
+    def output_dir(self):
+        return self._output_dir
+
+    @property
+    def upload(self):
+        return False
+
+    @property
+    def email(self):
+        return False
 
 
 class DummyProcessingRequest(ProcessingRequest):

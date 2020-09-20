@@ -308,12 +308,13 @@ class FgmProcessor(IdpuProcessor):
     def drop_packets_by_freq(self, processing_request, df):
         """ Returns a DataFrame with either 10 hz (fgs) or 80 hz (fgf) """
         # TODO: ENUM
+        breakpoint()
         if processing_request.data_product == "fgf":
             self.logger.debug("DataFrame contains fgf data")
-            df = df[df["10hz_mode"] == False]
+            df = df[~df["10hz_mode"]]  # TODO: Check this (was previously df = df[df["10hz_mode"] == False])
         elif processing_request.data_product == "fgs":
             self.logger.debug("DataFrame contains fgs data")
-            df = df[df["10hz_mode"] == True]
+            df = df[df["10hz_mode"]]  # TODO: Check this too
         else:
             raise ValueError("Invalid data_product_name")
 
@@ -338,7 +339,7 @@ class FgmProcessor(IdpuProcessor):
         df = df.sort_values(["idpu_time", "idpu_type"])
 
         rounded_idpu_time = pd.DatetimeIndex(df["idpu_time"])
-        rounded_idpu_time = rounded_idpu_time.round("ms")
+        rounded_idpu_time = rounded_idpu_time.round("ms")  # pylint: disable=no-member
         df["rounded_idpu_time"] = rounded_idpu_time
         df = df.drop_duplicates("rounded_idpu_time", keep="first")
         df = df[["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "10hz_mode"]]
@@ -349,5 +350,6 @@ class FgmProcessor(IdpuProcessor):
         return self.completeness_updater
 
     def get_cdf_fields(self, processing_request):
+        probe = processing_request.probe
         data_product = processing_request.data_product
-        return {data_product: "data", f"{data_product}_time": "idpu_time"}
+        return {f"{probe}_{data_product}": "data", f"{probe}_{data_product}_time": "idpu_time"}

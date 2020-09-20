@@ -42,19 +42,7 @@ class CompletenessUpdater:
             return
 
         # Split szs
-        szs = []
-        prev_time = times.iloc[0]
-        sz = [prev_time]
-        for i in range(1, times.shape[0]):
-            cur_time = times.iloc[i]
-            if cur_time - prev_time > dt.timedelta(minutes=20):
-                szs.append(sz.copy())
-                sz = [cur_time]
-            else:
-                sz.append(cur_time)
-            prev_time = cur_time
-        szs.append(sz)
-        self.logger.info(f"Found {len(szs)} science zone{s_if_plural(szs)}")
+        szs = self.split_science_zones(times)
 
         # Get median diff
         if not self.completeness_config.median_diff:
@@ -62,6 +50,8 @@ class CompletenessUpdater:
             for sz in szs:
                 diffs += [(j - i).total_seconds() for i, j in zip(sz[:-1], sz[1:])]
             median_diff = statistics.median(diffs)
+        else:
+            median_diff = self.completeness_config.median_diff
 
         # Update completeness for each science zone
         for sz in szs:
@@ -102,6 +92,8 @@ class CompletenessUpdater:
             obtained = len(sz)
             estimated_total = math.ceil(collection_duration / median_diff)
 
+            # TODO: Log calculations and values using self.logger
+
             # Remove previous entries that correspond to this new entry
             self.session.query(models.ScienceZoneCompleteness).filter(
                 models.ScienceZoneCompleteness.mission_id == processing_request.mission_id,
@@ -110,17 +102,35 @@ class CompletenessUpdater:
                 models.ScienceZoneCompleteness.sz_end_time >= sz_start_time.to_pydatetime(),
             ).delete()
 
-            entry = models.ScienceZoneCompleteness(
-                mission_id=processing_request.mission_id,
-                data_type=processing_request.data_type,
-                sz_start_time=str(start_time),
-                sz_end_time=str(end_time),
-                num_received=obtained,
-                num_expected=estimated_total,
-                insert_date=str(dt.datetime.now()),
+            self.session.add(
+                models.ScienceZoneCompleteness(
+                    mission_id=processing_request.mission_id,
+                    data_type=processing_request.data_type,
+                    sz_start_time=str(start_time),
+                    sz_end_time=str(end_time),
+                    num_received=obtained,
+                    num_expected=estimated_total,
+                    insert_date=str(dt.datetime.now()),
+                )
             )
-
-            self.session.add(entry)
 
         self.session.flush()
         self.session.commit()
+
+    def split_science_zones(self, times):
+        szs = []
+        prev_time = times.iloc[0]
+        sz = [prev_time]
+
+        for i in range(1, times.shape[0]):
+            cur_time = times.iloc[i]
+            if cur_time - prev_time > dt.timedelta(minutes=20):
+                szs.append(sz.copy())
+                sz = [cur_time]
+            else:
+                sz.append(cur_time)
+            prev_time = cur_time
+        szs.append(sz)
+
+        self.logger.info(f"Found {len(szs)} science zone{s_if_plural(szs)}")
+        return szs

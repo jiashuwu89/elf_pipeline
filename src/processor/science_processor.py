@@ -116,10 +116,7 @@ class ScienceProcessor(ABC):
             The CDF is modified in-place
         """
         cdf_fields = self.get_cdf_fields(processing_request)
-        for key in cdf_fields:
-            df_field_name = cdf_fields[key]
-            cdf_field_name = f"{processing_request.probe}_{key}"
-
+        for cdf_field_name, df_field_name in cdf_fields.items():
             if cdf_field_name in cdf.keys() and df_field_name in df.columns:
                 data = df[df_field_name].values
                 # numpy array with lists need to be converted to a multi-dimensional numpy array of numbers
