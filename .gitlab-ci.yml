@@ -53,6 +53,7 @@ pages:
     - poetry run make doc  # Sphinx autodoc
     - mv doc/build/html/ public/
     - mv htmlcov/ public/  # Coverage report
+    - ln htmlcov/index.html coverage.html
   artifacts:
     paths:
       - public
