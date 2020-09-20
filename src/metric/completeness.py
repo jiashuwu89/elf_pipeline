@@ -35,11 +35,16 @@ class CompletenessUpdater:
         processing_request : ProcessingRequest
         times : pd.Series
             A series of sorted, not-null times...
+
+        Returns
+        -------
+        bool
+            Returns True is the table is uploaded, False if not
         """
         # Edge case: empty Series
         if times.empty:
             self.logger.warning("Empty Time Series, cannot update completeness table")
-            return
+            return False
 
         # Split szs
         szs = self.split_science_zones(times)
@@ -116,6 +121,8 @@ class CompletenessUpdater:
 
         self.session.flush()
         self.session.commit()
+
+        return True
 
     def split_science_zones(self, times):
         szs = []

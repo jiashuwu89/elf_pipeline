@@ -40,7 +40,7 @@ check-style:
 		--pylint-config-file $(PYLINT_CONFIG) \
 		$(SRC) \
 	 && prospector \
-	 	--strictness high \
+	 	--strictness medium \
 		--max-line-length $(LINE_LENGTH) \
 		--with-tool vulture \
 		--without-tool pep257 \

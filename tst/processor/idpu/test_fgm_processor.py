@@ -1,5 +1,6 @@
 import datetime as dt
 import filecmp
+import os
 import tempfile
 
 import pytest
@@ -51,6 +52,7 @@ class TestFgmProcessor:
     # TODO: Rename to generate_products?
     # TODO: Check old FGM files. It seems that some of their data does not fall under the
     # correct file (out of the range of the day)
+    @pytest.mark.skipif(not os.path.isfile("./src/util/credentials.py"), reason="Probably in CI/CD pipeline")
     def test_generate_files(self):
         pr = ProcessingRequest(1, "fgs", dt.date(2020, 7, 1))
         fgm_processor = FgmProcessor(SafeTestPipelineConfig())

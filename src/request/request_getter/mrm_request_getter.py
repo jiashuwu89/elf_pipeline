@@ -18,20 +18,25 @@ class MrmRequestGetter(RequestGetter):
             return set()
         self.logger.info(f"Requested relevant products: {mrm_products}")
 
-        # TODO: This query does not seem right, or at least how it is being used
+        # TODO: Verify this
         sql_query = (
             self.pipeline_config.session.query(
                 models.Packet.mission_id, models.MRM.mrm_type, func.date(models.MRM.timestamp)
             )
             .distinct()
-            .filter(
-                models.Packet.mission_id.in_(pipeline_query.mission_ids),
-                models.Packet.timestamp >= pipeline_query.start_time,
-                models.Packet.timestamp < pipeline_query.end_time,
-                models.MRM.mrm_type.in_(mrm_products),
-            )
-            .join(models.Packet)
+            .filter(models.Packet.mission_id.in_(pipeline_query.mission_ids), models.MRM.mrm_type.in_(mrm_products))
         )
+        if pipeline_query.times == "downlink":
+            sql_query = sql_query.filter(
+                models.Packet.timestamp >= pipeline_query.start_time, models.Packet.timestamp < pipeline_query.end_time
+            )
+        elif pipeline_query.times == "collection":
+            sql_query = sql_query.filter(
+                models.MRM.timestamp >= pipeline_query.start_time, models.MRM.timestamp < pipeline_query.end_time
+            )
+        else:
+            raise ValueError(f"Bad times: {pipeline_query.times}")
+        sql_query = sql_query.join(models.Packet)
 
         mrm_processing_requests = {
             ProcessingRequest(mission_id, MRM_ENUM_MAP[mrm_type], date)

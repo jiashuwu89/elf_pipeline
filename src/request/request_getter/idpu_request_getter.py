@@ -13,7 +13,7 @@ class IdpuRequestGetter(RequestGetter):
         self.downlink_manager = DownlinkManager(pipeline_config)
 
     def get(self, pipeline_query):
-        """FGM and EPD Processing Requests
+        """FGM and EPD and ENG Processing Requests
 
         We want to get downlinks that fit the criteria, then find the
         corresponding collection times.
@@ -28,11 +28,10 @@ class IdpuRequestGetter(RequestGetter):
         """
         # TODO: Refactor so that downlink manager is outside of the request getter
         self.logger.info("🏀  Getting IDPU Requests")
-        data_products = [dp for dp in pipeline_query.data_products if dp != "eng"]
         idpu_products = self.get_relevant_products(data_products, SCIENCE_TYPES)
         if not idpu_products:
             return set()
-        self.logger.info(f"Requested relevant products: {idpu_products}")  # TODO: This accidentally includes 14, 15, 16
+        self.logger.info(f"Requested relevant products: {idpu_products}")
 
         if pipeline_query.times == "downlink":
             dl_list = self.downlink_manager.get_downlinks_by_downlink_time(pipeline_query)

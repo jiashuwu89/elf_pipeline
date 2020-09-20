@@ -9,10 +9,17 @@ from util.constants import SCIENCE_TYPES
 
 # TODO: For all request getters, make sure that the data product is requested BEFORE getting requests
 # TODO: requests gotten by categoricals and bmon, but what about idpu?
-#   - May need to extract Downlink Manager from IDPU request getter, since it isn't as closely coupled
-#     as I previously thought
+#   - For now, IDPU data categorized as ENG data will be found by IdpuRequestGetter
+#   - May be better, in the future, to decouple DownlinkManager from IdpuRequestGetter
 class EngRequestGetter(RequestGetter):
     def get(self, pipeline_query):
+        """Another request getter.
+
+        NOTE: The IdpuRequestGetter will obtain ENG requests for days
+        on which relevant IDPU data was collected (IDPU types 14, 15, 16).
+        This RequestGetter will get ENG requests for days on which relevant
+        bmon or categoricals data was collected.
+        """
         self.logger.info("⚽️  Getting ENG Requests")
 
         eng_processing_requests = set()
@@ -22,7 +29,6 @@ class EngRequestGetter(RequestGetter):
             return eng_processing_requests
         self.logger.info("Requested relevant products: 'eng'")
 
-        # eng_processing_requests.update(self.get_idpu_requests(pipeline_query))
         eng_processing_requests.update(self.get_categoricals_requests(pipeline_query))
         eng_processing_requests.update(self.get_bmon_requests(pipeline_query))
 
@@ -33,25 +39,6 @@ class EngRequestGetter(RequestGetter):
             + f"ENG processing request{science_utils.s_if_plural(eng_processing_requests)}"
         )
         return eng_processing_requests
-
-    def get_idpu_requests(self, pipeline_query):
-        # TODO: How to differentiate between downlink time and collection time
-        # TODO: make sure all end times are <, not <=
-        self.logger.info("➜  Getting ENG IDPU requests")
-        query = self.pipeline_config.session.query(
-            models.SciencePacket.mission_id, func.date(models.SciencePacket.timestamp)
-        ).filter(
-            models.SciencePacket.mission_id == pipeline_query.mission_id,
-            models.SciencePacket.timestamp >= pipeline_query.start_time,
-            models.SciencePacket.timestamp < pipeline_query.end_time,
-            models.SciencePacket.idpu_type.in_(SCIENCE_TYPES["eng"]),
-        )
-        idpu_requests = {ProcessingRequest(mission_id, "eng", date) for mission_id, date in query}
-
-        self.logger.info(
-            f"➜  Got {len(idpu_requests)} " + f"ENG IDPU request{science_utils.s_if_plural(idpu_requests)}"
-        )
-        return idpu_requests
 
     def get_categoricals_requests(self, pipeline_query):
         self.logger.info("➜  Getting ENG Categoricals requests")
@@ -65,17 +52,25 @@ class EngRequestGetter(RequestGetter):
             models.Categoricals.TMP_6,
         ]
 
-        query = (  # TODO: Fix this, missing mission
-            self.pipeline_config.session.query(models.Categorical.mission_id, func.date(models.Categorical.timestamp))
-            .distinct()
-            .filter(
+        query = self.pipeline_config.session.query(
+            models.Categorical.mission_id, func.date(models.Categorical.timestamp)
+        ).distinct()
+        if pipeline_query.times == "downlink":
+            query = query.filter(
                 models.Categorical.mission_id.in_(pipeline_query.mission_ids),
                 models.Packet.timestamp >= pipeline_query.start_time,
                 models.Packet.timestamp < pipeline_query.end_time,
                 models.Categorical.name.in_(categoricals),
+            ).join(models.Packet, models.Categorical.packet_id == models.Packet.id)
+        elif pipeline_query.times == "collection":
+            query = query.filter(
+                models.Categorical.mission_id.in_(pipeline_query.mission_ids),
+                models.Categorical.timestamp >= pipeline_query.start_time,
+                models.Categorical.timestamp < pipeline_query.end_time,
+                models.Categorical.name.in_(categoricals),
             )
-            .join(models.Packet, models.Categorical.packet_id == models.Packet.id)
-        )
+        else:
+            raise ValueError(f"Bad times: {pipeline_query.times}")
 
         categoricals_requests = {ProcessingRequest(mission_id, "eng", date) for mission_id, date in query}
         self.logger.info(

@@ -1,6 +1,8 @@
 import datetime as dt
+import os
 import tempfile
 
+import pytest
 from elfin.common import db
 from spacepy import pycdf
 
@@ -46,6 +48,7 @@ class SafeTestPipelineConfig(PipelineConfig):
 
 
 class TestMrmProcessor:
+    @pytest.mark.skipif(not os.path.isfile("./src/util/credentials.py"), reason="Probably in CI/CD pipeline")
     def test_generate_files(self):
         mrm_processor = MrmProcessor(SafeTestPipelineConfig())
 

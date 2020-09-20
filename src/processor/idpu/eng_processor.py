@@ -34,13 +34,15 @@ class EngProcessor(IdpuProcessor):
 
     def process_rejoined_data(self, processing_request, df):
         """No major processing necessary for ENG level 0"""
-        data_bytes = []
-        for _, row in df.iterrows():
-            if row["data"] is not None:
-                data_bytes.append(bytes.fromhex(row["data"]))
-            else:
-                data_bytes.append(None)
-        df["data"] = data_bytes
+        # TODO: Check this
+        df["data"] = df["data"].apply(lambda x: bytes.fromhex(x) if x else None)
+        # data_bytes = []
+        # for _, row in df.iterrows():
+        #     if row["data"] is not None:
+        #         data_bytes.append(bytes.fromhex(row["data"]))
+        #     else:
+        #         data_bytes.append(None)
+        # df["data"] = data_bytes
         return df
 
     def transform_l0_df(self, processing_request, l0_df):
@@ -122,7 +124,7 @@ class EngProcessor(IdpuProcessor):
             models.Categorical.mission_id == processing_request.mission_id,
             models.Categorical.timestamp >= processing_request.date,
             models.Categorical.timestamp < processing_request.date + dt.timedelta(days=1),
-            models.Categorical.name.in_(list(name_converter.keys())),
+            models.Categorical.name.in_(list(name_converter.keys())),  # TODO: Is the list necessary?
         )
 
         fc_df = pd.DataFrame(
