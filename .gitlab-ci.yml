@@ -54,7 +54,7 @@ pages:
   script:
     - poetry run make doc  # Sphinx autodoc
     - mv doc/build/html/ public/
-    - mv coverage/ public/
+    - mv htmlcov/ public/
   artifacts:
     paths:
       - public
