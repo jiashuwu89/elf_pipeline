@@ -7,6 +7,7 @@ Classes:
 import datetime as dt
 import statistics
 
+import numpy as np
 import pandas as pd
 from elfin.common import models
 from spacepy import pycdf
@@ -45,6 +46,37 @@ class EngProcessor(IdpuProcessor):
         # df["data"] = data_bytes
         return df
 
+    def generate_l1_df(self, processing_request, l0_df):
+        """Need to override default implementation to avoid cutting out data."""
+        self.logger.info(f"🔵  Generating Level 1 DataFrame for {str(processing_request)}")
+        if l0_df is None:
+            self.logger.info("Still need a Level 0 DataFrame, generating now")
+            l0_df = self.generate_l0_df(processing_request)
+
+        # Allow derived class to transform data
+        l1_df = self.transform_l0_df(processing_request, l0_df)
+
+        lower_time_bound = np.datetime64(processing_request.date)
+        upper_time_bound = np.datetime64(processing_request.date + dt.timedelta(days=1))
+        separated_dfs = []
+        for time_col in ["idpu_time", "sips_time", "epd_time", "fgm_time", "fc_time"]:
+            if time_col in l1_df.columns:
+                cur_df = l1_df[(l1_df[time_col] >= lower_time_bound) & (l1_df[time_col] < upper_time_bound)]
+                separated_dfs.append(cur_df)
+            else:
+                self.logger.debug(f"Couldn't find the column {time_col}, but it's probably OK")
+        l1_df = pd.concat(separated_dfs, axis=0, ignore_index=True, sort=True)
+
+        # Timestamp conversion
+        for time_col in ["idpu_time", "sips_time", "epd_time", "fgm_time", "fc_time"]:
+            if time_col in l1_df.columns:
+                l1_df[time_col] = l1_df[time_col].apply(dt_to_tt2000)
+
+        if l1_df.empty:
+            raise RuntimeError(f"Final Dataframe is empty: {str(processing_request)}")
+
+        return l1_df
+
     def transform_l0_df(self, processing_request, l0_df):
         """
         Creates Dataframe using Inputed Data, as well as FC and Battery Monitor
@@ -80,7 +112,7 @@ class EngProcessor(IdpuProcessor):
         self.logger.debug(f"Data type {data_type} is good? {data_type in (14, 15, 16)}")
         if data_type == 14:  # SIPS
             return {
-                "sips_time": dt_to_tt2000(idpu_time),
+                "sips_time": idpu_time,
                 "sips_5v0_current": int.from_bytes(data[6:8], "big"),
                 "sips_5v0_voltage": int.from_bytes(data[8:10], "big"),
                 "sips_input_current": int.from_bytes(data[10:12], "big"),
@@ -89,14 +121,14 @@ class EngProcessor(IdpuProcessor):
             }
         if data_type == 15:  # EPD
             return {
-                "epd_time": dt_to_tt2000(idpu_time),
+                "epd_time": idpu_time,
                 "epd_biasl": int.from_bytes(data[0:2], "big"),
                 "epd_biash": int.from_bytes(data[2:4], "big"),
                 "epd_efe_temp": int.from_bytes(data[4:6], "big"),
             }
         if data_type == 16:  # FGM
             return {
-                "fgm_time": dt_to_tt2000(idpu_time),
+                "fgm_time": idpu_time,
                 "fgm_8_volt": int.from_bytes(data[0:2], "big"),  # status byte count 0
                 "fgm_sh_temp": int.from_bytes(data[6:8], "big"),  # status byte count 3
                 "fgm_3_3_volt": int.from_bytes(data[2:4], "big"),  # status byte count 1
@@ -124,15 +156,10 @@ class EngProcessor(IdpuProcessor):
             models.Categorical.mission_id == processing_request.mission_id,
             models.Categorical.timestamp >= processing_request.date,
             models.Categorical.timestamp < processing_request.date + dt.timedelta(days=1),
-            models.Categorical.name.in_(list(name_converter.keys())),  # TODO: Is the list necessary?
+            models.Categorical.name.in_(name_converter.keys()),  # TODO: Is the list necessary?
         )
 
-        fc_df = pd.DataFrame(
-            [
-                {"fc_time": pycdf.lib.datetime_to_tt2000(row.timestamp), name_converter[row.name]: row.value}
-                for row in query
-            ]
-        )
+        fc_df = pd.DataFrame([{"fc_time": row.timestamp, name_converter[row.name]: row.value} for row in query])
         return fc_df
 
     def get_bmon_df(self, processing_request):
@@ -150,7 +177,7 @@ class EngProcessor(IdpuProcessor):
         # TODO: Check if this works
         fc_temp = {1: {}, 2: {}}
         for row in query:
-            row.timestamp = pycdf.lib.datetime_to_tt2000(row.timestamp)
+            row.timestamp = row.timestamp
             if row.timestamp not in fc_temp[row.power_board_id]:
                 fc_temp[row.power_board_id][row.timestamp] = set()
             fc_temp[row.power_board_id][row.timestamp].add(row.temperature_register)
@@ -205,4 +232,4 @@ class EngProcessor(IdpuProcessor):
             "fgm_sh_temp",
         ]
 
-        return {field: field for field in eng_fields}
+        return {f"{processing_request.probe}_{field}": field for field in eng_fields}

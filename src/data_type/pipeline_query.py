@@ -5,6 +5,7 @@ from typing import List
 
 from dateutil.parser import parse as dateparser
 
+from data_type.time_type import TimeType
 from util.constants import ALL_MISSIONS, SCIENCE_TYPES
 
 
@@ -125,7 +126,7 @@ class ArgparsePipelineQuery(PipelineQuery):
 
     @staticmethod
     def get_times(collection: bool) -> str:
-        return "collection" if collection else "downlink"
+        return TimeType.COLLECTION if collection else TimeType.DOWNLINK
 
     @staticmethod
     def validate_time(start_time: str, end_time: str):

@@ -43,7 +43,7 @@ class DownlinkManager:
         """
         if downlinks:  # TODO: Fix this
             msg = (
-                f"{prefix} (Got {len(downlinks)} Total Downlink{science_utils.s_if_plural(downlinks)}):\n\n"
+                f"{prefix} (In total, got {len(downlinks)} Downlink{science_utils.s_if_plural(downlinks)}):\n\n"
                 + "\n".join([str(d) for d in downlinks])
                 + "\n"
             )

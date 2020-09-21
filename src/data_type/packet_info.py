@@ -22,7 +22,7 @@ class PacketInfo:
     def __init__(self, science_packet_id, idpu_time, collection_time, denominator):
         # I've decided packet_id isn't useful enough to include here, but can be added later if necessary
         # self.packet_id = packet_id
-        self.science_packet_id = science_packet_id  # TODO: ID in science_packets table, rename
+        self.science_packet_id = science_packet_id
         self.idpu_time = idpu_time
         self.collection_time = collection_time
         self.denominator = denominator
@@ -42,7 +42,7 @@ class PacketInfo:
         return (
             f"PacketInfo(science_packet_id={self.science_packet_id}, "
             + f"idpu_time={self.idpu_time},"
-            + f"collection_time={self.collection_time}"
+            + f"collection_time={self.collection_time}, "
             + f"denominator={self.denominator})"
         )
 
@@ -50,6 +50,6 @@ class PacketInfo:
         return (
             f"PacketInfo(science_packet_id={self.science_packet_id}, "
             + f"idpu_time={self.idpu_time},"
-            + f"collection_time={self.collection_time}"
+            + f"collection_time={self.collection_time}, "
             + f"denominator={self.denominator})"
         )

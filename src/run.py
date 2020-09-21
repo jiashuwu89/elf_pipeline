@@ -111,7 +111,7 @@ class CLIHandler:
             + "process (as opposed to gathering IDPU data through calculating downlinks",
             action="store_true",
         )
-        sub_parser.add_argument(
+        sub_parser.add_argument(  # TODO: Make this positional instead?
             "-p",
             "--products",
             help="process data belonging to PRODUCTS",

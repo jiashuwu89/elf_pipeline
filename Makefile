@@ -24,9 +24,9 @@ all: format check-style test coverage doc
 format:
 	@echo "⭐ Formatting ⭐";
 	$(PR) black --line-length $(LINE_LENGTH) $(SRC) \
-	&& isort -rc --lines $(LINE_LENGTH) $(SRC) \
-	&& black --line-length $(LINE_LENGTH) $(TST) \
-	&& isort -rc --lines $(LINE_LENGTH) $(TST);
+	&& $(PR) isort -rc --lines $(LINE_LENGTH) $(SRC) \
+	&& $(PR) black --line-length $(LINE_LENGTH) $(TST) \
+	&& $(PR) isort -rc --lines $(LINE_LENGTH) $(TST);
 
 # TODO: Vulture broken in prospector right now
 # TODO: mypy?

@@ -39,8 +39,6 @@ class RequestGetterManager:
         Set[ProcessingRequests]
             All ProcessingRequests found, representing items to be generated
         """
-        # TODO: "times" is just for idpu products?
-
         processing_requests = set()
 
         # TODO: give request getters to this manager via a list as a parameter to constructor

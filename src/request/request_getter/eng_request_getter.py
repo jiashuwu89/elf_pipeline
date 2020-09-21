@@ -2,6 +2,7 @@ from elfin.common import models
 from sqlalchemy.sql import func
 
 from data_type.processing_request import ProcessingRequest
+from data_type.time_type import TimeType
 from request.request_getter.request_getter import RequestGetter
 from util import science_utils
 from util.constants import SCIENCE_TYPES
@@ -55,14 +56,14 @@ class EngRequestGetter(RequestGetter):
         query = self.pipeline_config.session.query(
             models.Categorical.mission_id, func.date(models.Categorical.timestamp)
         ).distinct()
-        if pipeline_query.times == "downlink":
+        if pipeline_query.times == TimeType.DOWNLINK:
             query = query.filter(
                 models.Categorical.mission_id.in_(pipeline_query.mission_ids),
                 models.Packet.timestamp >= pipeline_query.start_time,
                 models.Packet.timestamp < pipeline_query.end_time,
                 models.Categorical.name.in_(categoricals),
             ).join(models.Packet, models.Categorical.packet_id == models.Packet.id)
-        elif pipeline_query.times == "collection":
+        elif pipeline_query.times == TimeType.COLLECTION:
             query = query.filter(
                 models.Categorical.mission_id.in_(pipeline_query.mission_ids),
                 models.Categorical.timestamp >= pipeline_query.start_time,
@@ -77,6 +78,12 @@ class EngRequestGetter(RequestGetter):
             f"➜  Got {len(categoricals_requests)} "
             + f"ENG Categoricals request{science_utils.s_if_plural(categoricals_requests)}"
         )
+        self.logger.debug(
+            f"🌥 🌥 🌥 🌥 🌥  Got {len(categoricals_requests)} "
+            + f"categoricals processing request{science_utils.s_if_plural(categoricals_requests)}:\n\n\t"
+            + "\n\t".join(str(br) for br in sorted(categoricals_requests))
+            + "\n"
+        )
         return categoricals_requests
 
     def get_bmon_requests(self, pipeline_query):
@@ -85,16 +92,29 @@ class EngRequestGetter(RequestGetter):
         query = (
             self.pipeline_config.session.query(models.BmonData.mission_id, func.date(models.BmonData.timestamp))
             .distinct()
-            .filter(
-                models.BmonData.mission_id.in_(pipeline_query.mission_ids),
+            .filter(models.BmonData.mission_id.in_(pipeline_query.mission_ids))
+        )
+        if pipeline_query.times == TimeType.DOWNLINK:
+            query = query.filter(
                 models.Packet.timestamp >= pipeline_query.start_time,
                 models.Packet.timestamp < pipeline_query.end_time,
+            ).join(models.Packet, models.BmonData.packet_id == models.Packet.id)
+        elif pipeline_query.times == TimeType.COLLECTION:
+            query = query.filter(
+                models.BmonData.timestamp >= pipeline_query.start_time,
+                models.BmonData.timestamp < pipeline_query.end_time,
             )
-            .join(models.Packet, models.BmonData.packet_id == models.Packet.id)
-        )
+        else:
+            raise ValueError(f"Bad times: {pipeline_query.times}")
 
         bmon_requests = {ProcessingRequest(mission_id, "eng", date) for mission_id, date in query}
         self.logger.info(
             f"➜  Got {len(bmon_requests)} " + f"ENG Bmon request{science_utils.s_if_plural(bmon_requests)}"
+        )
+        self.logger.debug(
+            f"🌥 🌥 🌥 🌥 🌥  Got {len(bmon_requests)} "
+            + f"bmon processing request{science_utils.s_if_plural(bmon_requests)}:\n\n\t"
+            + "\n\t".join(str(br) for br in sorted(bmon_requests))
+            + "\n"
         )
         return bmon_requests

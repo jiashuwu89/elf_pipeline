@@ -1,6 +1,7 @@
 import datetime as dt
 
 from data_type.processing_request import ProcessingRequest
+from data_type.time_type import TimeType
 from request.downlink_manager import DownlinkManager
 from request.request_getter.request_getter import RequestGetter
 from util.constants import PACKET_MAP, SCIENCE_TYPES
@@ -33,9 +34,9 @@ class IdpuRequestGetter(RequestGetter):
             return set()
         self.logger.info(f"Requested relevant products: {idpu_products}")
 
-        if pipeline_query.times == "downlink":
+        if pipeline_query.times == TimeType.DOWNLINK:
             dl_list = self.downlink_manager.get_downlinks_by_downlink_time(pipeline_query)
-        elif pipeline_query.times == "collection":  # TODO: Fix this
+        elif pipeline_query.times == TimeType.COLLECTION:
             dl_list = self.downlink_manager.get_downlinks_by_collection_time(pipeline_query)
         else:
             raise ValueError(f"Expected 'downlink' or 'collection', got {pipeline_query.times}")

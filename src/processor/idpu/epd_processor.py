@@ -276,7 +276,7 @@ class EpdProcessor(IdpuProcessor):
         # Add the time
         bytes_data = spin_period_bytes + collection_time_bytes
         num_sectors = len(measured_values) / 16
-        if num_sectors not in VALID_NUM_SECTORS:  # TODO: make into enum?
+        if num_sectors not in VALID_NUM_SECTORS:
             raise ValueError(f"Bad Number of Sectors: {num_sectors}")
 
         num_bins = 0

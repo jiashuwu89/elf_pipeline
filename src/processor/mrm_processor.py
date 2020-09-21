@@ -110,7 +110,7 @@ class MrmProcessor(ScienceProcessor):
 
         datestr_run = dt.datetime.utcnow().strftime("%04Y-%02m-%02d")
         cdf.attrs["Generation_date"] = datestr_run
-        cdf.attrs["MODS"] = f"Rev- {datestr_run}"  # TODO: Check this string
+        cdf.attrs["MODS"] = f"Rev- {datestr_run}"
 
     def get_cdf_fields(self, processing_request):
         """Provides a mapping of CDF fields to MRM DataFrame fields.

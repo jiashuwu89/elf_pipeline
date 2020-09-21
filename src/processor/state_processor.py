@@ -10,6 +10,7 @@ from spacepy import pycdf
 from sqlalchemy import desc
 
 from processor.science_processor import ScienceProcessor
+from util import general_utils
 from util.constants import IDL_SCRIPT_VERSION, MINS_IN_DAY
 from util.science_utils import get_angle_between, interpolate_attitude
 
@@ -132,7 +133,7 @@ class StateProcessor(ScienceProcessor):
         Each 1 represents the satellite being 'in sun'
         Each 0 refers to umbra or penumbra
         """
-        base_datetime = dt.datetime.combine(processing_request.date, dt.datetime.min.time())
+        base_datetime = general_utils.convert_date_to_datetime(processing_request.date)
         end_time = base_datetime + dt.timedelta(seconds=86399)
 
         # Query for sun events in the Events table
@@ -153,7 +154,7 @@ class StateProcessor(ScienceProcessor):
 
         # Initialize DataFrame to store times and corresponding 'sun value' which defaults to 0
         final_df = pd.DataFrame(columns=["time", "_sun"])
-        base_datetime = dt.datetime.combine(processing_request.date, dt.datetime.min.time())
+        base_datetime = general_utils.convert_date_to_datetime(processing_request.date)
         final_df["time"] = [base_datetime + dt.timedelta(seconds=i) for i in range(86400)]
         final_df["_sun"] = 0
 
@@ -207,7 +208,7 @@ class StateProcessor(ScienceProcessor):
         # Preparing the final DF that is ultimately returned (Solution date is tt2000)
         final_df = pd.DataFrame(columns=["time", "time_dt", "solution_date", "X", "Y", "Z", "uncertainty"])
 
-        base_datetime = dt.datetime.combine(processing_request.date, dt.datetime.min.time())
+        base_datetime = general_utils.convert_date_to_datetime(processing_request.date)
         final_df["time_dt"] = [base_datetime + dt.timedelta(minutes=i) for i in range(MINS_IN_DAY)]
         final_df["time"] = final_df["time_dt"].apply(pycdf.lib.datetime_to_tt2000)
 

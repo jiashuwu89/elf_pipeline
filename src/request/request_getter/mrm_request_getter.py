@@ -2,6 +2,7 @@ from elfin.common import models
 from sqlalchemy.sql import func
 
 from data_type.processing_request import ProcessingRequest
+from data_type.time_type import TimeType
 from request.request_getter.request_getter import RequestGetter
 from util import science_utils
 from util.constants import MRM_ENUM_MAP, MRM_TYPES
@@ -26,11 +27,11 @@ class MrmRequestGetter(RequestGetter):
             .distinct()
             .filter(models.Packet.mission_id.in_(pipeline_query.mission_ids), models.MRM.mrm_type.in_(mrm_products))
         )
-        if pipeline_query.times == "downlink":
+        if pipeline_query.times == TimeType.DOWNLINK:
             sql_query = sql_query.filter(
                 models.Packet.timestamp >= pipeline_query.start_time, models.Packet.timestamp < pipeline_query.end_time
             )
-        elif pipeline_query.times == "collection":
+        elif pipeline_query.times == TimeType.COLLECTION:
             sql_query = sql_query.filter(
                 models.MRM.timestamp >= pipeline_query.start_time, models.MRM.timestamp < pipeline_query.end_time
             )

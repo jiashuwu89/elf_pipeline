@@ -15,8 +15,6 @@ from request.request_getter_manager import RequestGetterManager
 from util import science_utils
 from util.constants import DAILY_EMAIL_LIST
 
-# TODO: self.times should be an enum
-
 
 # TODO: Eliminate Pipeline query
 class Coordinator:
@@ -27,8 +25,8 @@ class Coordinator:
     mission_ids
         list containing subset of 1, 2, 3 for ELA, ELB, EM3 (respectively)
     times
-        "downlink" or "collection", for downlink time and collection time,
-        respectively
+        specifies if the times specified refer to downlink time or collection
+        time (represented by an enum)
     start_time/end_time
         time range to search for data
     products
@@ -117,7 +115,7 @@ class Coordinator:
 
     def transfer_files(self, generated_files):
         if not self.pipeline_config.upload:
-            self.logger.info("No files transferred")
+            self.logger.info("No files transferred, as specified")
             return 0
 
         transferred_files_count = self.server_manager.transfer_files(generated_files)

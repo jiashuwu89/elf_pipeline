@@ -4,6 +4,7 @@ import os
 import dateutil
 import pytest
 
+from data_type.time_type import TimeType
 from run import ArgparsePipelineConfig, ArgparsePipelineQuery, CLIHandler
 
 
@@ -52,8 +53,8 @@ class TestArgparsePipelineQuery:
             ArgparsePipelineQuery.get_data_products([])
 
     def test_get_times(self):
-        assert ArgparsePipelineQuery.get_times(True) == "collection"
-        assert ArgparsePipelineQuery.get_times(False) == "downlink"
+        assert ArgparsePipelineQuery.get_times(True) == TimeType.COLLECTION
+        assert ArgparsePipelineQuery.get_times(False) == TimeType.DOWNLINK
 
     def test_validate_time(self):
         start_time_str = "2020-09-08"
