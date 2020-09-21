@@ -41,6 +41,28 @@ def get_attribute_or_none(args, attribute):
     return None
 
 
+def get_angle_between(v1: pd.Series, v2: pd.Series) -> pd.Series:
+    """Get the angle between 2 pd.Series of astropy.CartesianRepresentations.
+
+    Formula: Inverse cosine of the dot product of the two vectors (which have
+    been converted to unit vectors)
+
+    Parameters
+    ----------
+    v1, v1 : pd.Series
+        Series of CartesianRepresentations
+
+    Returns
+    -------
+    pd.Series
+        Series of values representing the angle between values in v1 and v2
+    """
+    v1 = pd.Series(v1.apply(lambda x: x / x.norm()))
+    v2 = pd.Series(v2.apply(lambda x: x / x.norm()))
+    final_series = pd.Series([np.arccos(v1[i].dot(v2[i]).to_value()) for i in range(v1.size)])
+    return final_series.apply(np.degrees)
+
+
 def interpolate_attitude(S_init, t_init, S_fin, t_fin):
     """Wynne's Function to perform attitude interpolation.
 

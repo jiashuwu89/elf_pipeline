@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 
 from elfin.common import db
 
+from util.constants import STATE_CSV_DIR
+
 
 class PipelineConfig(ABC):
     """A class to hold configurations of the pipeline."""
@@ -29,6 +31,12 @@ class PipelineConfig(ABC):
     @abstractmethod
     def output_dir(self) -> str:
         """The directory where generated files should be stored"""
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def state_csv_dir(self) -> str:
+        """Directory that contains csv files for State CDF generation"""
         raise NotImplementedError
 
     @property
@@ -73,6 +81,10 @@ class ArgparsePipelineConfig(PipelineConfig):
     @property
     def output_dir(self):
         return self._output_dir
+
+    @property
+    def state_csv_dir(self):
+        return STATE_CSV_DIR
 
     @property
     def upload(self):

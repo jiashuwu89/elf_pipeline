@@ -115,7 +115,6 @@ class ScienceProcessor(ABC):
         None
             The CDF is modified in-place
         """
-        breakpoint()
         cdf_fields = self.get_cdf_fields(processing_request)
         for cdf_field_name, df_field_name in cdf_fields.items():
             if cdf_field_name in cdf.keys() and df_field_name in df.columns:

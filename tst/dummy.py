@@ -7,6 +7,7 @@ from elfin.common import db
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
 from processor.science_processor import ScienceProcessor
+from util.constants import TEST_DATA_DIR
 
 
 class DummyPipelineConfig(PipelineConfig):
@@ -33,6 +34,10 @@ class DummyPipelineConfig(PipelineConfig):
         return self._output_dir
 
     @property
+    def state_csv_dir(self):
+        return f"{TEST_DATA_DIR}/csv"
+
+    @property
     def upload(self):
         return False
 
@@ -49,3 +54,39 @@ class DummyProcessingRequest(ProcessingRequest):
 class DummyScienceProcessor(ScienceProcessor):
     def generate_files(self, processing_request):
         raise NotImplementedError
+
+
+class SafeTestPipelineConfig(PipelineConfig):
+    def __init__(self):
+        if db.SESSIONMAKER is None:
+            db.connect("production")
+        self._session = db.SESSIONMAKER()
+        self._output_dir = tempfile.mkdtemp()
+
+    @property
+    def session(self):
+        return self._session
+
+    @property
+    def update_db(self):
+        return False
+
+    @property
+    def generate_files(self):
+        return True
+
+    @property
+    def output_dir(self):
+        return self._output_dir
+
+    @property
+    def state_csv_dir(self):
+        return f"{TEST_DATA_DIR}/csv"
+
+    @property
+    def upload(self):
+        return False
+
+    @property
+    def email(self):
+        return False

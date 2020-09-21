@@ -10,8 +10,10 @@ from spacepy import pycdf
 from sqlalchemy import desc
 
 from processor.science_processor import ScienceProcessor
-from util.constants import IDL_SCRIPT_VERSION, STATE_CSV_DIR
-from util.science_utils import interpolate_attitude
+from util.constants import IDL_SCRIPT_VERSION, MINS_IN_DAY
+from util.science_utils import get_angle_between, interpolate_attitude
+
+# TODO: Make sure that dfs input and output are consistent in terms of column types
 
 
 class StateProcessor(ScienceProcessor):
@@ -21,6 +23,7 @@ class StateProcessor(ScienceProcessor):
         super().__init__(pipeline_config)
 
         self.state_type = "defn"
+        self.state_csv_dir = pipeline_config.state_csv_dir
         self.nan_df = pd.DataFrame()  # Holds nan_df if it needs to be reused (useful mostly for dumps)
 
     def generate_files(self, processing_request):
@@ -75,25 +78,24 @@ class StateProcessor(ScienceProcessor):
         df = None
         for d in [processing_request.date - dt.timedelta(days=1), processing_request.date]:
             cdf_fname = self.get_fname(processing_request.probe, 1, self.state_type, d)
-            csv_fname = STATE_CSV_DIR + cdf_fname.split("/")[-1].rstrip(".cdf") + ".csv"
-
+            csv_fname = f"{self.state_csv_dir}/{cdf_fname.split('/')[-1].rstrip('.cdf')}.csv"
             try:
                 csv_df = self.read_state_csv(csv_fname)
-                if df:
+                if df is not None:
                     df = df.append(csv_df)
                 else:
                     df = csv_df
             except FileNotFoundError:
                 self.logger.warning(f"File not found: {csv_fname}")
 
-        if not df:
+        if df is None:
             raise RuntimeError(
                 f"Couldn't create csv_df, check /home/elfin-esn/state_data for csv for {processing_request.date}"
             )
 
-        return df.loc[
-            (df.index >= processing_request.date) & (df.index < processing_request.date + dt.timedelta(days=1))
-        ]
+        date_lower_bound = pd.Timestamp(processing_request.date)
+        date_upper_bound = pd.Timestamp(processing_request.date + dt.timedelta(days=1))
+        return df.loc[(df.index >= date_lower_bound) & (df.index < date_upper_bound)]
 
     def read_state_csv(self, csv_fname):
         """Read the state vectors CSV produced by STK."""
@@ -130,15 +132,16 @@ class StateProcessor(ScienceProcessor):
         Each 1 represents the satellite being 'in sun'
         Each 0 refers to umbra or penumbra
         """
-        end_time = processing_request.date + dt.timedelta(seconds=86399)
+        base_datetime = dt.datetime.combine(processing_request.date, dt.datetime.min.time())
+        end_time = base_datetime + dt.timedelta(seconds=86399)
 
         # Query for sun events in the Events table
         query = (
             self.session.query(models.Event)
             .filter(
                 models.Event.type_id == 3,
-                models.Event.start_time < end_time,
-                models.Event.stop_time > processing_request.date,  # TODO: make sure date is right time
+                models.Event.start_time < end_time,  # TODO: check if it should be <=, timedelta of 1 day
+                models.Event.stop_time > base_datetime,  # TODO: make sure date is right time
                 models.Event.mission_id == processing_request.mission_id,
             )
             .order_by(desc(models.Event.id))
@@ -150,16 +153,16 @@ class StateProcessor(ScienceProcessor):
 
         # Initialize DataFrame to store times and corresponding 'sun value' which defaults to 0
         final_df = pd.DataFrame(columns=["time", "_sun"])
-        final_df["time"] = [processing_request.date + dt.timedelta(seconds=i) for i in range(86400)]
+        base_datetime = dt.datetime.combine(processing_request.date, dt.datetime.min.time())
+        final_df["time"] = [base_datetime + dt.timedelta(seconds=i) for i in range(86400)]
         final_df["_sun"] = 0
 
         # Update Ranges in the DataFrame that are 'in sun'
         for row in query:
-            selection = final_df.loc[(final_df.time >= row.start_time) & (final_df.time <= row.stop_time), "_sun"]
-            if selection.any():
+            if final_df.loc[(final_df.time >= row.start_time) & (final_df.time <= row.stop_time), "_sun"].any():
                 self.logger.debug(f"Oh No! Overlapping Sun! {row.start_time} - {row.stop_time} is probably no good!")
                 continue
-            selection = 1  # Check this
+            final_df.loc[(final_df.time >= row.start_time) & (final_df.time <= row.stop_time), "_sun"] = 1  # Check this
 
         cdf[f"{processing_request.probe}_sun"] = final_df["_sun"]
 
@@ -203,12 +206,14 @@ class StateProcessor(ScienceProcessor):
 
         # Preparing the final DF that is ultimately returned (Solution date is tt2000)
         final_df = pd.DataFrame(columns=["time", "time_dt", "solution_date", "X", "Y", "Z", "uncertainty"])
-        final_df["time_dt"] = [processing_request.date + dt.timedelta(minutes=i) for i in range(60 * 24)]
+
+        base_datetime = dt.datetime.combine(processing_request.date, dt.datetime.min.time())
+        final_df["time_dt"] = [base_datetime + dt.timedelta(minutes=i) for i in range(MINS_IN_DAY)]
         final_df["time"] = final_df["time_dt"].apply(pycdf.lib.datetime_to_tt2000)
 
         # Query for solutions
-        end_time = processing_request.date + dt.timedelta(seconds=86399)
-        first_possible_time = processing_request.date - dt.timedelta(days=30)
+        end_time = base_datetime + dt.timedelta(seconds=86399)
+        first_possible_time = base_datetime - dt.timedelta(days=30)
         last_possible_time = end_time + dt.timedelta(days=30)
         query = (
             self.session.query(models.CalculatedAttitude)
@@ -228,7 +233,7 @@ class StateProcessor(ScienceProcessor):
         found_first = False
         for q in query:
             if not found_first and q.time <= end_time:
-                if q.time >= processing_request.date:
+                if q.time >= base_datetime:
                     found_first = True
                     query_list.append(q)
                 else:
@@ -325,24 +330,14 @@ class StateProcessor(ScienceProcessor):
             - Get angle between the resulting vector and attitude vector
         """
 
-        def get_angle_between(v1: pd.Series(), v2: pd.Series()) -> pd.Series():
-            """
-            Get the angle between two pd.Series of astropy.CartesianRepresentations
-            Formula: Inverse cosine of the dot product of the two vectors (which have been converted to unit vectors)
-            """
-            v1 = pd.Series(v1.apply(lambda x: x / x.norm()))
-            v2 = pd.Series(v2.apply(lambda x: x / x.norm()))
-            final_series = pd.Series([np.arccos(v1[i].dot(v2[i]).to_value()) for i in range(v1.size)])
-            return final_series.apply(np.degrees)
-
         # Clean up DataFrames:
         # Delete duplicates, only keep times that are exactly on the minute, check length
         att_df = att_df.drop_duplicates(subset=["time"]).reset_index(drop=True)
         vel_pos_df = vel_pos_df.loc[~vel_pos_df.index.duplicated(keep="first")]
         vel_pos_df = vel_pos_df.loc[(vel_pos_df.index.second == 0) & (vel_pos_df.index.microsecond == 0)]
-        if att_df.shape[0] != 60 * 24:
+        if att_df.shape[0] != MINS_IN_DAY:
             raise ValueError(f"attitude DataFrame is the wrong shape (expected 1440): {att_df.shape[0]}")
-        if vel_pos_df.shape[0] != 60 * 24:
+        if vel_pos_df.shape[0] != MINS_IN_DAY:
             msg = f"Bad velocity and position df, reducing attitude df from 1440 min/day to: {vel_pos_df.shape[0]}"
             self.logger.warning(msg)
 
@@ -369,11 +364,11 @@ class StateProcessor(ScienceProcessor):
         final_df["_spin_orbnorm_angle"] = get_angle_between(cross_pos_vel_series, att_v_series)
 
         # Fill in missing data with empty columns if necessary
-        if att_df.shape[0] != 1440:
+        if att_df.shape[0] != MINS_IN_DAY:
             first_time = att_df["time_dt"][0].date()
             all_minutes = [
                 dt.datetime.combine(first_time, dt.datetime.min.time()) + dt.timedelta(minutes=i)
-                for i in range(60 * 24)
+                for i in range(MINS_IN_DAY)
             ]
             empty_minutes = [
                 pycdf.lib.datetime_to_tt2000(i) for i in all_minutes if i not in att_df["time_dt"].to_list()
@@ -395,7 +390,7 @@ class StateProcessor(ScienceProcessor):
         # If nan_df needs to be created, then create it
         if self.nan_df.empty:
             self.nan_df = pd.DataFrame(columns=nan_df_cols)
-            self.nan_df["_att_time"] = [dt.datetime(1, 1, 1) for _ in range(60 * 24)]  # Lowest year is 1 in CDFs
+            self.nan_df["_att_time"] = [dt.datetime(1, 1, 1) for _ in range(MINS_IN_DAY)]  # Lowest year is 1 in CDFs
             self.nan_df["_att_time"] = self.nan_df["_att_time"].apply(pycdf.lib.datetime_to_tt2000)
             for col in nan_numeric_cols:
                 self.nan_df[col] = pd.to_numeric(self.nan_df[col], errors="coerce")

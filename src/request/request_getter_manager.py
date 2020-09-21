@@ -43,6 +43,7 @@ class RequestGetterManager:
 
         processing_requests = set()
 
+        # TODO: give request getters to this manager via a list as a parameter to constructor
         processing_requests.update(IdpuRequestGetter(self.pipeline_config).get(pipeline_query))
         processing_requests.update(MrmRequestGetter(self.pipeline_config).get(pipeline_query))
         processing_requests.update(EngRequestGetter(self.pipeline_config).get(pipeline_query))

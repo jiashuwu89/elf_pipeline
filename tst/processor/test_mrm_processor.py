@@ -8,43 +8,11 @@ from spacepy import pycdf
 
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
+from dummy import SafeTestPipelineConfig
 from processor.mrm_processor import MrmProcessor
+from util.constants import TEST_DATA_DIR
 
 # TODO: test_utils dir!
-# TODO: If SafeTestPipelineConfig is used more, then we should move it to a more general location
-TEST_DATA_DIR = "/Users/jamesking/Desktop/elfin/OPS/science/refactor/tst/test_data"
-
-
-class SafeTestPipelineConfig(PipelineConfig):
-    def __init__(self):
-        if db.SESSIONMAKER is None:
-            db.connect("production")
-        self._session = db.SESSIONMAKER()
-        self._output_dir = tempfile.mkdtemp()
-
-    @property
-    def session(self):
-        return self._session
-
-    @property
-    def update_db(self):
-        return False
-
-    @property
-    def generate_files(self):
-        return True
-
-    @property
-    def output_dir(self):
-        return self._output_dir
-
-    @property
-    def upload(self):
-        return False
-
-    @property
-    def email(self):
-        return False
 
 
 class TestMrmProcessor:
@@ -59,6 +27,8 @@ class TestMrmProcessor:
 
         new_cdf = pycdf.CDF(generated_l1_file)
         expected_cdf = pycdf.CDF(f"{TEST_DATA_DIR}/cdf/elb_l1_mrma_20200418_v01.cdf")
+
+        assert all([a == b for a, b in zip(new_cdf.keys(), expected_cdf.keys())]) is True
 
         for new_time, expected_time in zip(new_cdf["elb_mrma_time"][...], expected_cdf["elb_mrma_time"][...]):
             assert new_time == expected_time

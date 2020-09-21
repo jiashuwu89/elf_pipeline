@@ -6,6 +6,7 @@ from sqlalchemy.sql import func
 from data_type.processing_request import ProcessingRequest
 from request.request_getter.request_getter import RequestGetter
 from util import science_utils
+from util.constants import STATE_CALCULATE_RADIUS
 
 
 class StateRequestGetter(RequestGetter):
@@ -25,6 +26,9 @@ class StateRequestGetter(RequestGetter):
 
     def get_direct_requests(self, pipeline_query):
         self.logger.info("➜  Getting State direct requests")
+        if pipeline_query.times == "downlink":
+            self.logger.warning("➜  State direct requests not applicable if querying by downlink time")
+            return set()
 
         # Always process certain days
         direct_requests = set()
@@ -53,14 +57,25 @@ class StateRequestGetter(RequestGetter):
             .distinct()
             .filter(
                 models.CalculatedAttitude.mission_id.in_(pipeline_query.mission_ids),
+            )
+        )
+        if pipeline_query.times == "downlink":
+            query = query.filter(
                 models.CalculatedAttitude.insert_date >= pipeline_query.start_time,
                 models.CalculatedAttitude.insert_date < pipeline_query.end_time,
             )
-        )
+        elif pipeline_query.times == "collection":
+            query = query.filter(
+                models.CalculatedAttitude.time >= pipeline_query.start_time,
+                models.CalculatedAttitude.time < pipeline_query.end_time,
+            )
+        else:
+            raise ValueError(f"Bad times: {pipeline_query.times}")
+
         for mission_id, date in query:
             # Figure out which dates around each found attitude we must calculate
-            cur_date = date - dt.timedelta(days=5)
-            end_limit = date + dt.timedelta(days=5)
+            cur_date = date - STATE_CALCULATE_RADIUS
+            end_limit = date + STATE_CALCULATE_RADIUS
             while cur_date <= end_limit:
                 attitude_requests.add(ProcessingRequest(mission_id, "state", cur_date))
                 cur_date += dt.timedelta(days=1)

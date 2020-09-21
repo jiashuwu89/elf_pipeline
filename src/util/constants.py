@@ -80,9 +80,16 @@ STATE_CSV_DIR = "/home/elfin-esn/state_data/"
 MASTERCDF_DIR = "/Users/jamesking/Desktop/elfin/OPS/science/refactor/mastercdf"
 EPD_CALIBRATION_DIR = "/home/elfin-esn/OPS/science/trunk/science_processing/calibration"
 SERVER_BASE_DIR = "/themis/data/elfin"
+TEST_DATA_DIR = "/Users/jamesking/Desktop/elfin/OPS/science/refactor/tst/test_data"
+
+# NUMBERS
+MINS_IN_DAY = 60 * 24
 
 # Misc
 LOOK_BEHIND_DELTA = dt.timedelta(hours=5)  # Begin search this far behind for packets
 DAILY_EMAIL_LIST = ["jcking1034@gmail.com"]
 
-VALID_NUM_SECTORS = [4, 16]  # EPD-related values
+VALID_NUM_SECTORS = [4, 16]  # EPD-related value
+
+# When an attitude is found, reprocess days that are STATE_CALCULATE_RAIDUS before or after the attitude data point
+STATE_CALCULATE_RADIUS = dt.timedelta(days=5)
