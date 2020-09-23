@@ -48,7 +48,8 @@ class MrmProcessor(ScienceProcessor):
             self.logger.info("No matching data found")
             return []
 
-        self.completeness_updater.update_completeness_table(processing_request, mrm_df["timestamp"])
+        if self.update_db:
+            self.completeness_updater.update_completeness_table(processing_request, mrm_df["timestamp"])
 
         cdf_fname = self.make_filename(processing_request, level=1)
 

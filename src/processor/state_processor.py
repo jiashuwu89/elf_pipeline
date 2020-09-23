@@ -339,8 +339,9 @@ class StateProcessor(ScienceProcessor):
         if att_df.shape[0] != MINS_IN_DAY:
             raise ValueError(f"attitude DataFrame is the wrong shape (expected 1440): {att_df.shape[0]}")
         if vel_pos_df.shape[0] != MINS_IN_DAY:
-            msg = f"Bad velocity and position df, reducing attitude df from 1440 min/day to: {vel_pos_df.shape[0]}"
-            self.logger.warning(msg)
+            self.logger.warning(
+                f"Bad velocity and position df, reducing attitude df from 1440 min/day to: {vel_pos_df.shape[0]}"
+            )
 
             # TODO: Email Warning
 
@@ -352,15 +353,12 @@ class StateProcessor(ScienceProcessor):
         final_df["time"] = att_df["time"]
 
         # Sun Angle Calculations
-        sun_v_list = [a_c.get_sun(Time(att_df["time_dt"][i])).cartesian for i in range(len(att_df))]
-        att_v_list = [a_c.CartesianRepresentation(*i) for i in att_df[["X", "Y", "Z"]].values]
-        sun_v_series = pd.Series(sun_v_list)
-        att_v_series = pd.Series(att_v_list)
+        sun_v_series = pd.Series([a_c.get_sun(Time(att_df["time_dt"][i])).cartesian for i in range(len(att_df))])
+        att_v_series = pd.Series([a_c.CartesianRepresentation(*i) for i in att_df[["X", "Y", "Z"]].values])
         final_df["_spin_sun_angle"] = get_angle_between(sun_v_series, att_v_series)
 
         # Orbit Normal Angle Calculations
-        cross_pos_vel_list = [np.cross(i, j) for i, j in zip(vel_pos_df["pos_gei"], vel_pos_df["vel_gei"])]
-        cross_pos_vel_series = pd.Series(cross_pos_vel_list)
+        cross_pos_vel_series = pd.Series([np.cross(i, j) for i, j in zip(vel_pos_df["pos_gei"], vel_pos_df["vel_gei"])])
         cross_pos_vel_series = cross_pos_vel_series.apply(lambda x: a_c.CartesianRepresentation(*x))
         final_df["_spin_orbnorm_angle"] = get_angle_between(cross_pos_vel_series, att_v_series)
 

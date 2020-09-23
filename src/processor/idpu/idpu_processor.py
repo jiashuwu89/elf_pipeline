@@ -28,7 +28,6 @@ class IdpuProcessor(ScienceProcessor):
     def __init__(self, pipeline_config):
         super().__init__(pipeline_config)
 
-        self.update_db = pipeline_config.update_db
         self.downlink_manager = DownlinkManager(pipeline_config)
 
     def generate_files(self, processing_request):
@@ -53,7 +52,6 @@ class IdpuProcessor(ScienceProcessor):
         Finally, the individual dataframes are merged and duplicates/empty packets dropped.
         """
         self.logger.info(f"🟠  Generating Level 0 DataFrame for {str(processing_request)}")
-
         dl_list = self.downlink_manager.get_relevant_downlinks(processing_request)  # TODO: By COLLECTION Time
         self.downlink_manager.print_downlinks(dl_list, "Relevant downlinks")
 
@@ -173,14 +171,18 @@ class IdpuProcessor(ScienceProcessor):
 
             current_length = len(cur_data)
 
-            # TODO: make sure this is ok (see orig implementation)
             # Making sure this frame has a header
-            if compute_crc(0xFF, cur_frame[1:12]) != cur_frame[12]:
-                self.logger.debug(f"Dropping idx={idx}: Probably not a header\n")
+            try:
+                # make sure the CRC is ok, then remove header
+                if compute_crc(0xFF, cur_frame[1:12]) != cur_frame[12]:
+                    raise Exception(f"Bad CRC at {idx}")
+                expected_length = int.from_bytes(cur_frame[1:3], "little", signed=False) // 2 - 12
+
+            except Exception as e:
+                self.logger.debug(f"Dropping idx={idx}: Probably not a header - {e}\n")
                 missing_numerators.append(numerator)
                 idx += 1
                 continue
-            expected_length = int.from_bytes(cur_frame[1:3], "little", signed=False) // 2 - 12
 
             try:
                 while current_length < expected_length:
@@ -257,10 +259,8 @@ class IdpuProcessor(ScienceProcessor):
         df_times = df["idpu_time"]
 
         completeness_updater = self.get_completeness_updater(processing_request)
-        if completeness_updater:  # TODO: Why is this if
-            completeness_updater.update_completeness_table(
-                processing_request, df_times
-            )  # TODO: Change EPD to EPDE or EPDI
+        if completeness_updater:
+            completeness_updater.update_completeness_table(processing_request, df_times)
 
     @abstractmethod
     def get_completeness_updater(self, processing_request):

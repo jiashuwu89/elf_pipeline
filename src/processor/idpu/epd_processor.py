@@ -120,9 +120,7 @@ class EpdProcessor(IdpuProcessor):
         # lv0_df:           holds finished periods
         # period_df:        holds period that is currently being 'worked on'
         # measured values:  For one period, hold value from Huffman table and later is put into period_df
-        lv0_df = pd.DataFrame(
-            columns=["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "packet_id"]
-        )
+        lv0_df = pd.DataFrame(columns=["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data"])
         period_df = pd.DataFrame()
         measured_values = [None] * 16 * num_sectors
 
@@ -247,9 +245,6 @@ class EpdProcessor(IdpuProcessor):
                 period_df["idpu_type"] = df.iloc[packet_num]["idpu_type"]
                 period_df["numerator"] = df.iloc[packet_num]["numerator"]
                 period_df["denominator"] = df.iloc[packet_num]["denominator"]
-                period_df["packet_id"] = [
-                    df.iloc[packet_num]["packet_id"] for _ in range(period_df.shape[0])
-                ]  # TODO: This line is very slow
 
                 lv0_df = lv0_df.append(period_df, sort=True)
                 period_df = pd.DataFrame()
@@ -257,9 +252,9 @@ class EpdProcessor(IdpuProcessor):
             # Once a new row of data has been added, look at the next packet
             packet_num += 1
 
-        return lv0_df[
-            ["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "packet_id"]
-        ].reset_index(drop=True)
+        return lv0_df[["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data"]].reset_index(
+            drop=True
+        )
 
     def format_period_to_l0_df(self, measured_values, lossy_vals, spin_period_bytes, collection_time_bytes):
         """

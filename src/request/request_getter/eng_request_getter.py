@@ -5,7 +5,6 @@ from data_type.processing_request import ProcessingRequest
 from data_type.time_type import TimeType
 from request.request_getter.request_getter import RequestGetter
 from util import science_utils
-from util.constants import SCIENCE_TYPES
 
 
 # TODO: For all request getters, make sure that the data product is requested BEFORE getting requests

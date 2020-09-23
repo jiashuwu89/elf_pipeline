@@ -16,9 +16,9 @@ cache:
     - .cache/pip
     - .venv
 
+# 'build' stage not necessary right now
 stages:
   - Static Analysis
-  - build
   - release
 
 before_script:
@@ -40,10 +40,11 @@ test:
       - htmlcov/
   coverage: '/TOTAL.* ([0-9.]{4,6})%/'
 
-build-image:
-  stage: build
-  script:
-    - echo "Nothing right now!"
+# Not necessary right now
+# build-image:
+#   stage: build
+#   script:
+#     - echo "Nothing right now!"
 
 pages:
   stage: release

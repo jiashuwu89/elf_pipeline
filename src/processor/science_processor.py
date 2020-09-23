@@ -9,6 +9,8 @@ from spacepy import pycdf
 from request.downlink_manager import DownlinkManager  # TODO: Split Downlink Manager
 from util.constants import MASTERCDF_DIR
 
+# TODO: level 0 files on server are MESSY because of COUNTS in fname, so files not OVERWRITTEN
+
 
 class ScienceProcessor(ABC):
     """Base class used for all data product processing from the database.
@@ -19,8 +21,10 @@ class ScienceProcessor(ABC):
     def __init__(self, pipeline_config):
         self.logger = logging.getLogger(self.__class__.__name__)
 
+        # TODO: Just store pipeline_config?
         self.session = pipeline_config.session
         self.output_dir = pipeline_config.output_dir
+        self.update_db = pipeline_config.update_db
 
         self.downlink_manager = DownlinkManager(pipeline_config)
 

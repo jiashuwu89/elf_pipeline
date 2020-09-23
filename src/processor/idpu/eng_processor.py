@@ -10,7 +10,6 @@ import statistics
 import numpy as np
 import pandas as pd
 from elfin.common import models
-from spacepy import pycdf
 
 from processor.idpu.idpu_processor import IdpuProcessor
 from util.science_utils import dt_to_tt2000
@@ -35,15 +34,7 @@ class EngProcessor(IdpuProcessor):
 
     def process_rejoined_data(self, processing_request, df):
         """No major processing necessary for ENG level 0"""
-        # TODO: Check this
         df["data"] = df["data"].apply(lambda x: bytes.fromhex(x) if x else None)
-        # data_bytes = []
-        # for _, row in df.iterrows():
-        #     if row["data"] is not None:
-        #         data_bytes.append(bytes.fromhex(row["data"]))
-        #     else:
-        #         data_bytes.append(None)
-        # df["data"] = data_bytes
         return df
 
     def generate_l1_df(self, processing_request, l0_df):
