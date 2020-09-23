@@ -85,6 +85,7 @@ TEST_DATA_DIR = "/Users/jamesking/Desktop/elfin/OPS/science/refactor/tst/test_da
 
 # NUMBERS
 MINS_IN_DAY = 60 * 24
+BITS_IN_BYTE = 8
 
 # Misc
 LOOK_BEHIND_DELTA = dt.timedelta(hours=5)  # Begin search this far behind for packets
@@ -94,3 +95,4 @@ VALID_NUM_SECTORS = [4, 16]  # EPD-related value
 
 # When an attitude is found, reprocess days that are STATE_CALCULATE_RAIDUS before or after the attitude data point
 STATE_CALCULATE_RADIUS = dt.timedelta(days=5)
+ATTITUDE_SOLUTION_RADIUS = dt.timedelta(days=30)

@@ -35,17 +35,19 @@ check-style:
 	$(PR) prospector \
 		--strictness medium \
 		--max-line-length $(LINE_LENGTH) \
-		--with-tool vulture \
+		--without-tool dodgy \
 		--without-tool pep257 \
 		--pylint-config-file $(PYLINT_CONFIG) \
 		$(SRC) \
-	 && prospector \
+	&& $(PR) vulture $(SRC) \
+	&& $(PR) prospector \
 	 	--strictness medium \
 		--max-line-length $(LINE_LENGTH) \
-		--with-tool vulture \
+		--without-tool dodgy \
 		--without-tool pep257 \
 		--pylint-config-file $(PYLINT_CONFIG) \
-		$(TST);
+		$(TST) \
+	&& $(PR) vulture $(TST);
 
 test:
 	@echo "⭐ Performing Tests ⭐"

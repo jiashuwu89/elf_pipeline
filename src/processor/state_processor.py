@@ -11,7 +11,7 @@ from sqlalchemy import desc
 
 from processor.science_processor import ScienceProcessor
 from util import general_utils
-from util.constants import IDL_SCRIPT_VERSION, MINS_IN_DAY
+from util.constants import ATTITUDE_SOLUTION_RADIUS, IDL_SCRIPT_VERSION, MINS_IN_DAY
 from util.science_utils import get_angle_between, interpolate_attitude
 
 # TODO: Make sure that dfs input and output are consistent in terms of column types
@@ -214,8 +214,8 @@ class StateProcessor(ScienceProcessor):
 
         # Query for solutions
         end_time = base_datetime + dt.timedelta(seconds=86399)
-        first_possible_time = base_datetime - dt.timedelta(days=30)
-        last_possible_time = end_time + dt.timedelta(days=30)
+        first_possible_time = base_datetime - ATTITUDE_SOLUTION_RADIUS
+        last_possible_time = end_time + ATTITUDE_SOLUTION_RADIUS
         query = (
             self.session.query(models.CalculatedAttitude)
             .filter(

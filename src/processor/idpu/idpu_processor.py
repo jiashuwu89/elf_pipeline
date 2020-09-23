@@ -153,11 +153,9 @@ class IdpuProcessor(ScienceProcessor):
         idx = 0
 
         while idx < d.shape[0]:
-            numerator = d["numerator"].iloc[idx]
-
             if not data.iloc[idx]:
                 self.logger.debug(f"Dropping idx={idx}: Empty data")
-                missing_numerators.append(numerator)
+                missing_numerators.append(d["numerator"].iloc[idx])
                 idx += 1
                 continue
 
@@ -166,38 +164,34 @@ class IdpuProcessor(ScienceProcessor):
                 denominator = d["denominator"].iloc[idx]
 
             cur_data = data.iloc[idx]
-            cur_frame = frames.iloc[idx]
             cur_row = d.iloc[idx].copy()
-
-            current_length = len(cur_data)
 
             # Making sure this frame has a header
             try:
                 # make sure the CRC is ok, then remove header
-                if compute_crc(0xFF, cur_frame[1:12]) != cur_frame[12]:
+                if compute_crc(0xFF, frames.iloc[idx][1:12]) != frames.iloc[idx][12]:
                     raise Exception(f"Bad CRC at {idx}")
-                expected_length = int.from_bytes(cur_frame[1:3], "little", signed=False) // 2 - 12
+                expected_length = int.from_bytes(frames.iloc[idx][1:3], "little", signed=False) // 2 - 12
 
             except Exception as e:
                 self.logger.debug(f"Dropping idx={idx}: Probably not a header - {e}\n")
-                missing_numerators.append(numerator)
+                missing_numerators.append(d["numerator"].iloc[idx])
                 idx += 1
                 continue
 
             try:
-                while current_length < expected_length:
+                while len(cur_data) < expected_length:
                     idx += 1
                     cur_data += data.iloc[idx]
-                    current_length = len(cur_data)
             except Exception as e:  # Missing packet (or something else)
                 self.logger.debug(f"Dropping idx={idx}: Empty continuation (Exception={e})\n")
-                missing_numerators.append(numerator)
+                missing_numerators.append(d["numerator"].iloc[idx])
                 idx += 1
                 continue
 
-            if current_length != expected_length:
-                self.logger.debug(f"Dropping idx={idx}: Cur len {current_length} != Expected len {expected_length}\n")
-                missing_numerators.append(numerator)
+            if len(cur_data) != expected_length:
+                self.logger.debug(f"Dropping idx={idx}: Cur len {len(cur_data)} != Expected len {expected_length}\n")
+                missing_numerators.append(d["numerator"].iloc[idx])
                 idx += 1
                 continue
 

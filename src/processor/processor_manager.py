@@ -19,7 +19,7 @@ class ProcessorManager:
         for pr in processing_requests:
             self.logger.info(f"🔔🔔🔔  Generating files for {str(pr)}")
             try:
-                generated_files = self.processors[pr.data_product].generate_files(pr)
+                generated_files = self.processor_map[pr.data_product].generate_files(pr)
                 self.logger.info(f"🕶\tSuccessfully generated files: {generated_files}")
                 files.update(generated_files)
             except Exception as e:

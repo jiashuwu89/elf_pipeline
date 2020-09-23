@@ -1,5 +1,6 @@
 """Class to generate FGM files"""
 import datetime as dt
+from enum import Enum
 
 import numpy as np
 import pandas as pd
@@ -9,9 +10,34 @@ from metric.completeness import CompletenessUpdater
 from processor.idpu.idpu_processor import IdpuProcessor
 from util import byte_tools
 from util.compression_values import FGM_HUFFMAN
+from util.constants import BITS_IN_BYTE
 from util.science_utils import hex_to_int
 
 # TODO: Hardcoded values -> Constants
+
+
+class FgmRow:
+    def __init__(self, idpu_time, axes, frequency, numerator):
+        self.idpu_time = idpu_time
+        self.axes = axes
+        self.frequency = frequency
+        self.numerator = numerator
+
+
+class FgmFrequencyEnum(Enum):
+    """Stores the period as a float
+
+    TODO: UNKNOWN should probably not have period 0.0125, but this avoids an
+    error with line ~254, with the statement
+
+    idpu_time += dt.timedelta(seconds=(frequency.value))
+
+    See older commits for original code
+    """
+
+    TEN_HERTZ = 0.1
+    EIGHTY_HERTZ = 0.0125
+    UNKNOWN = 0.0125
 
 
 class FgmProcessor(IdpuProcessor):
@@ -44,14 +70,9 @@ class FgmProcessor(IdpuProcessor):
             df = self.decompress_df(processing_request, df)
         elif uncompressed:
             df["sampling_rate"] = self.find_diff(df)
-
-            to_add = []
-            for _, row in df.iterrows():
-                to_check = row["sampling_rate"]
-                to_check = to_check.to_pytimedelta()
-                to_add.append((self.check_sampling_rate(to_check, compressed=False)))
-
-            df["10hz_mode"] = to_add
+            df["10hz_mode"] = df["sampling_rate"].apply(
+                lambda x: self.check_sampling_rate(x.to_pytimedelta(), compressed=False)
+            )
             df = self.drop_packets_by_freq(processing_request, df)
             df = df[["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "10hz_mode"]]
         else:
@@ -124,7 +145,7 @@ class FgmProcessor(IdpuProcessor):
             <= time_gap
             <= dt.timedelta(microseconds=1 / 79 * 1e6) * multiplier
         ):
-            return False
+            return FgmFrequencyEnum.EIGHTY_HERTZ
 
         # check for 10 hz    microseconds in 11 hz < time_gap < microseconds in 9 hz
         # technically it should be 125000 but just give it some leeway
@@ -133,9 +154,9 @@ class FgmProcessor(IdpuProcessor):
             <= time_gap
             <= dt.timedelta(microseconds=1 / 9 * 1e6) * multiplier
         ):
-            return True
+            return FgmFrequencyEnum.TEN_HERTZ
 
-        return None
+        return FgmFrequencyEnum.UNKNOWN
 
     def decompress_df(self, processing_request, df):
         """Decompresses a compressed df of FGM data.
@@ -172,148 +193,133 @@ class FgmProcessor(IdpuProcessor):
         # Preparing the DataFrame that was received
         df["data"] = df["data"].apply(bytes.fromhex)
         df["idpu_time"] = df["data"].apply(lambda x: byte_tools.raw_idpu_bytes_to_datetime(x[:8]))
-        df = df.sort_values(by=["idpu_time"])
-        df = df.drop_duplicates(["idpu_time", "data"])
+        df = df.sort_values(by=["idpu_time"]).drop_duplicates(["idpu_time", "data"])
 
-        # Holds the values obtained by decompressing each row.
-        # Later is used to create the final DataFrame
-        # vals is a list of tuples: (time, list of ax1 and ax2 and ax 3, bool indicating compression mode)
-        vals = []
+        decompressed_rows = []
 
-        # Variables that keep track of last time, frequency
         prev_time = None
-        is_10hz = None  # Default is 10 hz, but checking is done for each
-        # is_10hz: True -> 10hz, False -> 80hz, None -> Neither (always dropped)
+        frequency = FgmFrequencyEnum.UNKNOWN  # Default is 10 hz, but checking is done for each
 
         for _, row in df.iterrows():
-            data = row["data"]
-            ts = row["idpu_time"]  # ts == timestamp == current time
-            num = row["numerator"]
+            idpu_time = row["idpu_time"]
 
             # find sampling rate based off of difference in time between 2 downlinked packets
             if prev_time:
-                current_measure = self.is10hz_sampling_rate(prev_time, ts)
-                if current_measure is not None:
-                    is_10hz = current_measure
-            prev_time = ts
+                if self.is10hz_sampling_rate(prev_time, idpu_time) != FgmFrequencyEnum.UNKNOWN:
+                    frequency = self.is10hz_sampling_rate(prev_time, idpu_time)
+            prev_time = idpu_time
 
-            # Parsing the beginning of the data (time, ax1, ax2, ax3)
-            start = [
-                byte_tools.get_signed(data[8:11]),
-                byte_tools.get_signed(data[11:14]),
-                byte_tools.get_signed(data[14:17]),
+            axes_values = [
+                byte_tools.get_signed(row["data"][8:11]),
+                byte_tools.get_signed(row["data"][11:14]),
+                byte_tools.get_signed(row["data"][14:17]),
             ]
 
-            # Now, we've received the first decompressed row
-            vals.append((ts, list(start), is_10hz, num))
+            # Create the initial decompressed row, later decompressed rows will follow
+            decompressed_rows.append(FgmRow(idpu_time, list(axes_values), frequency, row["numerator"]))
 
-            # The rest of the data is put into bs so the code can look for more values
-            bs = byte_tools.bin_string(data[17:])
+            # Store remaining data so the code can look for more values
+            bs = byte_tools.bin_string(row["data"][17:])
 
-            # hexits:
-            #  20|16  12|8  4|0
-            # Now parsing through the data that hasn't been looked at yet
-            ind = 0  # Goes 0->1->2->0..., Basically says where to apply the delta in the 'start' list
-            while len(bs) > 8:  # at least a byte
-                signb = bs[:2]
-                bs = bs[2:]
+            # Calculate the delta, and apply it to the appropriate axis (based on axis_index)
+            axis_index = 0
+            while len(bs) > BITS_IN_BYTE:  # TODO: Should this be >= ?, want to double check this
 
                 # Handling Sign: Getting 11 does not necessarily mean the science processing code
                 # is broken - the idpu code is set up to insert 11 if the the delta is too high
                 # to be encoded (creating a 'marker' for that error). If you have the permissions
                 # necessary, and want to view the idpu_code, the link is:
                 # https://elfin-dev1.igpp.ucla.edu/repos/eng/FPGA/elfin_ns8/idpu_em/source/branches/akhil_branch/embedded/idpu_3
-                if signb == "11":
-                    self.logger.debug(
-                        f"⚠️  Got sign bits 11, skip pkt at idpu_time={row['idpu_time']} numerator={row['numerator']}"
-                    )
+                if bs[:2] == "11":
+                    self.logger.debug(f"⚠️  Got sign bits '11' with {len(bs)} bytes remaining in current row")
                     break
-                sign = -1 if signb == "01" else 1
+                sign = -1 if bs[:2] == "01" else 1
+                bs = bs[2:]
 
-                # Getting the deltas from the data, then applying them to get the actual values
                 try:
                     hexit16, bs = byte_tools.get_huffman(bs, table=FGM_HUFFMAN)
                     hexit12, bs = byte_tools.get_huffman(bs, table=FGM_HUFFMAN)
                     hexit8 = int(bs[0:4], 2)
                     hexit4 = int(bs[4:8], 2)
                     bs = bs[8:]
-
                 except IndexError:
                     self.logger.warning("⚠️ Unable to decompress correctly")
-                    continue
+                    continue  # TODO: Should this be a 'break' instead?
 
-                # Apparently something changed in late March 2019?
-                if ts.strftime("%Y-%m-%d") < "2019-03-25":
-                    diff = sign * ((hexit16 << 16) + (hexit12 << 12) + (hexit8 << 8) + (hexit4 << 4))
-                else:
-                    diff = sign * ((hexit16 << 16) + (hexit12 << 12) + (hexit8 << 8) + (hexit4 << 4) << 1)
+                axes_values[axis_index] += sign * self.calculate_delta_magnitude(
+                    idpu_time, hexit16, hexit12, hexit8, hexit4
+                )
 
-                # Update the appropriate value in start, and add a new item to vals if start if fully updated
-                start[ind] += diff
-                if ind == 2:
-                    ts += dt.timedelta(seconds=(0.1 if is_10hz else 0.0125))  # packets are 100ms apart (10Hz)
-                    vals.append(
-                        (ts, list(start), is_10hz, num)
-                    )  # packet_id # TODO: Find a better way to handle packets, not just the first one
-                ind = (ind + 1) % 3
+                if axis_index == 2:  # Flush row
+                    idpu_time += dt.timedelta(seconds=(frequency.value))
+                    decompressed_rows.append(FgmRow(idpu_time, axes_values.copy(), frequency, row["numerator"]))
 
-        # These lists become the columns for the final DataFrame,
-        # each val provides a new item in each list
-        new_ptypes = []
-        new_time = []
-        orig_num = []
-        new_num = []
-        new_denom = len(vals) - 1
-        new_packets = []
-        track10hz = []
+                axis_index = (axis_index + 1) % 3
 
-        # This loops through all of vals, adding to the lists to prepare for creating the returned DataFrame
-        for i, val in enumerate(vals):
-            ts, [ax1, ax2, ax3], is_10hz, num = val
+        return self.create_decompressed_df_from_rows(processing_request, decompressed_rows)
 
-            # Do this only if it is 10 or 80 hz (a valid frequency)
-            if isinstance(is_10hz, bool):
-                pb = byte_tools.get_three_signed_bytes(ax1)  # length = 16
-                pb += byte_tools.get_three_signed_bytes(ax2)  # length = 19
-                pb += byte_tools.get_three_signed_bytes(ax3)  # length = 22
-                pb += b"\x00\x00\x00"  # fake HSKP, length: 25
-                pb += byte_tools.get_two_unsigned_bytes(i)  # numerator, length: 27
-                pb += byte_tools.get_two_unsigned_bytes(new_denom)  # denominator, length: 29
-                pb += b"\x00"  # fake CRC
-                new_packets.append(pb.hex())  # This is the 'data' column
+    @staticmethod
+    def calculate_delta_magnitude(idpu_time, hexit16, hexit12, hexit8, hexit4):
+        if idpu_time.strftime("%Y-%m-%d") < "2019-03-25":  # Apparently something changed in late March 2019?
+            return (hexit16 << 16) + (hexit12 << 12) + (hexit8 << 8) + (hexit4 << 4)
+        return (hexit16 << 16) + (hexit12 << 12) + (hexit8 << 8) + (hexit4 << 4) << 1
 
-                new_ptypes.append(0x1 if is_10hz else 0x17)  # This is how the code keeps track of type
-                orig_num.append(num)  # Numerator of the frame that this packet came from. Useful for data tracking
-                new_num.append(i)  # 'New' Numerator (packet-wise rather than frame-wise). Was original numerator but
-                #     since it doesn't seem to be used, I've left it out of the DF that's returned
-                new_time.append(val[0])  # Is this just ts?
-                track10hz.append(val[2])  # This is how the code keeps track of frequency
+    @staticmethod
+    def create_new_packet(axes, numerator, denominator):
+        ax1, ax2, ax3 = axes
+
+        pb = byte_tools.get_three_signed_bytes(ax1)  # length = 16
+        pb += byte_tools.get_three_signed_bytes(ax2)  # length = 19
+        pb += byte_tools.get_three_signed_bytes(ax3)  # length = 22
+        pb += b"\x00\x00\x00"  # fake HSKP, length: 25
+        pb += byte_tools.get_two_unsigned_bytes(numerator)  # numerator, length: 27
+        pb += byte_tools.get_two_unsigned_bytes(denominator)  # denominator, length: 29
+        pb += b"\x00"  # fake CRC
+
+        return pb.hex()
+
+    def create_decompressed_df_from_rows(self, processing_request, decompressed_rows):
+        new_denom = len(decompressed_rows) - 1
+
+        df_dict = {
+            "mission_id": [],
+            "idpu_type": [],
+            "idpu_time": [],
+            "numerator": [],
+            "denominator": [],
+            "data": [],
+            "10hz_mode": [],
+        }
+
+        # This loops through all decompressed rows, adding to the lists to prepare for creating the returned DataFrame
+        for i, row in enumerate(decompressed_rows):
+            if row.frequency != FgmFrequencyEnum.UNKNOWN:
+                df_dict["mission_id"].append(processing_request.mission_id)
+                df_dict["idpu_type"].append(
+                    0x1 if row.frequency == FgmFrequencyEnum.TEN_HERTZ else 0x17
+                )  # This is how the code keeps track of type
+                df_dict["idpu_time"].append(row.idpu_time)
+                df_dict["numerator"].append(
+                    row.numerator
+                )  # Numerator of the frame that this packet came from. Useful for data tracking
+                df_dict["denominator"].append(new_denom)
+                df_dict["data"].append(self.create_new_packet(row.axes, i, new_denom))
+                df_dict["10hz_mode"].append(row.frequency)  # This is how the code keeps track of frequency
 
         # Forming the final DF, preparing it (keep the correct frequency), then returning it
-        df = pd.DataFrame(
-            data={
-                "mission_id": processing_request.mission_id,
-                "idpu_type": new_ptypes,
-                "idpu_time": new_time,
-                "numerator": orig_num,
-                "denominator": new_denom,
-                "data": new_packets,
-                "10hz_mode": track10hz,
-            }
-        )
+        df = pd.DataFrame(df_dict)
         df = self.drop_packets_by_freq(processing_request, df)
 
         return df
 
     def drop_packets_by_freq(self, processing_request, df):
         """ Returns a DataFrame with either 10 hz (fgs) or 80 hz (fgf) """
-        # TODO: ENUM
         if processing_request.data_product == "fgf":
             self.logger.debug("DataFrame contains fgf data")
-            df = df[~df["10hz_mode"]]  # TODO: Check this (was previously df = df[df["10hz_mode"] == False])
+            df = df[df["10hz_mode"] == FgmFrequencyEnum.EIGHTY_HERTZ]
         elif processing_request.data_product == "fgs":
             self.logger.debug("DataFrame contains fgs data")
-            df = df[df["10hz_mode"]]  # TODO: Check this too
+            df = df[df["10hz_mode"] == FgmFrequencyEnum.TEN_HERTZ]
         else:
             raise ValueError("Invalid data_product_name")
 

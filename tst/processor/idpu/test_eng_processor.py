@@ -1,13 +1,10 @@
 import datetime as dt
 import os
-import tempfile
 
 import numpy as np
 import pytest
-from elfin.common import db
 from spacepy import pycdf
 
-from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
 from dummy import SafeTestPipelineConfig
 from processor.idpu.eng_processor import EngProcessor

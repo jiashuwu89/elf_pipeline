@@ -319,25 +319,6 @@ class EpdProcessor(IdpuProcessor):
         * Return same DataFrame structure as before
         """
 
-        def get_context(data):
-            """For a given row of data, finds (from parsing the data) and
-            returns a tuple of: (spin period, time, and data for bins)
-            """
-            data = str(data)
-            spin_period = int(data[0:4], 16)
-            time_bytes = bytes.fromhex(data[4:20])
-            bin_data = bytes.fromhex(data[20:])
-            return spin_period, byte_tools.raw_idpu_bytes_to_datetime(time_bytes), bin_data
-
-        def calculate_center_times_for_period(spin_period, time_captured, num_sectors):
-            """ Interpolates center times for in between sectors and converts to tt2000 """
-            seconds_per_sector = dt.timedelta(seconds=(spin_period / 80) / 16)
-            center_time_offset = seconds_per_sector / 2
-            return [
-                (time_captured + seconds_per_sector * i + center_time_offset) for i in range(0, 16, 16 // num_sectors)
-            ]
-
-        relevant_df = df[["idpu_time", "data"]]
         bins = [[] for i in range(16)]
         all_sec_num = []
         all_idpu_times = []
@@ -356,11 +337,12 @@ class EpdProcessor(IdpuProcessor):
         else:
             raise ValueError(f"Bad data product name: {processing_request.data_product}")
 
-        for _, row in relevant_df.iterrows():
-            cur_spin_period, cur_time_captured, bin_data = get_context(row["data"])
+        for _, row in df.iterrows():
+            cur_spin_period, cur_time_captured, bin_data = self.get_context(row["data"])
             all_spin_periods.extend([cur_spin_period for i in range(num_sectors)])
-            times_for_period = calculate_center_times_for_period(cur_spin_period, cur_time_captured, num_sectors)
-            all_idpu_times.extend(times_for_period)
+            all_idpu_times.extend(
+                self.calculate_center_times_for_period(cur_spin_period, cur_time_captured, num_sectors)
+            )
 
             for i in range(0, 16, 16 // num_sectors):
                 all_sec_num.append(i)
@@ -393,6 +375,24 @@ class EpdProcessor(IdpuProcessor):
                 "bin15": bins[15],
             }
         )
+
+    def get_context(self, data):
+        """For a given row of data, finds (from parsing the data) and
+        returns a tuple of: (spin period, time, and data for bins)
+        """
+        self.logger.debug(f"Getting context for {data}")
+        data = str(data)
+        spin_period = int(data[0:4], 16)
+        time_bytes = bytes.fromhex(data[4:20])
+        bin_data = bytes.fromhex(data[20:])
+        return spin_period, byte_tools.raw_idpu_bytes_to_datetime(time_bytes), bin_data
+
+    def calculate_center_times_for_period(self, spin_period, time_captured, num_sectors):
+        """ Interpolates center times for in between sectors and converts to tt2000 """
+        seconds_per_sector = dt.timedelta(seconds=(spin_period / 80) / 16)
+        center_time_offset = seconds_per_sector / 2
+        self.logger.debug(f"seconds per sector = {seconds_per_sector}, center time offset = {center_time_offset}")
+        return [(time_captured + seconds_per_sector * i + center_time_offset) for i in range(0, 16, 16 // num_sectors)]
 
     def format_for_cdf(self, df):
         """ Gets the columns corresponding to the bins, in preparation for the CDF """

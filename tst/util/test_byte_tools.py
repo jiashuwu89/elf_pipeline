@@ -14,8 +14,12 @@ class TestByteTools:
     def test_get_signed(self):
         assert byte_tools.get_signed(b"1234") == 825373492
 
+    # TODO: Test overflow error!
     def test_get_three_signed_bytes(self):
-        pass
+        assert byte_tools.get_three_signed_bytes(0) == b"\x00\x00\x00"
+        assert byte_tools.get_three_signed_bytes(1) == b"\x00\x00\x01"
+        assert byte_tools.get_three_signed_bytes(1000) == b"\x00\x03\xe8"
+        assert byte_tools.get_three_signed_bytes(-1) == b"\xff\xff\xff"
 
     def test_bin_string(self):
         assert byte_tools.bin_string(b"123") == "001100010011001000110011"
