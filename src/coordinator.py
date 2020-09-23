@@ -10,7 +10,16 @@ import traceback
 
 from output.exception_collector import ExceptionCollector
 from output.server_manager import ServerManager
+from processor.idpu.eng_processor import EngProcessor
+from processor.idpu.epd_processor import EpdProcessor
+from processor.idpu.fgm_processor import FgmProcessor
+from processor.mrm_processor import MrmProcessor
 from processor.processor_manager import ProcessorManager
+from processor.state_processor import StateProcessor
+from request.request_getter.eng_request_getter import EngRequestGetter
+from request.request_getter.idpu_request_getter import IdpuRequestGetter
+from request.request_getter.mrm_request_getter import MrmRequestGetter
+from request.request_getter.state_request_getter import StateRequestGetter
 from request.request_getter_manager import RequestGetterManager
 from util import science_utils
 from util.constants import DAILY_EMAIL_LIST
@@ -53,8 +62,33 @@ class Coordinator:
         self.pipeline_config = pipeline_config
 
         # Initialize Pipeline Managers
-        self.request_getter_manager = RequestGetterManager(pipeline_config)
-        self.processor_manager = ProcessorManager(pipeline_config, self.exception_collector)
+        request_getters = [
+            IdpuRequestGetter(pipeline_config),
+            MrmRequestGetter(pipeline_config),
+            EngRequestGetter(pipeline_config),
+            StateRequestGetter(pipeline_config),
+        ]
+        self.request_getter_manager = RequestGetterManager(pipeline_config, request_getters)
+
+        eng_processor = EngProcessor(pipeline_config)
+        epd_processor = EpdProcessor(pipeline_config)
+        fgm_processor = FgmProcessor(pipeline_config)
+        mrm_processor = MrmProcessor(pipeline_config)
+        state_processor = StateProcessor(pipeline_config)
+        processor_map = {
+            "eng": eng_processor,
+            "epdef": epd_processor,
+            "epdes": epd_processor,
+            "epdif": epd_processor,
+            "epdis": epd_processor,
+            "fgf": fgm_processor,
+            "fgs": fgm_processor,
+            "mrma": mrm_processor,
+            "mrmi": mrm_processor,
+            "state": state_processor,
+        }
+        self.processor_manager = ProcessorManager(pipeline_config, processor_map, self.exception_collector)
+
         self.server_manager = ServerManager()
 
     def execute_pipeline(self, pipeline_query):

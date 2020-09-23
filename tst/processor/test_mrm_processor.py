@@ -39,3 +39,7 @@ class TestMrmProcessor:
 
         pr_2 = ProcessingRequest(2, "mrmi", dt.date(2019, 1, 1))
         assert mrm_processor.generate_files(pr_2) == []
+
+        # Clearly, no data from year 1999
+        pr_3 = ProcessingRequest(2, "mrmi", dt.date(1999, 1, 1))
+        assert mrm_processor.generate_files(pr_3) == []

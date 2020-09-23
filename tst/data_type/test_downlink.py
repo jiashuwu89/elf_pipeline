@@ -1,5 +1,7 @@
 import datetime as dt
 
+import pytest
+
 from data_type.downlink import Downlink
 from data_type.packet_info import PacketInfo
 
@@ -12,6 +14,13 @@ class TestDownlink:
 
     def test_init(self):
         Downlink(1, 1, self.PACKET_INFO_1, self.PACKET_INFO_2)
+
+    def test_denominator(self):
+        pi_different_denominator = PacketInfo(
+            40, dt.datetime(2019, 1, 1, 1, 1, 10), dt.datetime(2019, 2, 2, 2, 2, 20), 2000
+        )
+        with pytest.raises(RuntimeError):
+            Downlink(1, 1, self.PACKET_INFO_1, pi_different_denominator)
 
     def test_eq(self):
         dl_1 = Downlink(1, 1, self.PACKET_INFO_1, self.PACKET_INFO_2)

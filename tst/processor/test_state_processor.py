@@ -1,14 +1,11 @@
 import datetime as dt
 import os
-import tempfile
 
 import pytest
-from elfin.common import db
 from spacepy import pycdf
 
-from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
-from dummy import SafeTestPipelineConfig
+from dummy import DummyProcessingRequest, SafeTestPipelineConfig
 from processor.state_processor import StateProcessor
 from util.constants import TEST_DATA_DIR
 
@@ -44,3 +41,7 @@ class TestStateProcessor:
         for key in ["elb_spin_orbnorm_angle", "elb_spin_sun_angle", "elb_sun"]:
             for new_row, expected_row in zip(new_cdf[key][...], expected_cdf[key][...]):
                 assert abs(new_row - expected_row) < 1e-13
+
+    def test_get_cdf_fields(self):
+        state_processor = StateProcessor(SafeTestPipelineConfig())
+        assert state_processor.get_cdf_fields(DummyProcessingRequest()) == {}

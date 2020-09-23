@@ -54,3 +54,11 @@ class TestScienceUtils:
         # print(interp_times, interp_atts)
         assert interp_times.shape == (2391,)
         assert interp_atts.shape == (2391, 3)
+
+    def test_convert_data_products_to_idpu_types(self):
+        assert science_utils.convert_data_products_to_idpu_types([]) == []
+
+        idpu_types = science_utils.convert_data_products_to_idpu_types(["fgs", "fgf"])
+        assert len(idpu_types) == 4
+        for expected_idpu_type in [1, 2, 17, 18]:
+            assert expected_idpu_type in idpu_types

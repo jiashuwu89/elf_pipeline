@@ -3,16 +3,16 @@ class Downlink:
         self.mission_id = mission_id
         self.idpu_type = idpu_type
 
+        if first_packet_info.denominator != last_packet_info.denominator:
+            raise RuntimeError(
+                f"Packet denominators differ: {first_packet_info.denominator} != {last_packet_info.denominator}"
+            )
         self.first_packet_info = first_packet_info
         self.last_packet_info = last_packet_info
 
     @property
     def denominator(self):
-        first_denominator = self.first_packet_info.denominator
-        last_denominator = self.last_packet_info.denominator
-        if first_denominator != last_denominator:
-            raise RuntimeError(f"Packet denominators differ: {first_denominator} != {last_denominator}")
-        return first_denominator
+        return self.first_packet_info.denominator
 
     def __eq__(self, other):
         return (

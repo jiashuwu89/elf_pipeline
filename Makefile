@@ -70,7 +70,7 @@ doc:
 
 todo:
 	@echo "⭐ Finding TODOs ⭐"
-	grep --color=always -Iirn "todo" $(SRC) | sed "s/    //g"
+	grep --color=always -Iirn "todo" $(SRC) | sed "s/    //g";
 
 clean:
 	@echo "⭐ Cleaning Files ⭐"

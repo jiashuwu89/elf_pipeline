@@ -97,8 +97,6 @@ class CompletenessUpdater:
             obtained = len(sz)
             estimated_total = math.ceil(collection_duration / median_diff)
 
-            # TODO: Log calculations and values using self.logger
-
             # Remove previous entries that correspond to this new entry
             self.session.query(models.ScienceZoneCompleteness).filter(
                 models.ScienceZoneCompleteness.mission_id == processing_request.mission_id,
@@ -106,6 +104,13 @@ class CompletenessUpdater:
                 models.ScienceZoneCompleteness.sz_start_time <= sz_end_time.to_pydatetime(),
                 models.ScienceZoneCompleteness.sz_end_time >= sz_start_time.to_pydatetime(),
             ).delete()
+
+            self.logger.info(
+                "Inserting completeness entry:\n\t\t"
+                + f"mission id {processing_request.mission_id}, data type {processing_request.data_type}\n\t\t"
+                + f"science zone times: {str(start_time)} - {str(end_time)}\n\t\t"
+                + f"completeness: {obtained} / {estimated_total}"
+            )
 
             self.session.add(
                 models.ScienceZoneCompleteness(
