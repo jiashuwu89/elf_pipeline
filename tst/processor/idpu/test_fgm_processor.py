@@ -18,9 +18,9 @@ class TestFgmProcessor:
     # correct file (out of the range of the day)
     @pytest.mark.skipif(not os.path.isfile("./src/util/credentials.py"), reason="Probably in CI/CD pipeline")
     def test_generate_files(self):
-        pr = ProcessingRequest(1, "fgs", dt.date(2020, 7, 1))
+        pr_1 = ProcessingRequest(1, "fgs", dt.date(2020, 7, 1))
         fgm_processor = FgmProcessor(SafeTestPipelineConfig())
-        generated_files = fgm_processor.generate_files(pr)
+        generated_files = fgm_processor.generate_files(pr_1)
         assert len(generated_files) == 2
         generated_l0_file, generated_l1_file = generated_files
 
@@ -37,6 +37,10 @@ class TestFgmProcessor:
         for new_row, expected_row in zip(new_cdf["ela_fgs"][...], expected_cdf["ela_fgs"][...]):
             for new_val, expected_val in zip(new_row, expected_row):
                 assert new_val == expected_val
+
+        # Clearly, no data from year 1999
+        pr_2 = ProcessingRequest(1, "fgs", dt.date(1999, 1, 1))
+        assert fgm_processor.generate_files(pr_2) == []
 
     # def test_generate_l0_products(self):
     #     pr_1 = ProcessingRequest(1, "fgs", dt.date(2020, 3, 7))
