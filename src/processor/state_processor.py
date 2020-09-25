@@ -193,34 +193,15 @@ class StateProcessor(ScienceProcessor):
             A DataFrame of closest attitude solutions
         """
 
-        def get_q_dict(q):
-            """ Turns some yucky SQL query result thing into a useful dict """
-            q_dict = {
-                "X": q.X,
-                "Y": q.Y,
-                "Z": q.Z,
-                "uncertainty": q.uncertainty,
-                "solution_date_dt": q.time,
-                "solution_date_tt2000": pycdf.lib.datetime_to_tt2000(q.time),
-            }
-            return q_dict
-
-        # Preparing the final DF that is ultimately returned (Solution date is tt2000)
-        final_df = pd.DataFrame(columns=["time", "time_dt", "solution_date", "X", "Y", "Z", "uncertainty"])
-
         base_datetime = general_utils.convert_date_to_datetime(processing_request.date)
-        final_df["time_dt"] = [base_datetime + dt.timedelta(minutes=i) for i in range(MINS_IN_DAY)]
-        final_df["time"] = final_df["time_dt"].apply(pycdf.lib.datetime_to_tt2000)
-
-        # Query for solutions
         end_time = base_datetime + dt.timedelta(seconds=86399)
-        first_possible_time = base_datetime - ATTITUDE_SOLUTION_RADIUS
-        last_possible_time = end_time + ATTITUDE_SOLUTION_RADIUS
+
+        # Query for solutions, find the solutions that we want to use (One extra one on either 'side')
         query = (
             self.session.query(models.CalculatedAttitude)
             .filter(
-                models.CalculatedAttitude.time >= first_possible_time,
-                models.CalculatedAttitude.time <= last_possible_time,
+                models.CalculatedAttitude.time >= base_datetime - ATTITUDE_SOLUTION_RADIUS,
+                models.CalculatedAttitude.time <= end_time + ATTITUDE_SOLUTION_RADIUS,
                 models.CalculatedAttitude.mission_id == processing_request.mission_id,
                 models.CalculatedAttitude.idl_script_version == IDL_SCRIPT_VERSION,
             )
@@ -228,8 +209,46 @@ class StateProcessor(ScienceProcessor):
         )
         if query.count() == 0:
             return pd.DataFrame()
+        query_list = self.select_usable_attitude_queries(query, base_datetime, end_time)
+        query_list = self.drop_duplicate_attitude_queries(query_list)
 
-        # Find the solutions that we want to use (One extra one on either 'side')
+        # Convert the queries into a dictionary format for easier access
+        self.logger.debug(f"Potential DateTimes: {[q.time for q in query_list]}")
+        q_dict_list = [self.get_q_dict(i) for i in query_list]
+
+        # Preparing the final DF that is ultimately returned (Solution date is tt2000)
+        final_df = pd.DataFrame(columns=["time", "time_dt", "solution_date", "X", "Y", "Z", "uncertainty"])
+        final_df["time_dt"] = [base_datetime + dt.timedelta(minutes=i) for i in range(MINS_IN_DAY)]
+        final_df["time"] = final_df["time_dt"].apply(pycdf.lib.datetime_to_tt2000)
+
+        if len(q_dict_list) == 1:  # Edge Case: If there is only one result, just fill everything in with it
+            final_df.loc[:, "X"] = q_dict_list[0]["X"]
+            final_df.loc[:, "Y"] = q_dict_list[0]["Y"]
+            final_df.loc[:, "Z"] = q_dict_list[0]["Z"]
+            final_df.loc[:, "uncertainty"] = q_dict_list[0]["uncertainty"]
+            final_df.loc[:, "solution_date"] = q_dict_list[0]["solution_date_tt2000"]
+        else:
+            final_df = self.insert_interpolated_attitude_data(final_df, q_dict_list)
+
+        return final_df
+
+    # TODO: Eliminate q_dict because I was stupid
+    @staticmethod
+    def get_q_dict(q):
+        """ Turns some yucky SQL query result thing into a useful dict """
+        q_dict = {
+            "X": q.X,
+            "Y": q.Y,
+            "Z": q.Z,
+            "uncertainty": q.uncertainty,
+            "solution_date_dt": q.time,
+            "solution_date_tt2000": pycdf.lib.datetime_to_tt2000(q.time),
+        }
+        return q_dict
+
+    @staticmethod
+    def select_usable_attitude_queries(query, base_datetime, end_time):
+        """Find the solutions that we want to use (One extra one on either 'side')"""
         query_list = []
         found_first = False
         for q in query:
@@ -245,7 +264,9 @@ class StateProcessor(ScienceProcessor):
                 query_list.append(q)
                 if q.time >= end_time:
                     break
+        return query_list
 
+    def drop_duplicate_attitude_queries(self, query_list):
         # Because attitude solutions are no longer replaced, we need to drop
         # duplicates, favoring solutions with lower uncertainty
         query_list = sorted(query_list, key=lambda q: q.uncertainty if q.uncertainty else 0)
@@ -257,27 +278,13 @@ class StateProcessor(ScienceProcessor):
                 temp_query_list.append(q)
             else:
                 self.logger.debug(f"Attitude for {q.time} obtained on {q.insert_date}, but more recent solution exists")
-        query_list = sorted(temp_query_list, key=lambda q: q.time)
+        return sorted(temp_query_list, key=lambda q: q.time)
 
-        # Convert the queries into a dictionary format for easier access
-        self.logger.debug(f"Potential DateTimes: {[q.time for q in query_list]}")
-        q_dict_list = [get_q_dict(i) for i in query_list]
-
-        # Edge Case: If there is only one result, just fill everything in with it
-        if len(q_dict_list) == 1:
-            q = q_dict_list[0]
-            final_df.loc[:, "X"] = q["X"]
-            final_df.loc[:, "Y"] = q["Y"]
-            final_df.loc[:, "Z"] = q["Z"]
-            final_df.loc[:, "uncertainty"] = q["uncertainty"]
-            final_df.loc[:, "solution_date"] = q["solution_date_tt2000"]
-            return final_df
-
+    def insert_interpolated_attitude_data(self, final_df, q_dict_list):
         # Filling in X, Y, Z of times after the last solution, since can't do interpolation on them
         # Filling in solution_date and uncertainty for all items
-        final_q = q_dict_list[-1]
-        final_df.loc[:, "solution_date"] = final_q["solution_date_tt2000"]
-        final_df.loc[:, "uncertainty"] = final_q["uncertainty"]
+        final_df.loc[:, "solution_date"] = q_dict_list[-1]["solution_date_tt2000"]
+        final_df.loc[:, "uncertainty"] = q_dict_list[-1]["uncertainty"]
 
         # Interpolation (Using Wynne's code) and filling in before/after first and last solutions
         xyz_list = [[q["X"], q["Y"], q["Z"]] for q in q_dict_list]
@@ -287,25 +294,23 @@ class StateProcessor(ScienceProcessor):
                 f"Iteration {i}: From {xyz_list[i]}, {time_list_dt[i]} To {xyz_list[i + 1]}, {time_list_dt[i + 1]}"
             )
             times_dt, atts = interpolate_attitude(xyz_list[i], time_list_dt[i], xyz_list[i + 1], time_list_dt[i + 1])
-            final_df_time = final_df["time"]
             for t, a in zip(times_dt, atts):
                 t = pycdf.lib.datetime_to_tt2000(t)
-                if any(final_df_time == t):
+                if any(final_df["time"] == t):
                     final_df.loc[final_df["time"] == t, ["X", "Y", "Z"]] = a
         final_df.loc[final_df["time"] < q_dict_list[0]["solution_date_tt2000"], ["X", "Y", "Z"]] = xyz_list[0]
         final_df.loc[final_df["time"] > q_dict_list[-1]["solution_date_tt2000"], ["X", "Y", "Z"]] = xyz_list[-1]
 
-        for idx, q in enumerate(q_dict_list[:-1]):
-            # needs_closest_sol is used for closest attitude solution
+        for i, q in enumerate(q_dict_list[:-1]):
             # - Only applicable if not the last query
             # - want to update anything not updated yet, below half way point
-            unfilled = final_df["solution_date"] == final_q["solution_date_tt2000"]
-            halfway_limit = (q["solution_date_tt2000"] + q_dict_list[idx + 1]["solution_date_tt2000"]) / 2
-            below_halfway = final_df["time"] < halfway_limit
-            needs_closest_sol = unfilled & below_halfway
+            unfilled = final_df["solution_date"] == q_dict_list[-1]["solution_date_tt2000"]
+            below_halfway = (
+                final_df["time"] < (q["solution_date_tt2000"] + q_dict_list[i + 1]["solution_date_tt2000"]) / 2
+            )
 
-            final_df.loc[needs_closest_sol, "solution_date"] = q["solution_date_tt2000"]
-            final_df.loc[needs_closest_sol, "uncertainty"] = q["uncertainty"]
+            final_df.loc[unfilled & below_halfway, "solution_date"] = q["solution_date_tt2000"]
+            final_df.loc[unfilled & below_halfway, "uncertainty"] = q["uncertainty"]
 
         return final_df
 

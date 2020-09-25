@@ -28,32 +28,21 @@ def calculate_offset(df1: pd.DataFrame, df2: pd.DataFrame) -> Optional[int]:
 
     s1 = df1["data"]
     s2 = df2["data"]
+    half_min = min(s1[s1.notnull()].shape[0], s2[s2.notnull()].shape[0]) / 2
 
     # First, just check offset of 0 because it is fairly common
     # TODO: Try checking any offsets that were used before, not just 0
-    half_min = min(s1[s1.notnull()].shape[0], s2[s2.notnull()].shape[0]) / 2
-    count = 0
-    ind1_limit = s2.shape[0] - 1
-    for ind1 in s1[s1.notnull()].index:
-        if ind1 > ind1_limit:
-            break
-        if s1[ind1] == s2[ind1] and s1[ind1]:
-            count += 1
-            if count > half_min:
-                return 0
-
-    offset_frequencies: defaultdict = defaultdict(int)
-    indexes1 = s1[s1.notnull()].index
+    if check_zero_offset(s1, s2, half_min):
+        return 0
 
     # Keep track of the difference between packets in s1 and s2 that are the same
     # If any difference is found the majority of the time (gets to >50% first), we can just use that
-    for ind1 in indexes1:
-        indexes2 = s2[s2 == s1[ind1]].index
-        for ind2 in indexes2:
+    offset_frequencies: defaultdict = defaultdict(int)
+    for ind1 in s1[s1.notnull()].index:
+        for ind2 in s2[s2 == s1[ind1]].index:
             cur_offset = ind1 - ind2
             offset_frequencies[cur_offset] += 1
             if offset_frequencies[cur_offset] > half_min:
-                # logger.info(f"calculate_offset info: majority found early: {cur_offset}")
                 return cur_offset
 
     if len(offset_frequencies.items()) == 0:
@@ -99,6 +88,19 @@ def calculate_offset(df1: pd.DataFrame, df2: pd.DataFrame) -> Optional[int]:
         return None
 
     return offset
+
+
+def check_zero_offset(s1, s2, half_min):
+    count = 0
+    ind1_limit = s2.shape[0] - 1
+    for ind1 in s1[s1.notnull()].index:
+        if ind1 > ind1_limit:
+            break
+        if s1[ind1] == s2[ind1] and s1[ind1]:
+            count += 1
+            if count > half_min:
+                return True
+    return False
 
 
 def merge_downlinks(sf1: pd.DataFrame, sf2: pd.DataFrame, offset: int) -> pd.DataFrame:

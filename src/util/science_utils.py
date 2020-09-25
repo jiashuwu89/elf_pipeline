@@ -91,27 +91,22 @@ def interpolate_attitude(S_init, t_init, S_fin, t_fin):
     # print('Sinit, Sfin:', S_init, S_fin)
 
     # Find total time difference
-    datetime_init = t_init
-    datetime_fin = t_fin
-    t_tot_obj = datetime_fin - datetime_init
-    t_tot = t_tot_obj.total_seconds()
+    t_tot = (t_fin - t_init).total_seconds()
 
     # Define time array (1 soln per minute between t_init and t_fin), then
     # extract time portion in dt to find nearest minute
     t_arr_minres = []
-    if datetime_init.second > 0 or datetime_init.microsecond > 0:
-        current_time = datetime(
-            datetime_init.year, datetime_init.month, datetime_init.day, datetime_init.hour, datetime_init.minute + 1, 0
-        )
+    if t_init.second > 0 or t_init.microsecond > 0:
+        current_time = datetime(t_init.year, t_init.month, t_init.day, t_init.hour, t_init.minute + 1, 0)
     else:
-        current_time = datetime_init
-    while current_time <= datetime_fin:
+        current_time = t_init
+    while current_time <= t_fin:
         t_arr_minres.append(current_time)
         current_time += timedelta(0, 60)
-    delta_t_arr = np.array([t - datetime_init for t in t_arr_minres])
+    delta_t_arr = np.array([t - t_init for t in t_arr_minres])
 
     # TESTING: add time delta from Sinit to Sfinal
-    # delta_t_arr=np.append(delta_t_arr, datetime_fin-datetime_init)
+    # delta_t_arr=np.append(delta_t_arr, t_fin-t_init)
 
     delta_t_arr = np.array([dt.total_seconds() for dt in delta_t_arr])
 
