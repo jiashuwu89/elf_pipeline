@@ -96,3 +96,6 @@ VALID_NUM_SECTORS = [4, 16]  # EPD-related value
 # When an attitude is found, reprocess days that are STATE_CALCULATE_RAIDUS before or after the attitude data point
 STATE_CALCULATE_RADIUS = dt.timedelta(days=5)
 ATTITUDE_SOLUTION_RADIUS = dt.timedelta(days=30)
+
+# EPD
+BIN_COUNT = 16

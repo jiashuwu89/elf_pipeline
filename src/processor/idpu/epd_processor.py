@@ -16,7 +16,7 @@ from metric.completeness import CompletenessUpdater
 from processor.idpu.idpu_processor import IdpuProcessor
 from util import byte_tools
 from util.compression_values import EPD_HUFFMAN, EPD_LOSSY_VALS
-from util.constants import EPD_CALIBRATION_DIR, VALID_NUM_SECTORS
+from util.constants import BIN_COUNT, EPD_CALIBRATION_DIR, VALID_NUM_SECTORS
 
 # EPD_ENERGIES = [[50., 70., 110., 160., 210., 270., 345., 430., 630., 900., 1300., 1800., 2500., 3000., 3850., 4500.]]
 
@@ -35,6 +35,7 @@ class EpdProcessor(IdpuProcessor):
             - If compressed data, decompress the data
             - Otherwise, something went wrong
         """
+        df["data"] = df["data"].apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
 
         # TODO: unify with fgm_processor
         types = df["idpu_type"].values
@@ -59,12 +60,7 @@ class EpdProcessor(IdpuProcessor):
     def update_uncompressed_df(self, df):
         """ For a dataframe of uncompressed data, update the idpu_time field to None if appropriate """
         self.logger.debug("Updating a dataframe of uncompressed EPD data")
-        df["idpu_time"] = (
-            df["data"]
-            .apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
-            .apply(lambda x: byte_tools.raw_idpu_bytes_to_datetime(x[2:10]) if x else None)
-        )
-
+        df["idpu_time"] = df["data"].apply(lambda x: byte_tools.raw_idpu_bytes_to_datetime(x[2:10]) if x else None)
         return df
 
     def decompress_df(self, df, num_sectors, table):
@@ -114,15 +110,15 @@ class EpdProcessor(IdpuProcessor):
                     return packet_num
             return None  # If went out of bounds, just return None
 
-        # Prepare data
-        data = df["data"].apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
+        # TODO: Use BIN_COUNT
+        data = df["data"]
 
         # lv0_df:           holds finished periods
         # period_df:        holds period that is currently being 'worked on'
         # measured values:  For one period, hold value from Huffman table and later is put into period_df
         lv0_df = pd.DataFrame(columns=["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data"])
         period_df = pd.DataFrame()
-        measured_values = [None] * 16 * num_sectors
+        measured_values = [None] * BIN_COUNT * num_sectors
 
         # Find the first header, which is the packet number where the loop starts
         packet_num = find_first_header(data)
@@ -173,7 +169,7 @@ class EpdProcessor(IdpuProcessor):
                 cur_data = cur_data[11:]  # Already stored timestamp and spin per, not interested in them
 
                 # Check that we have all 256 reference bins
-                if len(cur_data) == 16 * num_sectors:
+                if len(cur_data) == BIN_COUNT * num_sectors:
                     needs_header = False  # Clear flags
                     num_packets_without_header = 0  # Clear flags
 

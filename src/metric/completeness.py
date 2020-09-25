@@ -41,15 +41,12 @@ class CompletenessUpdater:
         bool
             Returns True is the table is uploaded, False if not
         """
-        # Edge case: empty Series
         if times.empty:
             self.logger.warning("Empty Time Series, cannot update completeness table")
             return False
 
-        # Split szs
         szs = self.split_science_zones(times)
 
-        # Get median diff
         if not self.completeness_config.median_diff:
             diffs = []
             for sz in szs:
@@ -93,7 +90,7 @@ class CompletenessUpdater:
             )
             collection_duration = (end_time - start_time).total_seconds()
 
-            # Get Percent Completeness
+            # Get Obtained and Expected Counts
             obtained = len(sz)
             estimated_total = math.ceil(collection_duration / median_diff)
 

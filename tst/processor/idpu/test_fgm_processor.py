@@ -40,7 +40,8 @@ class TestFgmProcessor:
 
         # Clearly, no data from year 1999
         pr_2 = ProcessingRequest(1, "fgs", dt.date(1999, 1, 1))
-        assert fgm_processor.generate_files(pr_2) == []
+        with pytest.raises(RuntimeError):
+            fgm_processor.generate_files(pr_2)
 
     # def test_generate_l0_products(self):
     #     pr_1 = ProcessingRequest(1, "fgs", dt.date(2020, 3, 7))
