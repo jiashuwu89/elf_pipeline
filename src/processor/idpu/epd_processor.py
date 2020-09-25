@@ -98,161 +98,113 @@ class EpdProcessor(IdpuProcessor):
             A DataFrame of decompressed data
         """
 
-        def find_lossy_idx(data_packet_in_bytes):
-            return data_packet_in_bytes[10] - 0xAA
+        def get_measured_values_if_valid(packet_num, cur_data):
+            """Returns a list to replace measured_values, will be empty if bad cur_data"""
+            values = cur_data[11:]
+            if len(values) != BIN_COUNT * num_sectors:
+                self.logger.warning(f"⚠️ Header at packet number {packet_num} didn't have all reference bins")
+                return True, []
+            return False, list(values)
 
-        def find_first_header(data):
-            packet_num = 0
-            while packet_num < data.shape[0]:
-                if data.iloc[packet_num] is None or data.iloc[packet_num][10] & 0xA0 != 0xA0:
-                    packet_num += 1
-                else:
-                    return packet_num
-            return None  # If went out of bounds, just return None
+        def update_measured_values_if_valid(measured_values, packet_num, cur_data):
+            """TODO: Modifies measured_values in place, but maybe it's better to just return it"""
+            bitstring = byte_tools.bin_string(cur_data[10:])
+            ignore_packet = False
+            for i in range(BIN_COUNT * num_sectors):  # Updating each of the 256 values in the period
+                try:
+                    sign, bitstring = self.get_sign(bitstring)
+                except ValueError as e:
+                    self.logger.warning(f"⚠️ Bad Sign: {e}, ind: {i}, packet {packet_num}")
+                    ignore_packet = True
 
-        # TODO: Use BIN_COUNT
+                try:
+                    delta1, bitstring = byte_tools.get_huffman(bitstring, table)
+                    delta2, bitstring = byte_tools.get_huffman(bitstring, table)
+                except IndexError as e:
+                    self.logger.warning(f"⚠️ Not enough bytes in continuation packet: {e}, packet {packet_num}")
+                    ignore_packet = True
+
+                measured_values[i] += sign * ((delta1 << 4) + delta2)
+
+                if not 0 <= measured_values[i] <= 255:
+                    self.logger.warning(f"⚠️ measured_values went out of range [0, 255]: {measured_values[i]}")
+                    ignore_packet = True
+
+                if ignore_packet:
+                    break
+
+            return ignore_packet, measured_values
+
+        # l0_df: holds finished periods
+        # measured values: For one period, hold value from Huffman table and later is put into period_df
         data = df["data"]
-
-        # lv0_df:           holds finished periods
-        # period_df:        holds period that is currently being 'worked on'
-        # measured values:  For one period, hold value from Huffman table and later is put into period_df
-        lv0_df = pd.DataFrame(columns=["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data"])
-        period_df = pd.DataFrame()
+        l0_df = pd.DataFrame(columns=["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data"])
         measured_values = [None] * BIN_COUNT * num_sectors
 
-        # Find the first header, which is the packet number where the loop starts
-        packet_num = find_first_header(data)
-        if packet_num is None:  # no frames, so nothing to be done
-            return lv0_df
-        self.logger.debug(f"The first header is at {packet_num}")
+        # Set the index to initially point to the first header
+        packet_num = self.find_first_header(data)
+        if packet_num == data.shape[0]:
+            return l0_df
 
-        # lossy_vals holds the table from information.py which holds possible values
-        # lossy_idx is used nowhere else, and marker is used to determine if a packet is a header
-        lossy_idx = find_lossy_idx(data.iloc[packet_num])
-        lossy_vals = EPD_LOSSY_VALS[lossy_idx]
-        marker = 0xAA + lossy_idx
-        # self.logger.debug(f"Lossy idx is {lossy_idx}, marker {hex(marker)}")
+        lossy_idx = self.find_lossy_idx(data.iloc[packet_num])
+        marker = 0xAA + lossy_idx  # Determines if a packet is a header
+        consecutive_nonheader_packets = 0
+        ignore_packet = False  # Determine if we need to search for a new header, ex. bc of problem with current packet
 
-        # Flags used in loop
-        num_packets_without_header = 0  # Packet 'counter' (After getting header, it is set to 0 again)
-        needs_header = True  # Initially True to avoid the warning (logically should be false,
-        # but this should not change anything functionally)
-
-        # Going through the data
         while packet_num < data.shape[0]:
-            # Checking for empty packet within sector
-            if not data.iloc[packet_num]:
-                self.logger.debug(f"empty packet: {packet_num}")
-                needs_header = True
-
-            # Try to get next header, if not found just break because the loop is over
-            if needs_header or num_packets_without_header >= 9:
-                increment_by = find_first_header(data.iloc[packet_num:])
-                if increment_by is None:
-                    break
-                packet_num += increment_by
-                self.logger.debug(f"Jumped to header at {packet_num}, jumping over {increment_by} packets")
-                needs_header = True
-
-            # Getting data from packet, and looking for contextual info (timestamp, spin per)
             cur_data = data.iloc[packet_num]
-            timestamp_bytes = cur_data[:8]
-            spin_period_bytes = cur_data[8:10]
+            if cur_data[10] == marker:  # Current packet is a header (reference frame)
+                ignore_packet, measured_values = get_measured_values_if_valid(packet_num, cur_data)
+            else:  # We get a non-header/non-reference frame/continuation frame
+                ignore_packet, measured_values = update_measured_values_if_valid(measured_values, packet_num, cur_data)
+                consecutive_nonheader_packets += 1
 
-            # Now, there's two cases:
+            # Append the period (found from either the header or non-header packet) to l0_df
+            l0_df = (
+                l0_df.append(
+                    self.get_period_df(measured_values, EPD_LOSSY_VALS[lossy_idx], cur_data, df.iloc[packet_num]),
+                    sort=True,
+                )
+                if not ignore_packet
+                else l0_df
+            )
 
-            # 1. This packet is a header (reference frame)
-            if cur_data[10] == marker:
-                if not needs_header and packet_num != 0:
-                    self.logger.warning(f"⚠️ Weird, needs_header was false (packet ID {packet_num})")
-
-                cur_data = cur_data[11:]  # Already stored timestamp and spin per, not interested in them
-
-                # Check that we have all 256 reference bins
-                if len(cur_data) == BIN_COUNT * num_sectors:
-                    needs_header = False  # Clear flags
-                    num_packets_without_header = 0  # Clear flags
-
-                    # Set measured_values
-                    for ind, val in enumerate(cur_data):
-                        measured_values[ind] = val
-
-                # If not enough/too many reference bins, don't add to the returned DF
-                else:
-                    self.logger.warning(f"⚠️ Not a full header at {packet_num}, length is only {len(cur_data)}")
-                    needs_header = True
-                    packet_num += 1
-                    continue  # TODO: handle false headers
-
-            # 2. This is a non-header (not a reference frame)
-            # Getting each of the 256 values in the period
-            # If the packet is bad, just don't use it. Cases handled are:
-            #   - Bad sign (bitstring doesn't start with 00 or 01)
-            #   - Couldn't read/convert the values, possibly because parsing the data failed
-            #   - Index used to access the Huffman table is out of bounds (ex. <0 or >255)
-            else:
-                if needs_header:
-                    raise ValueError(f"Needed header at {packet_num}, but this shouldn't happen!")
-
-                bitstring = byte_tools.bin_string(cur_data[10:])
-
-                for value_ind in range(16 * num_sectors):
-                    # Determine sign using the beginning of the bitstring
-                    if bitstring[:2] == "01":
-                        sign = -1
-                    elif bitstring[:2] == "00":
-                        sign = 1
-                    else:
-                        self.logger.warning(f"⚠️ Bad Sign: {bitstring[:2]}, ind: {value_ind}, packet {packet_num}")
-                        needs_header = True
-                        break
-
-                    # Modifying the previous value by the calculated difference
-                    try:
-                        delta1, bitstring = byte_tools.get_huffman(bitstring[2:], table)
-                        delta2, bitstring = byte_tools.get_huffman(bitstring, table)
-                        measured_values[value_ind] += sign * ((delta1 << 4) + delta2)
-                    except IndexError as e:
-                        self.logger.warning(
-                            f"⚠️ Not enough bytes to determine the decompressed version: {e}, packet {packet_num}"
-                        )
-                        needs_header = True
-                        break
-
-                # Check for bad values, create warning if there are
-                bad_in_m_val = [
-                    (i, measured_values[i]) for i in range(16 * num_sectors) if not 0 <= measured_values[i] <= 255
-                ]
-                if bad_in_m_val and not needs_header:
-                    self.logger.warning(
-                        f"⚠️ Found bad values in measured_values for packet {packet_num} : {bad_in_m_val}"
-                    )
-                    needs_header = True
-
-                # If we've determined that we can't use this packet, don't add it to the returned DF
-                if needs_header:
-                    continue
-                num_packets_without_header += 1
-
-            # Append the period (found from either the header or non-header packet) to lv0_df
-            period_df = self.format_period_to_l0_df(measured_values, lossy_vals, spin_period_bytes, timestamp_bytes)
-            if not period_df.empty:
-                period_df["mission_id"] = df.iloc[packet_num]["mission_id"]
-                period_df["idpu_type"] = df.iloc[packet_num]["idpu_type"]
-                period_df["numerator"] = df.iloc[packet_num]["numerator"]
-                period_df["denominator"] = df.iloc[packet_num]["denominator"]
-
-                lv0_df = lv0_df.append(period_df, sort=True)
-                period_df = pd.DataFrame()
-
-            # Once a new row of data has been added, look at the next packet
+            # Get the next needed packet (perhaps a header is needed if something was wrong with a previous packet)
             packet_num += 1
+            if (
+                packet_num >= data.shape[0]
+                or not data.iloc[packet_num]
+                or ignore_packet
+                or consecutive_nonheader_packets >= 9
+            ):
+                packet_num += self.find_first_header(data.iloc[packet_num:])
+                consecutive_nonheader_packets = 0
 
-        return lv0_df[["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data"]].reset_index(
-            drop=True
-        )
+        return l0_df.reset_index(drop=True)
 
-    def format_period_to_l0_df(self, measured_values, lossy_vals, spin_period_bytes, collection_time_bytes):
+    @staticmethod
+    def find_lossy_idx(data_packet_in_bytes):
+        return data_packet_in_bytes[10] - 0xAA
+
+    @staticmethod
+    def find_first_header(data):
+        packet_num = 0
+        while packet_num < data.shape[0]:
+            if data.iloc[packet_num] is None or data.iloc[packet_num][10] & 0xA0 != 0xA0:
+                packet_num += 1
+            else:
+                return packet_num
+        return packet_num  # Went out of bounds, no header found
+
+    @staticmethod
+    def get_sign(bitstring):
+        if bitstring[:2] == "00":
+            return 1, bitstring[2:]
+        if bitstring[:2] == "01":
+            return -1, bitstring[2:]
+        raise ValueError(f"Got {bitstring[:2]} instead of '00' or '01'")
+
+    def get_period_df(self, measured_values, lossy_vals, cur_data, row):
         """
         Using the indices found, as well as the table of 255 values, find the values
         for a period, and return it as a DataFrame. Basically, this is used to create new
@@ -263,6 +215,7 @@ class EpdProcessor(IdpuProcessor):
         lossy_val is the value found using lossy_vals and lossy_val_idx
         """
         self.logger.debug("Formatting period to level 0 df")
+        spin_period_bytes, collection_time_bytes = cur_data[8:10], cur_data[:8]
 
         # Add the time
         bytes_data = spin_period_bytes + collection_time_bytes
@@ -275,9 +228,7 @@ class EpdProcessor(IdpuProcessor):
         bytes_data += bytes([sector_num])
 
         for loss_val_idx in measured_values:
-
-            # If the sector is complete, then increment the sector_num and prepare for a new sector
-            if num_bins == 16:
+            if num_bins == 16:  # increment the sector_num and prepare for a new sector
                 sector_num += 0x10 if num_sectors == 16 else 0x40
                 bytes_data += bytes([sector_num])
                 num_bins = 0
@@ -290,7 +241,15 @@ class EpdProcessor(IdpuProcessor):
         data = bytes_data.hex()
 
         period_df = pd.DataFrame(
-            data={"idpu_time": byte_tools.raw_idpu_bytes_to_datetime(collection_time_bytes), "data": data}, index=[0]
+            data={
+                "idpu_time": byte_tools.raw_idpu_bytes_to_datetime(collection_time_bytes),
+                "data": data,
+                "mission_id": row["mission_id"],
+                "idpu_type": row["idpu_type"],
+                "numerator": row["numerator"],
+                "denominator": row["denominator"],
+            },
+            index=[0],
         )
         return period_df
 
