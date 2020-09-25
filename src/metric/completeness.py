@@ -47,50 +47,16 @@ class CompletenessUpdater:
 
         szs = self.split_science_zones(times)
 
-        if not self.completeness_config.median_diff:
-            diffs = []
-            for sz in szs:
-                diffs += [(j - i).total_seconds() for i, j in zip(sz[:-1], sz[1:])]
-            median_diff = statistics.median(diffs)
-        else:
-            median_diff = self.completeness_config.median_diff
+        median_diff = self.get_median_diff(szs)
 
         # Update completeness for each science zone
         for sz in szs:
-            sz_start_time = sz[0]
-            sz_end_time = sz[-1]
-
-            # Find corresponding collection (for the time range)
-            # Assumes that only one execution time will be found
-            q = (
-                self.session.query(models.TimeIntervals)
-                .filter(
-                    models.TimeIntervals.start_time <= sz_end_time.to_pydatetime(),
-                    models.TimeIntervals.end_time >= sz_start_time.to_pydatetime(),
-                    models.TimeIntervals.mission_id == processing_request.mission_id,
-                    models.TimeIntervals.interval_type == "ExecutionTime",
-                    models.Intent.intent_type == self.completeness_config.intent_type,
-                )
-                .join(models.Intent, models.TimeIntervals.intent_id == models.Intent.id)
-                .first()
-            )
-            if not q:
-                self.logger.warning(f"Empty Query, skipping interval {sz_start_time} to {sz_end_time}")
+            start_time, end_time = self.estimate_time_range(processing_request, sz)
+            if start_time is None and end_time is None:
                 continue
 
-            start_time = min(
-                sz_start_time,
-                q.start_time + self.completeness_config.start_delay + self.completeness_config.start_margin,
-            )
-            end_time = max(
-                sz_end_time,
-                q.start_time
-                + self.completeness_config.start_delay
-                + self.completeness_config.expected_collection_duration,
-            )
-            collection_duration = (end_time - start_time).total_seconds()
-
             # Get Obtained and Expected Counts
+            collection_duration = (end_time - start_time).total_seconds()
             obtained = len(sz)
             estimated_total = math.ceil(collection_duration / median_diff)
 
@@ -98,8 +64,8 @@ class CompletenessUpdater:
             self.session.query(models.ScienceZoneCompleteness).filter(
                 models.ScienceZoneCompleteness.mission_id == processing_request.mission_id,
                 models.ScienceZoneCompleteness.data_type == processing_request.data_type,
-                models.ScienceZoneCompleteness.sz_start_time <= sz_end_time.to_pydatetime(),
-                models.ScienceZoneCompleteness.sz_end_time >= sz_start_time.to_pydatetime(),
+                models.ScienceZoneCompleteness.sz_start_time <= sz[-1].to_pydatetime(),
+                models.ScienceZoneCompleteness.sz_end_time >= sz[0].to_pydatetime(),
             ).delete()
 
             self.logger.info(
@@ -143,3 +109,46 @@ class CompletenessUpdater:
 
         self.logger.info(f"Found {len(szs)} science zone{s_if_plural(szs)}")
         return szs
+
+    def get_median_diff(self, szs):
+        if self.completeness_config.median_diff is not None:
+            return self.completeness_config.median_diff
+
+        diffs = []
+        for sz in szs:
+            diffs += [(j - i).total_seconds() for i, j in zip(sz[:-1], sz[1:])]
+
+        return statistics.median(diffs)
+
+    def estimate_time_range(self, processing_request, sz):
+        sz_start_time = sz[0]
+        sz_end_time = sz[-1]
+
+        # Find corresponding collection (for the time range)
+        # Assumes that only one execution time will be found
+        q = (
+            self.session.query(models.TimeIntervals)
+            .filter(
+                models.TimeIntervals.start_time <= sz_end_time.to_pydatetime(),
+                models.TimeIntervals.end_time >= sz_start_time.to_pydatetime(),
+                models.TimeIntervals.mission_id == processing_request.mission_id,
+                models.TimeIntervals.interval_type == "ExecutionTime",
+                models.Intent.intent_type == self.completeness_config.intent_type,
+            )
+            .join(models.Intent, models.TimeIntervals.intent_id == models.Intent.id)
+            .first()
+        )
+        if not q:
+            self.logger.warning(f"Empty Query, skipping interval {sz_start_time} to {sz_end_time}")
+            return None, None
+
+        start_time = min(
+            sz_start_time,
+            q.start_time + self.completeness_config.start_delay + self.completeness_config.start_margin,
+        )
+        end_time = max(
+            sz_end_time,
+            q.start_time + self.completeness_config.start_delay + self.completeness_config.expected_collection_duration,
+        )
+
+        return start_time, end_time
