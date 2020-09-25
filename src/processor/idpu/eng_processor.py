@@ -147,7 +147,7 @@ class EngProcessor(IdpuProcessor):
             models.Categorical.mission_id == processing_request.mission_id,
             models.Categorical.timestamp >= processing_request.date,
             models.Categorical.timestamp < processing_request.date + dt.timedelta(days=1),
-            models.Categorical.name.in_(name_converter.keys()),  # TODO: Is the list necessary?
+            models.Categorical.name.in_(name_converter.keys()),
         )
 
         fc_df = pd.DataFrame([{"fc_time": row.timestamp, name_converter[row.name]: row.value} for row in query])

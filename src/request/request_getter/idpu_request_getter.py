@@ -42,8 +42,8 @@ class IdpuRequestGetter(RequestGetter):
             raise ValueError(f"Expected 'downlink' or 'collection', got {pipeline_query.times}")
 
         self.downlink_manager.print_downlinks(
-            dl_list, prefix="➜\tRelevant Downlinks:"
-        )  # TODO: Make this message more descriptive
+            dl_list, prefix="➜\tFound downlinks that are relevant to the PipelineQuery:"
+        )
         general_processing_requests = self.get_requests_from_downlinks(dl_list)
         general_processing_requests = [
             pr for pr in general_processing_requests if pr.data_product in pipeline_query.data_products
@@ -63,7 +63,6 @@ class IdpuRequestGetter(RequestGetter):
         delta = dt.timedelta(days=1)
 
         general_processing_requests = set()
-        # TODO: Replace dl.idpu_type with data type (should not be int, should be str, such as 2 becomes fgm)
         for dl in dl_list:
             for data_product in PACKET_MAP[dl.idpu_type]:
                 start_date = dl.first_packet_info.collection_time.date()

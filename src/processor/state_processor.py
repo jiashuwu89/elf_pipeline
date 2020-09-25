@@ -32,7 +32,7 @@ class StateProcessor(ScienceProcessor):
         probe = processing_request.probe
 
         cdf_fname = self.make_filename(processing_request, 1)
-        cdf = self.create_cdf(cdf_fname)
+        cdf = self.create_empty_cdf(cdf_fname)
 
         csv_df = self.combine_state_csvs(processing_request)
         self.update_cdf_with_csv_df(probe, csv_df, cdf)  # time, position, and velocity
@@ -64,10 +64,10 @@ class StateProcessor(ScienceProcessor):
     def get_fname(probe, level, state_type, file_date):
         return f"{probe}_l{level}_state_{state_type}_{file_date.strftime('%Y%m%d')}_v01.cdf"
 
-    def create_cdf(self, fname):
+    def create_empty_cdf(self, fname):
         datestr_run = dt.datetime.utcnow().strftime("%04Y-%02m-%02d")
 
-        cdf = super().create_cdf(fname)
+        cdf = super().create_empty_cdf(fname)
         cdf.attrs["Generation_date"] = datestr_run
         cdf.attrs["MODS"] = "Rev- " + datestr_run
 

@@ -74,8 +74,7 @@ class ScienceProcessor(ABC):
             raise ValueError(f"Invalid Level: {level}")
         return f"{self.output_dir}/{fname}"
 
-    # TODO: Rename to indicate that an EMPTY cdf will be created to be filled in
-    def create_cdf(self, fname: str) -> pycdf.CDF:
+    def create_empty_cdf(self, fname: str) -> pycdf.CDF:
         """Creates a CDF with the desired fname, using the correct mastercdf.
 
         If a corresponding file already exists, it will be removed.

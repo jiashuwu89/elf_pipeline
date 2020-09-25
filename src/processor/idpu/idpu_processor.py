@@ -327,7 +327,7 @@ class IdpuProcessor(ScienceProcessor):
     def generate_l1_file(self, processing_request, l1_df):
         self.logger.info(f"🟣  Generating Level 1 DataFrame for {str(processing_request)}")
         fname = self.make_filename(processing_request, 1)
-        cdf = self.create_cdf(fname)
+        cdf = self.create_empty_cdf(fname)
         self.fill_cdf(processing_request, l1_df, cdf)
         cdf.close()
 

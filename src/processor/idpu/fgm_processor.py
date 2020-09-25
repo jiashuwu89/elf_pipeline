@@ -224,31 +224,11 @@ class FgmProcessor(IdpuProcessor):
             # Calculate the delta, and apply it to the appropriate axis (based on axis_index)
             axis_index = 0
             while len(bs) > BITS_IN_BYTE:  # TODO: Should this be >= ?, want to double check this
-
-                # Handling Sign: Getting 11 does not necessarily mean the science processing code
-                # is broken - the idpu code is set up to insert 11 if the the delta is too high
-                # to be encoded (creating a 'marker' for that error). If you have the permissions
-                # necessary, and want to view the idpu_code, the link is:
-                # https://elfin-dev1.igpp.ucla.edu/repos/eng/FPGA/elfin_ns8/idpu_em/source/branches/akhil_branch/embedded/idpu_3
-                if bs[:2] == "11":
-                    self.logger.debug(f"⚠️  Got sign bits '11' with {len(bs)} bytes remaining in current row")
+                delta, bs = self.get_delta(bs, idpu_time)
+                if delta is None:
                     break
-                sign = -1 if bs[:2] == "01" else 1
-                bs = bs[2:]
 
-                try:
-                    hexit16, bs = byte_tools.get_huffman(bs, table=FGM_HUFFMAN)
-                    hexit12, bs = byte_tools.get_huffman(bs, table=FGM_HUFFMAN)
-                    hexit8 = int(bs[0:4], 2)
-                    hexit4 = int(bs[4:8], 2)
-                    bs = bs[8:]
-                except IndexError:
-                    self.logger.warning("⚠️ Unable to decompress correctly")
-                    continue  # TODO: Should this be a 'break' instead?
-
-                axes_values[axis_index] += sign * self.calculate_delta_magnitude(
-                    idpu_time, hexit16, hexit12, hexit8, hexit4
-                )
+                axes_values[axis_index] += delta
 
                 if axis_index == 2:  # Flush row
                     idpu_time += dt.timedelta(seconds=(frequency.value))
@@ -257,6 +237,30 @@ class FgmProcessor(IdpuProcessor):
                 axis_index = (axis_index + 1) % 3
 
         return self.create_decompressed_df_from_rows(processing_request, decompressed_rows)
+
+    def get_delta(self, bs, idpu_time):
+        # Handling Sign: Getting 11 does not necessarily mean the science processing code
+        # is broken - the idpu code is set up to insert 11 if the the delta is too high
+        # to be encoded (creating a 'marker' for that error). If you have the permissions
+        # necessary, and want to view the idpu_code, the link is:
+        # https://elfin-dev1.igpp.ucla.edu/repos/eng/FPGA/elfin_ns8/idpu_em/source/branches/akhil_branch/embedded/idpu_3
+        if bs[:2] == "11":
+            self.logger.debug(f"⚠️  Got sign bits '11' with {len(bs)} bytes remaining in current row")
+            return None, bs
+        sign = -1 if bs[:2] == "01" else 1
+        bs = bs[2:]
+
+        try:
+            hexit16, bs = byte_tools.get_huffman(bs, table=FGM_HUFFMAN)
+            hexit12, bs = byte_tools.get_huffman(bs, table=FGM_HUFFMAN)
+            hexit8 = int(bs[0:4], 2)
+            hexit4 = int(bs[4:8], 2)
+            bs = bs[8:]
+        except IndexError:
+            self.logger.warning("⚠️ Unable to decompress correctly")
+            return None, bs
+
+        return sign * self.calculate_delta_magnitude(idpu_time, hexit16, hexit12, hexit8, hexit4), bs
 
     @staticmethod
     def calculate_delta_magnitude(idpu_time, hexit16, hexit12, hexit8, hexit4):

@@ -15,8 +15,6 @@ import datetime as dt
 
 from elfin.common import models
 
-# TODO: Rename for clarity (specify if values are numbers or strings)
-
 # Missions
 MISSION_DICT = {1: "ela", 2: "elb", 3: "em3"}
 ALL_MISSIONS = [1, 2]

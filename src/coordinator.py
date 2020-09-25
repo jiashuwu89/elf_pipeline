@@ -25,7 +25,6 @@ from util import science_utils
 from util.constants import DAILY_EMAIL_LIST
 
 
-# TODO: Eliminate Pipeline query
 class Coordinator:
     """Coordinator class to coordinate the pipeline.
 

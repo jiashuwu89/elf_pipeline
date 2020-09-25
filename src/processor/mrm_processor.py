@@ -53,7 +53,7 @@ class MrmProcessor(ScienceProcessor):
 
         cdf_fname = self.make_filename(processing_request, level=1)
 
-        cdf = self.create_cdf(cdf_fname)
+        cdf = self.create_empty_cdf(cdf_fname)
         self.fill_cdf(processing_request, mrm_df, cdf)
         cdf.close()
 

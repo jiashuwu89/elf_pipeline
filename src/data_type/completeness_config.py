@@ -1,8 +1,6 @@
 import datetime as dt
 from abc import ABC
 
-# TODO: Maybe these should be represented by dictionaries instead
-
 
 class CompletenessConfig(ABC):
     idpu_type = None

@@ -8,8 +8,6 @@ from elfin.common import models
 
 from util.science_utils import s_if_plural
 
-# TODO: Convert CompletenessConfig to Enum?
-
 
 class CompletenessUpdater:
     """An object to calculate and report the completeness of data.
@@ -48,6 +46,9 @@ class CompletenessUpdater:
         szs = self.split_science_zones(times)
 
         median_diff = self.get_median_diff(szs)
+        if median_diff is None:
+            self.logger.warning("Could not calculate median diff, so could not calculate completeness")
+            return False
 
         # Update completeness for each science zone
         for sz in szs:
@@ -117,6 +118,9 @@ class CompletenessUpdater:
         diffs = []
         for sz in szs:
             diffs += [(j - i).total_seconds() for i, j in zip(sz[:-1], sz[1:])]
+
+        if not diffs:
+            return None
 
         return statistics.median(diffs)
 

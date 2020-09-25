@@ -283,7 +283,6 @@ class EpdProcessor(IdpuProcessor):
         # TODO: The way this works could be much better, but it was written befor survey mode
         # was fully supported. The formula for num_sectors could be (data[20:] / 16) - 1, but
         # not completely sure
-        # TODO: make into function "Determine f or s"
         if processing_request.data_product[-1] == "f":
             num_sectors = 16
         elif processing_request.data_product[-1] == "s":

@@ -24,14 +24,17 @@ class Downlink:
         )
 
     def __lt__(self, other):
-        self_tuple = (
-            self.first_packet_info.idpu_time,
-            self.last_packet_info.science_packet_id - self.first_packet_info.science_packet_id,
-        )
-        other_tuple = (
-            other.first_packet_info.idpu_time,
-            other.last_packet_info.science_packet_id - other.first_packet_info.science_packet_id,
-        )
+        if self.last_packet_info.science_packet_id and self.first_packet_info.science_packet_id:
+            self_size = self.last_packet_info.science_packet_id - self.first_packet_info.science_packet_id
+        else:
+            self_size = 0
+        self_tuple = (self.first_packet_info.idpu_time, self_size)
+
+        if other.last_packet_info.science_packet_id and other.first_packet_info.science_packet_id:
+            other_size = other.last_packet_info.science_packet_id - other.first_packet_info.science_packet_id
+        else:
+            other_size = 0
+        other_tuple = (other.first_packet_info.idpu_time, other_size)
 
         return self_tuple < other_tuple
 
