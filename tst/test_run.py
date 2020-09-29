@@ -115,7 +115,7 @@ class TestCLIHandler:
         }
 
         args_3 = argparser.parse_args(
-            ["--verbose", "--withhold-files", "--quiet", "-o", ".", "downlinks", "-a", "-c", "2019-1-1", "2019-2-2"]
+            ["--verbose", "--withhold-files", "--quiet", "-a", "-o", ".", "downlinks", "-c", "2019-1-1", "2019-2-2"]
         )
         # raise ValueError(args_3.__dict__)
 
