@@ -125,6 +125,7 @@ def merge_downlinks(sf1: pd.DataFrame, sf2: pd.DataFrame, offset: int) -> pd.Dat
         The merged dataframe, of the same format
 
     """
+    # TODO: FIX THIS BECAUSE THIS IS PRETTY WACK
     # Make sure sf1 occurs before sf2
     if offset < 0:
         sf1, sf2 = sf2, sf1

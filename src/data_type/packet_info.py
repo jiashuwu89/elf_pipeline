@@ -6,14 +6,13 @@ class PacketInfo:
 
     Attributes
     ----------
-    packet_id: int
+    science_packet_id: int
         id in the packets table??
-    id: int
-        id in the science_packets table??
     idpu_time: dt.DateTime
         IDPU Time
     collection_time: dt.DateTime
         Time at which the packet was collected
+    denominator: int
 
     Methods
     -------

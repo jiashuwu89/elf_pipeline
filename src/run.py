@@ -38,6 +38,13 @@ class CLIHandler:
         )
         argparser.add_argument("-q", "--quiet", help="if problems occur, don't notify via email", action="store_true")
         argparser.add_argument(
+            "-a",
+            "--abandon-calculated-products",
+            help="avoid updating the database with products that were calculated during execution "
+            + "(for example, downlinks or completeness)",
+            action="store_true",
+        )
+        argparser.add_argument(
             "-o",
             "--output-dir",
             help="specify directory to output generated files (Default: temporary directory)",
@@ -65,7 +72,6 @@ class CLIHandler:
             ela=True,
             elb=True,
             em3=False,
-            abandon_calculated_products=False,
             downlink_time=[start_time.strftime("%Y-%m-%d %H:%M:%S"), end_time.strftime("%Y-%m-%d %H:%M:%S")],
             products=ALL_PRODUCTS,
         )
@@ -97,13 +103,6 @@ class CLIHandler:
         sub_parser.add_argument("-2", "--elb", help="process ELB data", action="store_true")
         sub_parser.add_argument("-3", "--em3", help="process EM3 data", action="store_true")
 
-        sub_parser.add_argument(
-            "-a",
-            "--abandon-calculated-products",
-            help="avoid updating the science_downlink table with products that were calculated during execution "
-            + "(for example, downlinks or completeness)",
-            action="store_true",
-        )
         sub_parser.add_argument(
             "-c",
             "--select-downlinks-by-collection-time",
@@ -146,7 +145,7 @@ class CLIHandler:
             self.logger.debug("Logging level set to 'DEBUG'")
 
         pipeline_config = ArgparsePipelineConfig(args)
-        coordinator: Coordinator = Coordinator(pipeline_config)
+        coordinator = Coordinator(pipeline_config)
         pipeline_query = ArgparsePipelineQuery(args)
         coordinator.execute_pipeline(pipeline_query)
 

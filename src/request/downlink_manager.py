@@ -48,7 +48,7 @@ class DownlinkManager:
                 + "\n"
             )
         else:
-            msg = f"{prefix} No downlinks!"
+            msg = f"{prefix}: No downlinks!"
         self.logger.info(msg)
 
     def get_downlinks_by_collection_time(self, pipeline_query):
@@ -100,6 +100,14 @@ class DownlinkManager:
             cur_mission_downlinks = self.calculate_new_downlinks_by_mission_id(
                 mission_id, pipeline_query.start_time, pipeline_query.end_time
             )
+
+            if self.update_db:
+                self.logger.info("Updating science_downlink table, as specified")
+                self.upload_downlink_entries(cur_mission_downlinks)
+            else:
+                self.logger.info("Locally storing calculated downlinks, will not update science_downlink table")
+                self.saved_downlinks += cur_mission_downlinks.copy()
+
             prefix = (
                 f"➜  Calculated {len(cur_mission_downlinks)} "
                 + f"Downlink{science_utils.s_if_plural(cur_mission_downlinks)} for mission {mission_id}"
@@ -235,19 +243,7 @@ class DownlinkManager:
             last_packet_info = PacketInfo(last_id, last_idpu_time, last_collection_time, cur_denom)
             downlinks.append(Downlink(mission_id, cur_packet_type, first_packet_info, last_packet_info))
 
-        downlinks.sort(key=lambda x: x.idpu_type)
-
-        if self.update_db:
-            self.logger.info(
-                f"Updating science_downlink table with {len(downlinks)} "
-                + f"calculated Downlink{science_utils.s_if_plural(downlinks)}"
-            )
-            self.upload_downlink_entries(downlinks)
-        else:
-            self.logger.info("Locally storing calculated downlinks")
-            self.saved_downlinks = downlinks.copy()
-
-        return downlinks
+        return sorted(downlinks, key=lambda x: x.idpu_type)
 
     # HELPER FOR get_downlinks_by_downlink_time, should be private
     def upload_downlink_entries(self, downlinks) -> None:

@@ -92,7 +92,7 @@ class MrmProcessor(ScienceProcessor):
 
         return mrm_df
 
-    def fill_cdf(self, processing_request, df, cdf):
+    def fill_cdf(self, processing_request, df, cdf) -> None:
         """Fills a given CDF with relevant MRM data.
 
         This overrides the default fill_cdf method in order to insert data
@@ -103,9 +103,9 @@ class MrmProcessor(ScienceProcessor):
         processing_request : ProcessingRequest
         df : pd.DataFrame
             A Pandas DataFrame with MRM data, in the format of the DataFrames
-            obtained from the get_mrm_df method
+            obtained from the get_mrm_df method.
         cdf : pycdf.CDF
-            A CDF object to which MRM data will be inserted
+            A CDF object to which MRM data will be inserted.
         """
         super().fill_cdf(processing_request, df, cdf)
 
