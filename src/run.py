@@ -72,7 +72,9 @@ class CLIHandler:
             ela=True,
             elb=True,
             em3=False,
-            downlink_time=[start_time.strftime("%Y-%m-%d %H:%M:%S"), end_time.strftime("%Y-%m-%d %H:%M:%S")],
+            select_downlinks_by_collection_time=False,
+            start_time=start_time.strftime("%Y-%m-%d %H:%M:%S"),
+            end_time=end_time.strftime("%Y-%m-%d %H:%M:%S"),
             products=ALL_PRODUCTS,
         )
 
