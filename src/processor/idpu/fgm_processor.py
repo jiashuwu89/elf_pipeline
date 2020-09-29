@@ -41,8 +41,8 @@ class FgmFrequencyEnum(Enum):
 
 
 class FgmProcessor(IdpuProcessor):
-    def __init__(self, pipeline_config):
-        super().__init__(pipeline_config)
+    def __init__(self, pipeline_config, downlink_manager):
+        super().__init__(pipeline_config, downlink_manager)
 
         self.completeness_updater = CompletenessUpdater(pipeline_config.session, FgmCompletenessConfig)
 

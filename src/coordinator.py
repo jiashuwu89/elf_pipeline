@@ -16,6 +16,7 @@ from processor.idpu.fgm_processor import FgmProcessor
 from processor.mrm_processor import MrmProcessor
 from processor.processor_manager import ProcessorManager
 from processor.state_processor import StateProcessor
+from request.downlink_manager import DownlinkManager
 from request.request_getter.eng_request_getter import EngRequestGetter
 from request.request_getter.idpu_request_getter import IdpuRequestGetter
 from request.request_getter.mrm_request_getter import MrmRequestGetter
@@ -60,18 +61,20 @@ class Coordinator:
 
         self.pipeline_config = pipeline_config
 
+        self.downlink_manager = DownlinkManager(pipeline_config)
+
         # Initialize Pipeline Managers
         request_getters = [
-            IdpuRequestGetter(pipeline_config),
+            IdpuRequestGetter(pipeline_config, self.downlink_manager),
             MrmRequestGetter(pipeline_config),
             EngRequestGetter(pipeline_config),
             StateRequestGetter(pipeline_config),
         ]
         self.request_getter_manager = RequestGetterManager(pipeline_config, request_getters)
 
-        eng_processor = EngProcessor(pipeline_config)
-        epd_processor = EpdProcessor(pipeline_config)
-        fgm_processor = FgmProcessor(pipeline_config)
+        eng_processor = EngProcessor(pipeline_config, self.downlink_manager)
+        epd_processor = EpdProcessor(pipeline_config, self.downlink_manager)
+        fgm_processor = FgmProcessor(pipeline_config, self.downlink_manager)
         mrm_processor = MrmProcessor(pipeline_config)
         state_processor = StateProcessor(pipeline_config)
         processor_map = {

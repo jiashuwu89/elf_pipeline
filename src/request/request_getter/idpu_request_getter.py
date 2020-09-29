@@ -2,16 +2,15 @@ import datetime as dt
 
 from data_type.processing_request import ProcessingRequest
 from data_type.time_type import TimeType
-from request.downlink_manager import DownlinkManager
 from request.request_getter.request_getter import RequestGetter
 from util.constants import PACKET_MAP, SCIENCE_TYPES
 
 
 class IdpuRequestGetter(RequestGetter):
-    def __init__(self, pipeline_config):
+    def __init__(self, pipeline_config, downlink_manager):
         super().__init__(pipeline_config)
 
-        self.downlink_manager = DownlinkManager(pipeline_config)
+        self.downlink_manager = downlink_manager
 
     def get(self, pipeline_query):
         """FGM and EPD and ENG Processing Requests

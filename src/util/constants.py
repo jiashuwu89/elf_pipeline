@@ -15,8 +15,11 @@ import datetime as dt
 
 from elfin.common import models
 
+# TODO: Add date and datetime format strings!!
+
 # Missions
 MISSION_DICT = {1: "ela", 2: "elb", 3: "em3"}
+MISSION_NAME_TO_ID_MAP = {"ela": 1, "elb": 2, "em3": 3}
 ALL_MISSIONS = [1, 2]
 
 # Data Products

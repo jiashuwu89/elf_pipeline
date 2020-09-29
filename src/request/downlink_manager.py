@@ -9,6 +9,7 @@ from data_type.downlink import Downlink
 from data_type.packet_info import PacketInfo
 from util import byte_tools, science_utils
 from util.constants import COMPRESSED_TYPES
+from util.general_utils import convert_date_to_datetime
 
 # TODO: packet_id vs id Check
 
@@ -18,7 +19,7 @@ from util.constants import COMPRESSED_TYPES
 
 # TODO: Where can this be relocated to?
 
-# TODO: Separate into Downlink Creator and Downlink getter
+# TODO: Separate into Downlink Creator and Downlink getter, move this to its own directory?
 
 
 class DownlinkManager:
@@ -322,7 +323,14 @@ class DownlinkManager:
 
         # Local downlinks that weren't uploaded to the database
         for downlink in self.saved_downlinks:
-            downlinks.add(downlink)
+            if (
+                downlink.mission_id == processing_request.mission_id
+                and downlink.idpu_type in processing_request.idpu_types
+                and downlink.first_packet_info.collection_time
+                < convert_date_to_datetime(processing_request.date + dt.timedelta(days=1))
+                and downlink.last_packet_info.collection_time >= convert_date_to_datetime(processing_request.date)
+            ):
+                downlinks.add(downlink)
 
         if not downlinks:
             raise RuntimeError(f"No Downlinks found for processing request {processing_request}")

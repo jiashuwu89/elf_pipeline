@@ -8,7 +8,7 @@ from data_type.processing_request import ProcessingRequest
 from data_type.time_type import TimeType
 from request.request_getter.request_getter import RequestGetter
 from util import science_utils
-from util.constants import STATE_CALCULATE_RADIUS
+from util.constants import MISSION_NAME_TO_ID_MAP, STATE_CALCULATE_RADIUS
 
 
 class StateRequestGetter(RequestGetter):
@@ -56,7 +56,10 @@ class StateRequestGetter(RequestGetter):
                     os.stat(f"{self.pipeline_config.state_csv_dir}/{csv}").st_mtime
                 )
                 if pipeline_query.start_time <= csv_datetime < pipeline_query.end_time:
-                    csv_requests.add(csv)
+                    split_name = csv.split("_")
+                    mission_id = MISSION_NAME_TO_ID_MAP[split_name[0]]
+                    csv_date = dt.datetime.strptime(split_name[4], "%Y%m%d").date()
+                    csv_requests.add(ProcessingRequest(mission_id, "state", csv_date))
         elif pipeline_query.times == TimeType.COLLECTION:  # Always process certain days
             mission_id = None
             for mission_id in pipeline_query.mission_ids:

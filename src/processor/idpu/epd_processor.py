@@ -22,8 +22,8 @@ from util.constants import BIN_COUNT, EPD_CALIBRATION_DIR, VALID_NUM_SECTORS
 
 
 class EpdProcessor(IdpuProcessor):
-    def __init__(self, pipeline_config):
-        super().__init__(pipeline_config)
+    def __init__(self, pipeline_config, downlink_manager):
+        super().__init__(pipeline_config, downlink_manager)
 
         self.epde_completeness_updater = CompletenessUpdater(pipeline_config.session, EpdeCompletenessConfig)
         self.epdi_completeness_updater = CompletenessUpdater(pipeline_config.session, EpdiCompletenessConfig)

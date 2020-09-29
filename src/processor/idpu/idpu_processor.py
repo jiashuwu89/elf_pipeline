@@ -11,7 +11,6 @@ from elfin.libelfin.utils import compute_crc
 from spacepy import pycdf
 
 from processor.science_processor import ScienceProcessor
-from request.downlink_manager import DownlinkManager
 from util import downlink_utils
 from util.science_utils import dt_to_tt2000, s_if_plural
 
@@ -25,10 +24,10 @@ class IdpuProcessor(ScienceProcessor):
         An object storing user-defined settings for the pipeline
     """
 
-    def __init__(self, pipeline_config):
+    def __init__(self, pipeline_config, downlink_manager):
         super().__init__(pipeline_config)
 
-        self.downlink_manager = DownlinkManager(pipeline_config)
+        self.downlink_manager = downlink_manager
 
     def generate_files(self, processing_request):
         l0_file_name, l0_df = self.generate_l0_products(processing_request)
