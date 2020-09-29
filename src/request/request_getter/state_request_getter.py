@@ -51,8 +51,10 @@ class StateRequestGetter(RequestGetter):
         if pipeline_query.times == TimeType.DOWNLINK:
             self.logger.warning("➜  State csv requests not applicable if querying by downlink time")
             all_csv = os.listdir(self.pipeline_config.state_csv_dir)
-            for csv in all_csv:
-                csv_datetime = dt.datetime.fromtimestamp(os.stat(csv).st_mtime)  # TODO: Should this actually be mtime
+            for csv in all_csv:  # TODO: Should this actually be mtime
+                csv_datetime = dt.datetime.fromtimestamp(
+                    os.stat(f"{self.pipeline_config.state_csv_dir}/{csv}").st_mtime
+                )
                 if pipeline_query.start_time <= csv_datetime < pipeline_query.end_time:
                     csv_requests.add(csv)
         elif pipeline_query.times == TimeType.COLLECTION:  # Always process certain days

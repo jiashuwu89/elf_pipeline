@@ -73,13 +73,11 @@ IDL_SCRIPT_VERSION = 8
 
 # Directory Paths
 # TODO: Get good paths
-STATE_CSV_DIR = "/home/elfin-esn/state_data/"
-# MASTERCDF_DIR = "/home/elfin-esn/OPS/science/trunk/science_processing/mastercdf"
-MASTERCDF_DIR = "/Users/jamesking/Desktop/elfin/OPS/science/refactor/mastercdf"
-# EPD_CALIBRATION_DIR = "/home/elfin-esn/OPS/science/trunk/science_processing/calibration"
-EPD_CALIBRATION_DIR = "/Users/jamesking/Desktop/elfin/OPS/science/refactor/calibration"
+STATE_CSV_DIR = "/home/elfin-esn/state_data"
+MASTERCDF_DIR = "../mastercdf"
+EPD_CALIBRATION_DIR = "../calibration"
 SERVER_BASE_DIR = "/themis/data/elfin"
-TEST_DATA_DIR = "/Users/jamesking/Desktop/elfin/OPS/science/refactor/tst/test_data"
+TEST_DATA_DIR = "../tst/test_data"
 
 # NUMBERS
 MINS_IN_DAY = 60 * 24
