@@ -49,7 +49,6 @@ class StateRequestGetter(RequestGetter):
 
         csv_requests = set()
         if pipeline_query.times == TimeType.DOWNLINK:
-            self.logger.warning("➜  State csv requests not applicable if querying by downlink time")
             all_csv = os.listdir(self.pipeline_config.state_csv_dir)
             for csv in all_csv:  # TODO: Should this actually be mtime
                 csv_datetime = dt.datetime.fromtimestamp(

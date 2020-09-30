@@ -47,7 +47,7 @@ class Downlink:
                 "Downlink(",
                 f"\tmission_id={self.mission_id}, idpu_type={self.idpu_type}, denominator={self.denominator}, ",
                 f"\tfirst_packet_info: {str(self.first_packet_info)}",
-                f"\tsecond_packet_info: {str(self.last_packet_info)})",
+                f"\tlast_packet_info: {str(self.last_packet_info)})",
             ]
         )
 
@@ -57,6 +57,6 @@ class Downlink:
                 "Downlink(",
                 f"\tmission_id={self.mission_id}, idpu_type={self.idpu_type}, denominator={self.denominator}, ",
                 f"\tfirst_packet_info: {str(self.first_packet_info)}",
-                f"\tsecond_packet_info: {str(self.last_packet_info)})",
+                f"\tlast_packet_info: {str(self.last_packet_info)})",
             ]
         )

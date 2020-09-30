@@ -131,7 +131,7 @@ class CLIHandler:
     def run(self):
         """ Get arguments and perform processing, noting the duration """
         start_time: dt.datetime = dt.datetime.utcnow()
-        self.logger.info(f"🤠  Beginning at {start_time.strftime('%Y-%m-%d %H:%M:%S')} (UTC)\t🤠")
+        self.logger.info(f"🤠  Beginning at {start_time.strftime('%Y-%m-%d %H:%M:%S')} (UTC)  🤠")
 
         args: argparse.ArgumentParser = self.argparser.parse_args()
 
@@ -152,7 +152,7 @@ class CLIHandler:
         coordinator.execute_pipeline(pipeline_query)
 
         elapsed_time: dt.timedelta = dt.datetime.utcnow() - start_time
-        self.logger.info(f"🤠\tTotal run time: {str(elapsed_time)}\t🤠")
+        self.logger.info(f"🤠  Total run time: {str(elapsed_time)}  🤠")
 
 
 if __name__ == "__main__":
