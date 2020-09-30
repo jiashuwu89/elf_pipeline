@@ -5,15 +5,15 @@ import pytest
 from spacepy import pycdf
 
 from data_type.processing_request import ProcessingRequest
-from dummy import SafeTestPipelineConfig
 from processor.mrm_processor import MrmProcessor
-from util.constants import TEST_DATA_DIR
+from util.constants import CREDENTIALS_FILE, TEST_DATA_DIR
+from util.dummy import SafeTestPipelineConfig
 
 # TODO: test_utils dir!
 
 
 class TestMrmProcessor:
-    @pytest.mark.skipif(not os.path.isfile("./src/util/credentials.py"), reason="Probably in CI/CD pipeline")
+    @pytest.mark.skipif(not os.path.isfile(CREDENTIALS_FILE), reason="Probably in CI/CD pipeline")
     def test_generate_files(self):
         mrm_processor = MrmProcessor(SafeTestPipelineConfig())
 

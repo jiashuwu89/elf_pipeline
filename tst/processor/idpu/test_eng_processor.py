@@ -6,17 +6,17 @@ import pytest
 from spacepy import pycdf
 
 from data_type.processing_request import ProcessingRequest
-from dummy import SafeTestPipelineConfig
 from processor.idpu.eng_processor import EngProcessor
-from util.constants import TEST_DATA_DIR
+from util.constants import CREDENTIALS_FILE, TEST_DATA_DIR
+from util.dummy import DUMMY_DOWNLINK_MANAGER, SafeTestPipelineConfig
 
 # TODO: Eng data was processed incorrectly by original pipeline!!!!!
 
 
 class TestEngProcessor:
-    @pytest.mark.skipif(not os.path.isfile("./src/util/credentials.py"), reason="Probably in CI/CD pipeline")
+    @pytest.mark.skipif(not os.path.isfile(CREDENTIALS_FILE), reason="Probably in CI/CD pipeline")
     def test_generate_files(self):
-        eng_processor = EngProcessor(SafeTestPipelineConfig())
+        eng_processor = EngProcessor(SafeTestPipelineConfig(), DUMMY_DOWNLINK_MANAGER)
 
         pr_1 = ProcessingRequest(1, "eng", dt.date(2020, 4, 23))
         generated_files = eng_processor.generate_files(pr_1)

@@ -6,16 +6,16 @@ import pytest
 from spacepy import pycdf
 
 from data_type.processing_request import ProcessingRequest
-from dummy import SafeTestPipelineConfig
 from processor.idpu.epd_processor import EpdProcessor
-from util.constants import TEST_DATA_DIR
+from util.constants import CREDENTIALS_FILE, TEST_DATA_DIR
+from util.dummy import DUMMY_DOWNLINK_MANAGER, SafeTestPipelineConfig
 
 
 class TestEpdProcessor:
-    @pytest.mark.skipif(not os.path.isfile("./src/util/credentials.py"), reason="Probably in CI/CD pipeline")
+    @pytest.mark.skipif(not os.path.isfile(CREDENTIALS_FILE), reason="Probably in CI/CD pipeline")
     def test_generate_files(self):
         pr = ProcessingRequest(1, "epdef", dt.date(2020, 4, 4))
-        epd_processor = EpdProcessor(SafeTestPipelineConfig())
+        epd_processor = EpdProcessor(SafeTestPipelineConfig(), DUMMY_DOWNLINK_MANAGER)
         generated_files = epd_processor.generate_files(pr)
         assert len(generated_files) == 2
         generated_l0_file, generated_l1_file = generated_files

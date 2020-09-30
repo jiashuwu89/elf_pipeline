@@ -6,9 +6,9 @@ import pytest
 from spacepy import pycdf
 
 from data_type.processing_request import ProcessingRequest
-from dummy import SafeTestPipelineConfig
 from processor.idpu.fgm_processor import FgmProcessor
-from util.constants import TEST_DATA_DIR
+from util.constants import CREDENTIALS_FILE, TEST_DATA_DIR
+from util.dummy import DUMMY_DOWNLINK_MANAGER, SafeTestPipelineConfig
 
 
 class TestFgmProcessor:
@@ -16,10 +16,10 @@ class TestFgmProcessor:
     # TODO: Rename to generate_products?
     # TODO: Check old FGM files. It seems that some of their data does not fall under the
     # correct file (out of the range of the day)
-    @pytest.mark.skipif(not os.path.isfile("./src/util/credentials.py"), reason="Probably in CI/CD pipeline")
+    @pytest.mark.skipif(not os.path.isfile(CREDENTIALS_FILE), reason="Probably in CI/CD pipeline")
     def test_generate_files(self):
         pr_1 = ProcessingRequest(1, "fgs", dt.date(2020, 7, 1))
-        fgm_processor = FgmProcessor(SafeTestPipelineConfig())
+        fgm_processor = FgmProcessor(SafeTestPipelineConfig(), DUMMY_DOWNLINK_MANAGER)
         generated_files = fgm_processor.generate_files(pr_1)
         assert len(generated_files) == 2
         generated_l0_file, generated_l1_file = generated_files
@@ -51,6 +51,6 @@ class TestFgmProcessor:
     #     fgm_processor.
 
     def test_get_merged_dataframes(self):
-        fgm_processor = FgmProcessor(SafeTestPipelineConfig())
+        fgm_processor = FgmProcessor(SafeTestPipelineConfig(), DUMMY_DOWNLINK_MANAGER)
         with pytest.raises(RuntimeError):
             fgm_processor.get_merged_dataframes([])

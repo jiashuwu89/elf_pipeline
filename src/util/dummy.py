@@ -7,6 +7,7 @@ from elfin.common import db
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
 from processor.science_processor import ScienceProcessor
+from request.downlink_manager import DownlinkManager
 from util.constants import TEST_DATA_DIR
 
 
@@ -90,3 +91,6 @@ class SafeTestPipelineConfig(PipelineConfig):
     @property
     def email(self):
         return False
+
+
+DUMMY_DOWNLINK_MANAGER = DownlinkManager(DummyPipelineConfig())

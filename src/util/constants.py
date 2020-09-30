@@ -12,6 +12,7 @@ The contents include data structures storing information concerning:
     * other constants
 """
 import datetime as dt
+import os
 
 from elfin.common import models
 
@@ -33,7 +34,7 @@ ALL_PRODUCTS = EPD_PRODUCTS + FGM_PRODUCTS + ENG_PRODUCTS + MRM_PRODUCTS + STATE
 
 # A Dictionary mapping IDPU type to products
 PACKET_MAP = {
-    1: ["fgs"],
+    1: ["fgs"],  # TODO: Document this based on conversation with Ethan
     2: ["fgs"],
     17: ["fgf"],
     18: ["fgf"],
@@ -77,10 +78,18 @@ IDL_SCRIPT_VERSION = 8
 # Directory Paths
 # TODO: Get good paths
 STATE_CSV_DIR = "/home/elfin-esn/state_data"
-MASTERCDF_DIR = "../mastercdf"
-EPD_CALIBRATION_DIR = "../calibration"
 SERVER_BASE_DIR = "/themis/data/elfin"
-TEST_DATA_DIR = "../tst/test_data"
+CREDENTIALS_FILE = "src/util/credentials.py"
+if os.path.basename(os.getcwd()) == "refactor":
+    MASTERCDF_DIR = "mastercdf"
+    EPD_CALIBRATION_DIR = "calibration"
+    TEST_DATA_DIR = "tst/test_data"
+elif os.path.basename(os.getcwd()) == "src":
+    MASTERCDF_DIR = "../mastercdf"
+    EPD_CALIBRATION_DIR = "../calibration"
+    TEST_DATA_DIR = "../tst/test_data"
+else:
+    raise RuntimeError(f"Cannot run from this directory: {os.getcwd()}")
 
 # NUMBERS
 MINS_IN_DAY = 60 * 24

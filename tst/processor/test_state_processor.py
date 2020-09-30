@@ -5,15 +5,15 @@ import pytest
 from spacepy import pycdf
 
 from data_type.processing_request import ProcessingRequest
-from dummy import DummyProcessingRequest, SafeTestPipelineConfig
 from processor.state_processor import StateProcessor
-from util.constants import TEST_DATA_DIR
+from util.constants import CREDENTIALS_FILE, TEST_DATA_DIR
+from util.dummy import DummyProcessingRequest, SafeTestPipelineConfig
 
 # TODO: test_utils dir!
 
 
 class TestStateProcessor:
-    @pytest.mark.skipif(not os.path.isfile("./src/util/credentials.py"), reason="Probably in CI/CD pipeline")
+    @pytest.mark.skipif(not os.path.isfile(CREDENTIALS_FILE), reason="Probably in CI/CD pipeline")
     def test_generate_files(self):
         state_processor = StateProcessor(SafeTestPipelineConfig())
 

@@ -1,6 +1,6 @@
-from dummy import DummyProcessingRequest, SafeTestPipelineConfig
 from request.request_getter.request_getter import RequestGetter
 from request.request_getter_manager import RequestGetterManager
+from util.dummy import DummyProcessingRequest, SafeTestPipelineConfig
 
 
 class DummyRequestGetter(RequestGetter):

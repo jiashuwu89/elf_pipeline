@@ -1,7 +1,7 @@
 import pytest
 
-from dummy import DummyPipelineConfig, DummyProcessingRequest, DummyScienceProcessor
 from processor.science_processor import ScienceProcessor
+from util.dummy import DummyPipelineConfig, DummyProcessingRequest, DummyScienceProcessor
 
 
 class TestScienceProcessor:

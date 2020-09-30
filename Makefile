@@ -51,9 +51,8 @@ check-style:
 
 test:
 	@echo "⭐ Performing Tests ⭐"
-	PYTHONPATH=$(SRC) && $(PR) coverage run --source=$(SRC) -m pytest;
+	$(PR) coverage run --source=$(SRC) -m pytest;
 
-# --skip-covered can be used to ignore files with 100% coverage
 # Eliminating the following to use coverage in CI/CD pipeline: --fail-under=$(COVERAGE_LIMIT)
 coverage: test
 	@echo "⭐ Checking Code Coverage ⭐"
