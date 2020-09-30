@@ -40,7 +40,7 @@ class PacketInfo:
     def __str__(self):
         return (
             f"PacketInfo(science_packet_id={self.science_packet_id}, "
-            + f"idpu_time={self.idpu_time},"
+            + f"idpu_time={self.idpu_time}, "
             + f"collection_time={self.collection_time}, "
             + f"denominator={self.denominator})"
         )
@@ -48,7 +48,7 @@ class PacketInfo:
     def __repr__(self):
         return (
             f"PacketInfo(science_packet_id={self.science_packet_id}, "
-            + f"idpu_time={self.idpu_time},"
+            + f"idpu_time={self.idpu_time}, "
             + f"collection_time={self.collection_time}, "
             + f"denominator={self.denominator})"
         )

@@ -32,7 +32,7 @@ class EngRequestGetter(RequestGetter):
         eng_processing_requests.update(self.get_categoricals_requests(pipeline_query))
         eng_processing_requests.update(self.get_bmon_requests(pipeline_query))
 
-        eng_processing_requests = {pr for pr in eng_processing_requests if pr.date.year != 2000}
+        eng_processing_requests = {pr for pr in eng_processing_requests if pr.date.year != 2000}  # TODO: Explain this
 
         self.logger.info(
             f"⚽️  Got {len(eng_processing_requests)} "

@@ -33,10 +33,10 @@ ALL_PRODUCTS = EPD_PRODUCTS + FGM_PRODUCTS + ENG_PRODUCTS + MRM_PRODUCTS + STATE
 
 # A Dictionary mapping IDPU type to products
 PACKET_MAP = {
-    1: ["fgs", "fgf"],
-    2: ["fgs", "fgf"],
-    17: ["fgs", "fgf"],
-    18: ["fgs", "fgf"],
+    1: ["fgs"],
+    2: ["fgs"],
+    17: ["fgf"],
+    18: ["fgf"],
     3: ["epdef"],
     4: ["epdef"],
     5: ["epdif"],

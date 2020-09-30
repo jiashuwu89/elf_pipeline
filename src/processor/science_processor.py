@@ -26,8 +26,6 @@ class ScienceProcessor(ABC):
         self.output_dir = pipeline_config.output_dir
         self.update_db = pipeline_config.update_db
 
-        self.downlink_manager = DownlinkManager(pipeline_config)
-
     @abstractmethod
     def generate_files(self, processing_request):
         """Given a ProcessingRequest, creates all relevant files.
