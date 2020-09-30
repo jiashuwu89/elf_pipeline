@@ -80,7 +80,7 @@ IDL_SCRIPT_VERSION = 8
 STATE_CSV_DIR = "/home/elfin-esn/state_data"
 SERVER_BASE_DIR = "/themis/data/elfin"
 CREDENTIALS_FILE = "src/util/credentials.py"
-if os.path.basename(os.getcwd()) == "refactor":
+if os.path.basename(os.getcwd()) in ["pipeline-refactor", "refactor"]:  # TODO: fix this
     MASTERCDF_DIR = "mastercdf"
     EPD_CALIBRATION_DIR = "calibration"
     TEST_DATA_DIR = "tst/test_data"
