@@ -1,9 +1,3 @@
-"""Class to generate ENG files
-
-Classes:
-
-    EngProcessor
-"""
 import datetime as dt
 import statistics
 
@@ -16,15 +10,38 @@ from util.science_utils import dt_to_tt2000
 
 
 class EngProcessor(IdpuProcessor):
-    """Class to generate ENG files"""
+    """A processor that generates ENG files"""
 
     # Get IDPU Types from processing request
     def generate_files(self, processing_request):
+        """Generates a single level 1 ENG CDF related to the request.
+
+        Parameters
+        ----------
+        processing_request
+            A ProcessingRequest specifying that a specific ENG file be created
+        """
         l1_file_name, _ = self.generate_l1_products(processing_request)  # Default param to None -> will generate l0 df
 
         return [l1_file_name]
 
     def generate_l0_df(self, processing_request):
+        """Creates a level 0 DataFrame of ENG IDPU data.
+
+        Even if there is no ENG IDPU data, there may be BMON or Categorical
+        data that needs to be obtained later for the level 1 file. Therefore,
+        an empty DataFrame is returned so that this later step is possible.
+
+        Parameters
+        ----------
+        processing_request
+
+        Returns
+        -------
+        pd.DataFrame
+            A pandas DataFrame of ENG IDPU data relating to the processing
+            request; the DataFrame may be empty
+        """
         try:
             l0_df = super().generate_l0_df(processing_request)
         except RuntimeError as e:
@@ -33,7 +50,22 @@ class EngProcessor(IdpuProcessor):
         return l0_df
 
     def process_rejoined_data(self, processing_request, df):
-        """No major processing necessary for ENG level 0"""
+        """Performs some transformations on data that has been rejoined.
+
+        No major processing necessary for ENG level 0, apart from converting
+        data into bytes
+
+        Parameters
+        ----------
+        processing_request
+        df : pd.DataFrame
+            A DataFrame of rejoined data
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame in which the 'data' column has been converted to bytes
+        """
         df["data"] = df["data"].apply(lambda x: bytes.fromhex(x) if x else None)
         return df
 
@@ -69,9 +101,17 @@ class EngProcessor(IdpuProcessor):
         return l1_df
 
     def transform_l0_df(self, processing_request, l0_df):
-        """
-        Creates Dataframe using Inputed Data, as well as FC and Battery Monitor
-        Data found using EngDownlinkManager
+        """Creates an initial level 1 ENG DataFrame from a level 0 DataFrame.
+
+        The resulting DataFrame will contain IDPU data from the level 0
+        DataFrame, as well as FC and Battery Monitor Data from the
+        corresponding tables.
+
+        Parameters
+        ----------
+        processing_request
+        l0_df : pd.DataFrame
+            A DataFrame of level 0 ENG IDPU data
         """
 
         final_df = pd.DataFrame()
@@ -99,8 +139,22 @@ class EngProcessor(IdpuProcessor):
         return final_df
 
     def extract_data(self, data_type, data, idpu_time):
-        """ Helper Function for Transform Level 0 """
-        self.logger.debug(f"Data type {data_type} is good? {data_type in (14, 15, 16)}")
+        """From IDPU data, obtain a representative dictionary.
+
+        Parameters
+        ----------
+        data_type : int
+            Should be a value in {14, 15, 16}
+        data : bytes
+            Bytes of IDPU data to be reformatted
+        idpu_time
+
+        Returns
+        -------
+        dict
+            A Dictionary that can be converted into a row of a level 1 ENG
+            DataFrame
+        """
         if data_type == 14:  # SIPS
             return {
                 "sips_time": idpu_time,
@@ -129,9 +183,18 @@ class EngProcessor(IdpuProcessor):
         raise ValueError(f"⚠️ \tWanted data type 14, 15, 16; instead got {data_type}")
 
     def get_fc_df(self, processing_request):
-        """
-        Returns a DataFrame of FC Data
+        """For a given processing request, gets relevant categorical data.
+
         Refer to name_converter dictionary for additional information
+
+        Parameters
+        ----------
+        processing_request
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame of FC Data
         """
         name_converter = {
             models.Categoricals.TMP_1: "fc_idpu_temp",
@@ -154,9 +217,18 @@ class EngProcessor(IdpuProcessor):
         return fc_df
 
     def get_bmon_df(self, processing_request):
-        """
-        Returns a Dataframe containing Battery Monitor Data
+        """For a given processing request, gets relevant battery monitor data.
+
         NOTE: To calculate the values, need to average the two values provided for each time
+
+        Parameters
+        ----------
+        processing_request
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame of Battery Monitor Data
         """
 
         query = self.session.query(models.BmonData).filter(
@@ -190,9 +262,30 @@ class EngProcessor(IdpuProcessor):
         return bmon_df
 
     def get_completeness_updater(self, processing_request):
+        """No completeness calculations necessary for ENG data.
+
+        Parameters
+        ----------
+        processing_request
+
+        Returns
+        -------
+        None
+        """
         return None
 
     def get_cdf_fields(self, processing_request):
+        """Provides a mapping of CDF fields to DataFrame fields for ENG data.
+
+        Parameters
+        ----------
+        processing_request
+
+        Returns
+        -------
+        Dict[str, str]
+            A mapping of CDF fields to ENG level 1 DataFrame fields
+        """
         self.logger.debug(f"Getting CDF fields for processing request: {processing_request}")
         eng_fields = [
             "fc_time",

@@ -1,7 +1,3 @@
-"""Base processor for all processors of IDPU data.
-
-IDPU data processors usually need some methods to perform decompression
-"""
 import datetime as dt
 from abc import abstractmethod
 
@@ -18,10 +14,15 @@ from util.science_utils import dt_to_tt2000, s_if_plural
 class IdpuProcessor(ScienceProcessor):
     """A processor that serves as the base for processors of IDPU data.
 
+    NOTE: IDPU data processors usually need some methods to perform
+    decompression.
+
     Parameters
     ----------
     pipeline_config : PipelineConfig
         An object storing user-defined settings for the pipeline
+    downlink_manager : DownlinkManager
+        An object that calculates and obtains Downlinks
     """
 
     def __init__(self, pipeline_config, downlink_manager):
@@ -30,12 +31,34 @@ class IdpuProcessor(ScienceProcessor):
         self.downlink_manager = downlink_manager
 
     def generate_files(self, processing_request):
+        """Creates level 0 and 1 files for the given processing request.
+
+        Parameters
+        ----------
+        processing_request
+
+        Returns
+        -------
+        List[str]
+            A list of two filenames, representing the level 0 and 1 files
+        """
         l0_file_name, l0_df = self.generate_l0_products(processing_request)
         l1_file_name, _ = self.generate_l1_products(processing_request, l0_df)
 
         return [l0_file_name, l1_file_name]
 
     def generate_l0_products(self, processing_request):
+        """Creates the level 0 products associated the processing request.
+
+        Parameters
+        ----------
+        processing_request
+
+        Returns
+        -------
+        (str, pd.DataFrame)
+            A tuple of the level 0 filename, and a DataFrame of level 0 data
+        """
         self.logger.info(f"🔴  Generating Level 0 products for {str(processing_request)}")
         l0_df = self.generate_l0_df(processing_request)
         if self.update_db:
@@ -44,11 +67,21 @@ class IdpuProcessor(ScienceProcessor):
         return l0_file_name, l0_df
 
     def generate_l0_df(self, processing_request):
-        """Generate a dataframe of processed level 0 data given a specific collection date.
+        """Generate a DataFrame of level 0 data given a processing_request.
 
         All relevant downlinks are fetched, merged, and concatenated, and then
-        passed separately (as a list) through process_l0.
-        Finally, the individual dataframes are merged and duplicates/empty packets dropped.
+        passed separately (as a list) through process_l0. Finally, the
+        individual dataframes are merged and duplicates/empty packets dropped.
+
+        Parameters
+        ----------
+        processing_request
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame of level 0 data relating to the given processing
+            request
         """
         self.logger.info(f"🟠  Generating Level 0 DataFrame for {str(processing_request)}")
         dl_list = self.downlink_manager.get_relevant_downlinks(processing_request)  # TODO: By COLLECTION Time
@@ -86,7 +119,7 @@ class IdpuProcessor(ScienceProcessor):
 
         Parameters
         ----------
-        downlinks : list
+        downlinks : List[Downlink]
             A list of Downlink objects
 
         Returns
@@ -132,13 +165,27 @@ class IdpuProcessor(ScienceProcessor):
         return merged_downlinks
 
     def rejoin_data(self, processing_request, d):
-        """
-        Converts a dataframe of frames received from ELFIN into a dataframe of
-        packets onboard the MSP's filesystem. This involves identifying the length
-        of each packet, and concatenating consecutive frames into their respective packets.
+        """Converts frames from ELFIN into packets on the MSP's file system.
 
-        Frames partially composing an incomplete packet will be dropped, and a blank
-        row will be inserted to identify that a packet is missing.
+        Performs a best effort conversion, as some frames may be missing (and
+        other frames may need to be dropped). This method attempts to use the
+        given frames to recreate the packets as they existed in the MSP.
+
+        This involves identifying the length of each packet, and concatenating
+        consecutive frames into their respective packets. Frames partially
+        composing an incomplete packet will be dropped, and a blank row will
+        be inserted to identify that a packet is missing.
+
+        Parameters
+        ----------
+        processing_request
+        d : pd.DataFrame
+            A DataFrame of frames, as obtained from get_merged_dataframes
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame of packets
         """
 
         data = d["data"].apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
@@ -222,15 +269,41 @@ class IdpuProcessor(ScienceProcessor):
 
     @abstractmethod
     def process_rejoined_data(self, processing_request, df):
+        """A method that allows the implementer to process rejoined packets.
+
+        Parameters
+        ----------
+        processing_request
+        df : pd.DataFrame
+            A DataFrame of packets, as obtained from rejoin_data
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame on which some transformations have been applied
+        """
         raise NotImplementedError
 
     def merge_processed_dataframes(self, dfs, idpu_types):
-        """
+        """Merges processed DataFrames and eliminates duplicate packets
+
         Given a list of dataframes of identical format (decompressed/raw, level 0),
         merge them in a way such that duplicate frames are removed.
 
         Preference is given in the same order as which IDPU_TYPEs
         appear in the list self.idpu_types.
+
+        Parameters
+        ----------
+        dfs : List[pd.DataFrame]
+            DataFrames of packets, as obtained from process_rejoined_data
+        idpu_types
+            Relevant IDPU types
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame representing the final level 0 data
         """
         self.logger.debug("Merging processed dataframes")
         df = pd.concat(dfs)
@@ -245,7 +318,23 @@ class IdpuProcessor(ScienceProcessor):
 
         return df.reset_index()
 
-    def update_completeness_table(self, processing_request, l0_df):
+    def update_completeness_table(self, processing_request, l0_df) -> None:
+        """Attempts to update the completeness table with the given data.
+
+        If no completeness updater is provided, completeness will not be
+        calculated or uploaded
+
+        Parameters
+        ----------
+        processing_request
+        l0_df
+            A DataFrame of level 0 data corresponding to the processing
+            request, as obtained from generate_l0_df
+
+        Returns
+        -------
+        None
+        """
         self.logger.info(f"❓\tUpdating completeness table for {str(processing_request)}")
         df = l0_df.copy()
         df = df[["idpu_time", "data"]].drop_duplicates().dropna()
@@ -257,9 +346,35 @@ class IdpuProcessor(ScienceProcessor):
 
     @abstractmethod
     def get_completeness_updater(self, processing_request):
+        """Obtains a CompletenessUpdater to update completeness of data.
+
+        Parameters
+        ----------
+        processing_request
+
+        Returns
+        -------
+        CompletenessUpdater
+        """
         raise NotImplementedError
 
     def generate_l0_file(self, processing_request, l0_df):
+        """From the given level 0 DataFrame, create a level 0 csv.
+
+        TODO: Why are more transformations applied here?
+
+        Parameters
+        ----------
+        processing_request
+        l0_df
+            A DataFrame of level 0 data corresponding to the given request
+
+        Returns
+        -------
+        (str, pd.DataFrame)
+            A tuple of the filename of the created csv, and a DataFrame of
+            the transformed data used to populate the csv
+        """
         self.logger.info(f"🟡  Generating Level 0 file for {str(processing_request)}")
         # Filter fields and duplicates
         l0_df = l0_df[["idpu_time", "data"]]
@@ -305,6 +420,7 @@ class IdpuProcessor(ScienceProcessor):
         l1_df = self.transform_l0_df(processing_request, l0_df)
 
         # Timestamp conversion
+        # TODO: Move this to transform_l0_df
         try:
             l1_df = l1_df[
                 (l1_df["idpu_time"] >= np.datetime64(processing_request.date))

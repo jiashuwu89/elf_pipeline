@@ -53,6 +53,14 @@ class PipelineConfig(ABC):
 
 
 class ArgparsePipelineConfig(PipelineConfig):
+    """An object that uses args from argparse to provide a PipelineConfig.
+
+    Parameters
+    ----------
+    args
+        Arguments from argparse (obtained from CLI)
+    """
+
     def __init__(self, args):
         # Initialize DB connection
         if db.SESSIONMAKER is None:

@@ -1,10 +1,3 @@
-"""A class to coordinate the main tasks of the pipeline.
-
-These tasks are:
-    1. Extract: Determining what new data was obtained and files to be created
-    2. Transform: Creation of new files
-    3. Load: Uploading of new files, and reporting errors
-"""
 import logging
 import traceback
 
@@ -27,32 +20,17 @@ from util.constants import DAILY_EMAIL_LIST
 
 
 class Coordinator:
-    """Coordinator class to coordinate the pipeline.
+    """A class to coordinate the main tasks of the pipeline.
 
-    Attributes
+    These tasks are:
+        1. Extract: Determining what new data was obtained and files to be created
+        2. Transform: Creation of new files
+        3. Load: Uploading of new files, and reporting errors
+
+    Parameters
     ----------
-    mission_ids
-        list containing subset of 1, 2, 3 for ELA, ELB, EM3 (respectively)
-    times
-        specifies if the times specified refer to downlink time or collection
-        time (represented by an enum)
-    start_time/end_time
-        time range to search for data
-    products
-        list containing subset of ALL_PRODUCTS, specifying products for which
-        to search for data
-    calculate
-        Search for new data and use to calculate new downlinks, as opposed to
-        using downlinks already found in science downlinks table
-    update_db
-        Relevant ONLY IF calculate is True. Upload calculated downlinks to the
-        science downlinks table
-    output_dir
-        Directory in which to put files when generated
-    upload
-        Upload generated files to server
-    email
-        Email notifications if exceptions occurred during processing
+    pipeline_config
+        Configuration object for the pipeline
     """
 
     def __init__(self, pipeline_config):
@@ -94,7 +72,7 @@ class Coordinator:
         self.server_manager = ServerManager()
 
     def execute_pipeline(self, pipeline_query):
-        """Execute the pipeline"""
+        """Executes the pipeline"""
         self.logger.info(f"Executing pipeline on query:\n\n{str(pipeline_query)}\n")
         try:
             # Extract
@@ -138,20 +116,44 @@ class Coordinator:
             )
 
     def get_processing_requests(self, pipeline_query):
+        """Calculates processing requests that indicate files to be created."""
         return self.request_getter_manager.get_processing_requests(pipeline_query)
 
     def generate_files(self, processing_requests):
+        """Generates files specified by processing requests, if necessary.
+
+        Parameters
+        ----------
+        processing_requests
+
+        Returns
+        -------
+        List[str]
+            A list of filenames of the generated files
+        """
         if not self.generate_files:
-            self.logger.info("No files generated")
+            self.logger.info("Received option to avoid generating files")
             return []
 
         generated_files = self.processor_manager.generate_files(processing_requests)
 
         return generated_files
 
-    def transfer_files(self, generated_files):
+    def transfer_files(self, generated_files) -> int:
+        """Sends generated files to the server, if necessary.
+
+        Parameters
+        ----------
+        generated_files : List[str]
+            A list of filenames to be transferred to the server
+
+        Returns
+        -------
+        int
+            The number of files transferred successfully
+        """
         if not self.pipeline_config.upload:
-            self.logger.info("No files transferred, as specified")
+            self.logger.info("Received option to avoid transferring files")
             return 0
 
         transferred_files_count = self.server_manager.transfer_files(generated_files)
