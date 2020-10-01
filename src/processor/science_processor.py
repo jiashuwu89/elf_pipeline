@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 from spacepy import pycdf
 
-from request.downlink_manager import DownlinkManager  # TODO: Split Downlink Manager
 from util.constants import MASTERCDF_DIR
 
 # TODO: level 0 files on server are MESSY because of COUNTS in fname, so files not OVERWRITTEN

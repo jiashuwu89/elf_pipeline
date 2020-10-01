@@ -8,7 +8,7 @@ from spacepy import pycdf
 from data_type.completeness_config import MrmCompletenessConfig
 from metric.completeness import CompletenessUpdater
 from processor.science_processor import ScienceProcessor
-from util.constants import MRM_TYPES
+from util.constants import MRM_TYPES, ONE_DAY_DELTA
 
 # TODO: Processors return sets?
 
@@ -77,7 +77,7 @@ class MrmProcessor(ScienceProcessor):
             self.session.query(models.MRM)
             .filter(
                 models.MRM.timestamp >= processing_request.date,
-                models.MRM.timestamp < processing_request.date + dt.timedelta(days=1),
+                models.MRM.timestamp < processing_request.date + ONE_DAY_DELTA,
                 models.MRM.mrm_type == MRM_TYPES[processing_request.data_product],
                 models.MRM.mission_id == processing_request.mission_id,
             )

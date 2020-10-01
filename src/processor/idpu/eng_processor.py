@@ -1,4 +1,3 @@
-import datetime as dt
 import statistics
 
 import numpy as np
@@ -6,6 +5,7 @@ import pandas as pd
 from elfin.common import models
 
 from processor.idpu.idpu_processor import IdpuProcessor
+from util.constants import ONE_DAY_DELTA
 from util.science_utils import dt_to_tt2000
 
 
@@ -80,7 +80,7 @@ class EngProcessor(IdpuProcessor):
         l1_df = self.transform_l0_df(processing_request, l0_df)
 
         lower_time_bound = np.datetime64(processing_request.date)
-        upper_time_bound = np.datetime64(processing_request.date + dt.timedelta(days=1))
+        upper_time_bound = np.datetime64(processing_request.date + ONE_DAY_DELTA)
         separated_dfs = []
         for time_col in ["idpu_time", "sips_time", "epd_time", "fgm_time", "fc_time"]:
             if time_col in l1_df.columns:
@@ -138,7 +138,8 @@ class EngProcessor(IdpuProcessor):
             raise RuntimeError("Empty df")
         return final_df
 
-    def extract_data(self, data_type, data, idpu_time):
+    @staticmethod
+    def extract_data(data_type, data, idpu_time):
         """From IDPU data, obtain a representative dictionary.
 
         Parameters
@@ -209,7 +210,7 @@ class EngProcessor(IdpuProcessor):
         query = self.session.query(models.Categorical).filter(
             models.Categorical.mission_id == processing_request.mission_id,
             models.Categorical.timestamp >= processing_request.date,
-            models.Categorical.timestamp < processing_request.date + dt.timedelta(days=1),
+            models.Categorical.timestamp < processing_request.date + ONE_DAY_DELTA,
             models.Categorical.name.in_(name_converter.keys()),
         )
 
@@ -234,7 +235,7 @@ class EngProcessor(IdpuProcessor):
         query = self.session.query(models.BmonData).filter(
             models.BmonData.mission_id == processing_request.mission_id,
             models.BmonData.timestamp >= processing_request.date,
-            models.BmonData.timestamp < processing_request.date + dt.timedelta(days=1),
+            models.BmonData.timestamp < processing_request.date + ONE_DAY_DELTA,
         )
 
         # TODO: Check if this works

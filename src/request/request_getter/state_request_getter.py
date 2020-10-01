@@ -8,7 +8,7 @@ from data_type.processing_request import ProcessingRequest
 from data_type.time_type import TimeType
 from request.request_getter.request_getter import RequestGetter
 from util import science_utils
-from util.constants import MISSION_NAME_TO_ID_MAP, STATE_CALCULATE_RADIUS
+from util.constants import MISSION_NAME_TO_ID_MAP, ONE_DAY_DELTA, STATE_CALCULATE_RADIUS
 
 
 class StateRequestGetter(RequestGetter):
@@ -66,7 +66,7 @@ class StateRequestGetter(RequestGetter):
                 last_day = pipeline_query.end_time.date()
                 while cur_day <= last_day:
                     csv_requests.add(ProcessingRequest(mission_id, "state", cur_day))
-                    cur_day += dt.timedelta(days=1)
+                    cur_day += ONE_DAY_DELTA
         else:
             raise ValueError(f"Bad times: {pipeline_query.times}")
 
@@ -116,7 +116,7 @@ class StateRequestGetter(RequestGetter):
             end_limit = date + STATE_CALCULATE_RADIUS
             while cur_date <= end_limit:
                 attitude_requests.add(ProcessingRequest(mission_id, "state", cur_date))
-                cur_date += dt.timedelta(days=1)
+                cur_date += ONE_DAY_DELTA
 
         self.logger.info(
             f"➜  Got {len(attitude_requests)} "

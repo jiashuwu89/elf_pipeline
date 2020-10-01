@@ -84,7 +84,7 @@ if os.path.basename(os.getcwd()) in ["pipeline-refactor", "refactor"]:  # TODO: 
     MASTERCDF_DIR = "mastercdf"
     EPD_CALIBRATION_DIR = "calibration"
     TEST_DATA_DIR = "tst/test_data"
-elif os.path.basename(os.getcwd()) == "src":
+elif os.path.basename(os.getcwd()) in ["src", "doc"]:
     MASTERCDF_DIR = "../mastercdf"
     EPD_CALIBRATION_DIR = "../calibration"
     TEST_DATA_DIR = "../tst/test_data"
@@ -97,9 +97,9 @@ BITS_IN_BYTE = 8
 
 # Misc
 LOOK_BEHIND_DELTA = dt.timedelta(hours=5)  # Begin search this far behind for packets
+ONE_DAY_DELTA = dt.timedelta(days=1)
 DAILY_EMAIL_LIST = ["jcking1034@gmail.com"]
 
-VALID_NUM_SECTORS = [4, 16]  # EPD-related value
 
 # When an attitude is found, reprocess days that are STATE_CALCULATE_RAIDUS before or after the attitude data point
 STATE_CALCULATE_RADIUS = dt.timedelta(days=5)
@@ -107,3 +107,4 @@ ATTITUDE_SOLUTION_RADIUS = dt.timedelta(days=30)
 
 # EPD
 BIN_COUNT = 16
+VALID_NUM_SECTORS = [4, 16]

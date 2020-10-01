@@ -11,7 +11,7 @@ from sqlalchemy import desc
 
 from processor.science_processor import ScienceProcessor
 from util import general_utils
-from util.constants import ATTITUDE_SOLUTION_RADIUS, IDL_SCRIPT_VERSION, MINS_IN_DAY
+from util.constants import ATTITUDE_SOLUTION_RADIUS, IDL_SCRIPT_VERSION, MINS_IN_DAY, ONE_DAY_DELTA
 from util.science_utils import get_angle_between, interpolate_attitude
 
 # TODO: Make sure that dfs input and output are consistent in terms of column types
@@ -77,7 +77,7 @@ class StateProcessor(ScienceProcessor):
         """Reads CSVs and returns values from 00:00:00 to 23:59:59."""
 
         df = None
-        for d in [processing_request.date - dt.timedelta(days=1), processing_request.date]:
+        for d in [processing_request.date - ONE_DAY_DELTA, processing_request.date]:
             cdf_fname = self.get_fname(processing_request.probe, 1, self.state_type, d)
             csv_fname = f"{self.state_csv_dir}/{cdf_fname.split('/')[-1].rstrip('.cdf')}.csv"
             try:
@@ -95,7 +95,7 @@ class StateProcessor(ScienceProcessor):
             )
 
         date_lower_bound = pd.Timestamp(processing_request.date)
-        date_upper_bound = pd.Timestamp(processing_request.date + dt.timedelta(days=1))
+        date_upper_bound = pd.Timestamp(processing_request.date + ONE_DAY_DELTA)
         return df.loc[(df.index >= date_lower_bound) & (df.index < date_upper_bound)]
 
     def read_state_csv(self, csv_fname):

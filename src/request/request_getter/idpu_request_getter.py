@@ -1,9 +1,7 @@
-import datetime as dt
-
 from data_type.processing_request import ProcessingRequest
 from data_type.time_type import TimeType
 from request.request_getter.request_getter import RequestGetter
-from util.constants import PACKET_MAP, SCIENCE_TYPES
+from util.constants import ONE_DAY_DELTA, PACKET_MAP, SCIENCE_TYPES
 
 
 class IdpuRequestGetter(RequestGetter):
@@ -59,7 +57,7 @@ class IdpuRequestGetter(RequestGetter):
         Returns a set
         """
         self.logger.debug(f"dl_list={dl_list}")
-        delta = dt.timedelta(days=1)
+        delta = ONE_DAY_DELTA
 
         general_processing_requests = set()
         for dl in dl_list:

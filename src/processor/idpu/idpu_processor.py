@@ -1,4 +1,3 @@
-import datetime as dt
 from abc import abstractmethod
 
 import numpy as np
@@ -8,6 +7,7 @@ from spacepy import pycdf
 
 from processor.science_processor import ScienceProcessor
 from util import downlink_utils
+from util.constants import ONE_DAY_DELTA
 from util.science_utils import dt_to_tt2000, s_if_plural
 
 
@@ -383,7 +383,7 @@ class IdpuProcessor(ScienceProcessor):
         # Select Data belonging only to a certain day
         l0_df = l0_df[
             (l0_df["idpu_time"] >= np.datetime64(processing_request.date))
-            & (l0_df["idpu_time"] < np.datetime64(processing_request.date + dt.timedelta(days=1)))
+            & (l0_df["idpu_time"] < np.datetime64(processing_request.date + ONE_DAY_DELTA))
         ]
 
         # TT2000 conversion
@@ -424,7 +424,7 @@ class IdpuProcessor(ScienceProcessor):
         try:
             l1_df = l1_df[
                 (l1_df["idpu_time"] >= np.datetime64(processing_request.date))
-                & (l1_df["idpu_time"] < np.datetime64(processing_request.date + dt.timedelta(days=1)))
+                & (l1_df["idpu_time"] < np.datetime64(processing_request.date + ONE_DAY_DELTA))
             ]
             l1_df["idpu_time"] = l1_df["idpu_time"].apply(dt_to_tt2000)
             if l1_df.empty:

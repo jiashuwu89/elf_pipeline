@@ -8,7 +8,7 @@ from elfin.common import models
 from data_type.downlink import Downlink
 from data_type.packet_info import PacketInfo
 from util import byte_tools, science_utils
-from util.constants import COMPRESSED_TYPES
+from util.constants import COMPRESSED_TYPES, ONE_DAY_DELTA
 from util.general_utils import convert_date_to_datetime
 
 # TODO: packet_id vs id Check
@@ -308,7 +308,7 @@ class DownlinkManager:
         query = self.session.query(models.ScienceDownlink).filter(
             models.ScienceDownlink.mission_id == processing_request.mission_id,
             models.ScienceDownlink.idpu_type.in_(processing_request.idpu_types),
-            models.ScienceDownlink.first_collection_time < processing_request.date + dt.timedelta(days=1),
+            models.ScienceDownlink.first_collection_time < processing_request.date + ONE_DAY_DELTA,
             models.ScienceDownlink.last_collection_time >= processing_request.date,
         )
 
@@ -327,7 +327,7 @@ class DownlinkManager:
                 downlink.mission_id == processing_request.mission_id
                 and downlink.idpu_type in processing_request.idpu_types
                 and downlink.first_packet_info.collection_time
-                < convert_date_to_datetime(processing_request.date + dt.timedelta(days=1))
+                < convert_date_to_datetime(processing_request.date + ONE_DAY_DELTA)
                 and downlink.last_packet_info.collection_time >= convert_date_to_datetime(processing_request.date)
             ):
                 downlinks.add(downlink)
