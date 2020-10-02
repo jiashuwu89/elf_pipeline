@@ -57,4 +57,4 @@ coverage: test
 doc:
 	@echo "⭐ Generating Documentation ⭐"
 	$(PR) sphinx-apidoc -f -o doc/source/pages/ $(SRC);
-	cd doc && make html;
+	cd doc && $(PR) make html;
