@@ -39,6 +39,13 @@ class TestDownlinkUtils:
             except Exception as e:
                 raise AssertionError(f"Column {column} does not match: {e}")
 
+        merged_10 = downlink_utils.merge_downlinks(self.df_1, self.df_0, -2674)
+        for column in columns_to_check:
+            try:
+                pd.testing.assert_series_equal(merged_10[column], self.merged_01[column], check_dtype=False)
+            except Exception as e:
+                raise AssertionError(f"Column {column} does not match: {e}")
+
         merged_34 = downlink_utils.merge_downlinks(self.df_3, self.df_4, 0)
         for column in columns_to_check:
             try:

@@ -106,6 +106,8 @@ def check_zero_offset(s1, s2, half_min):
 def merge_downlinks(sf1: pd.DataFrame, sf2: pd.DataFrame, offset: int) -> pd.DataFrame:
     """Merges two downlinks together, given an offset amount
 
+    # TODO: Sort downlinks to merge by denominator, better merges!
+
     Steps
     - Start with sf1 and sf2
     - Look through sf2[:overlap] for not null
