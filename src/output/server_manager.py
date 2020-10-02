@@ -10,9 +10,6 @@ except ModuleNotFoundError:
     HOST, PASSWORD, USERNAME = "", "", ""
 
 
-# TODO: Logging in separate file
-
-
 class ServerManager:
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)

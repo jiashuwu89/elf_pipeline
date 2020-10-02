@@ -23,7 +23,7 @@ class CLIHandler:
     """A class to parse arguments and use them to run the pipeline"""
 
     def __init__(self):
-        self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)  # TODO: Log to file
+        self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
         self.argparser: argparse.ArgumentParser = self.get_argparser()
 
     @staticmethod
