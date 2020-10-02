@@ -1,5 +1,6 @@
 """Processor for State data, which includes things like attitude"""
 import datetime as dt
+from typing import List, Type
 
 import numpy as np
 import pandas as pd
@@ -9,6 +10,8 @@ from elfin.common import models
 from spacepy import pycdf
 from sqlalchemy import desc
 
+from data_type.pipeline_config import PipelineConfig
+from data_type.processing_request import ProcessingRequest
 from processor.science_processor import ScienceProcessor
 from util import general_utils
 from util.constants import ATTITUDE_SOLUTION_RADIUS, IDL_SCRIPT_VERSION, MINS_IN_DAY, ONE_DAY_DELTA
@@ -25,14 +28,15 @@ class StateProcessor(ScienceProcessor):
     pipeline_config
     """
 
-    def __init__(self, pipeline_config):
+    def __init__(self, pipeline_config: Type[PipelineConfig]):
         super().__init__(pipeline_config)
 
         self.state_type = "defn"
         self.state_csv_dir = pipeline_config.state_csv_dir
         self.nan_df = pd.DataFrame()  # Holds nan_df if it needs to be reused (useful mostly for dumps)
 
-    def generate_files(self, processing_request):
+    # TODO: Should this, as well as other processors, return a Set?
+    def generate_files(self, processing_request: ProcessingRequest) -> List[str]:
         """Generates a single level 1 STATE CDF related to the request.
 
         There are no level 0 State products to generate.
@@ -71,7 +75,7 @@ class StateProcessor(ScienceProcessor):
         cdf.close()
         return [cdf_fname]
 
-    def make_filename(self, processing_request, level: int, size=None) -> str:
+    def make_filename(self, processing_request: ProcessingRequest, level: int, size=None) -> str:
         """Constructs the appropriate filename for a L1 file, and returns the full path
 
         Overrides default implementation of `make_filename`.
@@ -92,10 +96,10 @@ class StateProcessor(ScienceProcessor):
         return f"{self.output_dir}/{fname}"
 
     @staticmethod
-    def get_fname(probe, level, state_type, file_date) -> str:
+    def get_fname(probe: str, level: int, state_type: str, file_date: dt.datetime) -> str:
         return f"{probe}_l{level}_state_{state_type}_{file_date.strftime('%Y%m%d')}_v01.cdf"
 
-    def create_empty_cdf(self, fname):
+    def create_empty_cdf(self, fname: str) -> pycdf.CDF:
         datestr_run = dt.datetime.utcnow().strftime("%04Y-%02m-%02d")
 
         cdf = super().create_empty_cdf(fname)
@@ -104,7 +108,7 @@ class StateProcessor(ScienceProcessor):
 
         return cdf
 
-    def combine_state_csvs(self, processing_request):
+    def combine_state_csvs(self, processing_request: ProcessingRequest) -> pd.DataFrame:
         """Reads CSVs and returns values from 00:00:00 to 23:59:59."""
 
         df = None
@@ -129,7 +133,7 @@ class StateProcessor(ScienceProcessor):
         date_upper_bound = pd.Timestamp(processing_request.date + ONE_DAY_DELTA)
         return df.loc[(df.index >= date_lower_bound) & (df.index < date_upper_bound)]
 
-    def read_state_csv(self, csv_fname):
+    def read_state_csv(self, csv_fname: str) -> pd.DataFrame:
         """Read the state vectors CSV produced by STK."""
 
         self.logger.debug(f"Reading {csv_fname}")
@@ -149,7 +153,7 @@ class StateProcessor(ScienceProcessor):
 
         return df
 
-    def update_cdf_with_csv_df(self, probe, csv_df, cdf):
+    def update_cdf_with_csv_df(self, probe: str, csv_df: pd.DataFrame, cdf: pycdf.CDF) -> None:
         self.logger.debug("Updating State CDF with position and velocity data")
         cdf_df = pd.DataFrame()
         cdf_df[f"{probe}_state_time"] = csv_df.index.values
@@ -159,7 +163,7 @@ class StateProcessor(ScienceProcessor):
         for k in cdf_df.keys():
             cdf[k] = cdf_df[k].values.tolist()
 
-    def update_cdf_with_sun(self, processing_request, cdf):
+    def update_cdf_with_sun(self, processing_request: ProcessingRequest, cdf: pycdf) -> None:
         """
         Each 1 represents the satellite being 'in sun'
         Each 0 refers to umbra or penumbra
@@ -198,7 +202,7 @@ class StateProcessor(ScienceProcessor):
 
         cdf[f"{processing_request.probe}_sun"] = final_df["_sun"]
 
-    def get_attitude(self, processing_request):
+    def get_attitude(self, processing_request: ProcessingRequest) -> pd.DataFrame:
         """Get a DataFrame of Attitude data.
 
         For each minute in the day beginning on [start_time], find the
@@ -277,6 +281,7 @@ class StateProcessor(ScienceProcessor):
         }
         return q_dict
 
+    # TODO: Finish typing here
     @staticmethod
     def select_usable_attitude_queries(query, base_datetime, end_time):
         """Find the solutions that we want to use (One extra one on either 'side')"""
@@ -311,7 +316,7 @@ class StateProcessor(ScienceProcessor):
                 self.logger.debug(f"Attitude for {q.time} obtained on {q.insert_date}, but more recent solution exists")
         return sorted(temp_query_list, key=lambda q: q.time)
 
-    def insert_interpolated_attitude_data(self, final_df, q_dict_list):
+    def insert_interpolated_attitude_data(self, final_df: pd.DataFrame, q_dict_list) -> pd.DataFrame:
         # Filling in X, Y, Z of times after the last solution, since can't do interpolation on them
         # Filling in solution_date and uncertainty for all items
         final_df.loc[:, "solution_date"] = q_dict_list[-1]["solution_date_tt2000"]
@@ -345,14 +350,16 @@ class StateProcessor(ScienceProcessor):
 
         return final_df
 
-    def update_cdf_with_att_df(self, probe, att_df, cdf):
+    def update_cdf_with_att_df(self, probe: str, att_df: pd.DataFrame, cdf: pycdf.CDF) -> None:
         self.logger.debug("Updating CDF with attitude dataframe")
         cdf[probe + "_att_time"] = att_df["time"]
         cdf[probe + "_att_solution_date"] = att_df["solution_date"]
         cdf[probe + "_att_gei"] = att_df[["X", "Y", "Z"]].values
         cdf[probe + "_att_uncertainty"] = att_df["uncertainty"].values
 
-    def update_cdf_with_sun_calculations(self, probe, vel_pos_df, att_df, cdf):
+    def update_cdf_with_sun_calculations(
+        self, probe: str, vel_pos_df: pd.DataFrame, att_df: pd.DataFrame, cdf: pycdf.CDF
+    ) -> None:
         """Function to calculate sun angle and orbnorm angle (in degrees)
 
         1. Prepare DataFrames
@@ -418,7 +425,7 @@ class StateProcessor(ScienceProcessor):
         for column in ["_spin_sun_angle", "_spin_orbnorm_angle"]:
             cdf[probe + column] = final_df[column]
 
-    def update_cdf_with_nans(self, probe, cdf):
+    def update_cdf_with_nans(self, probe: str, cdf: pycdf.CDF) -> None:
         nan_numeric_cols = ["_att_solution_date", "_att_uncertainty", "_spin_sun_angle", "_spin_orbnorm_angle"]
         nan_df_cols = ["_att_time", "X", "Y", "Z"] + nan_numeric_cols
 

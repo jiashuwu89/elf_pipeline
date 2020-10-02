@@ -1,9 +1,11 @@
 import statistics
+from typing import Any, Dict, List, Union
 
 import numpy as np
 import pandas as pd
 from elfin.common import models
 
+from data_type.processing_request import ProcessingRequest
 from processor.idpu.idpu_processor import IdpuProcessor
 from util.constants import ONE_DAY_DELTA
 from util.science_utils import dt_to_tt2000
@@ -13,7 +15,7 @@ class EngProcessor(IdpuProcessor):
     """A processor that generates ENG files"""
 
     # Get IDPU Types from processing request
-    def generate_files(self, processing_request):
+    def generate_files(self, processing_request: ProcessingRequest) -> List[str]:
         """Generates a single level 1 ENG CDF related to the request.
 
         Parameters
@@ -31,7 +33,7 @@ class EngProcessor(IdpuProcessor):
 
         return [l1_file_name]
 
-    def generate_l0_df(self, processing_request):
+    def generate_l0_df(self, processing_request: ProcessingRequest) -> pd.DataFrame:
         """Creates a level 0 DataFrame of ENG IDPU data.
 
         Even if there is no ENG IDPU data, there may be BMON or Categorical
@@ -55,7 +57,7 @@ class EngProcessor(IdpuProcessor):
             l0_df = pd.DataFrame()
         return l0_df
 
-    def process_rejoined_data(self, processing_request, df):
+    def process_rejoined_data(self, processing_request: ProcessingRequest, df: pd.DataFrame) -> pd.DataFrame:
         """Performs some transformations on data that has been rejoined.
 
         No major processing necessary for ENG level 0, apart from converting
@@ -75,7 +77,7 @@ class EngProcessor(IdpuProcessor):
         df["data"] = df["data"].apply(lambda x: bytes.fromhex(x) if x else None)
         return df
 
-    def generate_l1_df(self, processing_request, l0_df):
+    def generate_l1_df(self, processing_request: ProcessingRequest, l0_df: pd.DataFrame) -> pd.DataFrame:
         """Need to override default implementation to avoid cutting out data."""
         self.logger.info(f"🔵  Generating Level 1 DataFrame for {str(processing_request)}")
         if l0_df is None:
@@ -106,7 +108,7 @@ class EngProcessor(IdpuProcessor):
 
         return l1_df
 
-    def transform_l0_df(self, processing_request, l0_df):
+    def transform_l0_df(self, processing_request: ProcessingRequest, l0_df: pd.DataFrame) -> pd.DataFrame:
         """Creates an initial level 1 ENG DataFrame from a level 0 DataFrame.
 
         The resulting DataFrame will contain IDPU data from the level 0
@@ -115,9 +117,15 @@ class EngProcessor(IdpuProcessor):
 
         Parameters
         ----------
-        processing_request
+        processing_request : ProcessingRequest
         l0_df : pd.DataFrame
             A DataFrame of level 0 ENG IDPU data
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame of ENG Data containing all relevant IDPU, FC, and
+            Battery Monitor data
         """
 
         final_df = pd.DataFrame()
@@ -144,8 +152,9 @@ class EngProcessor(IdpuProcessor):
             raise RuntimeError("Empty df")
         return final_df
 
+    # TODO: figure out type of idpu_time
     @staticmethod
-    def extract_data(data_type, data, idpu_time):
+    def extract_data(data_type: int, data: bytes, idpu_time) -> Dict[str, Union[int, Any]]:
         """From IDPU data, obtain a representative dictionary.
 
         Parameters
@@ -189,14 +198,14 @@ class EngProcessor(IdpuProcessor):
             }
         raise ValueError(f"⚠️ \tWanted data type 14, 15, 16; instead got {data_type}")
 
-    def get_fc_df(self, processing_request):
+    def get_fc_df(self, processing_request: ProcessingRequest) -> pd.DataFrame:
         """For a given processing request, gets relevant categorical data.
 
         Refer to name_converter dictionary for additional information
 
         Parameters
         ----------
-        processing_request
+        processing_request : ProcessingRequest
 
         Returns
         -------
@@ -223,14 +232,14 @@ class EngProcessor(IdpuProcessor):
         fc_df = pd.DataFrame([{"fc_time": row.timestamp, name_converter[row.name]: row.value} for row in query])
         return fc_df
 
-    def get_bmon_df(self, processing_request):
+    def get_bmon_df(self, processing_request: ProcessingRequest) -> pd.DataFrame:
         """For a given processing request, gets relevant battery monitor data.
 
         NOTE: To calculate the values, need to average the two values provided for each time
 
         Parameters
         ----------
-        processing_request
+        processing_request : ProcessingRequest
 
         Returns
         -------
@@ -245,7 +254,8 @@ class EngProcessor(IdpuProcessor):
         )
 
         # TODO: Check if this works
-        fc_temp = {1: {}, 2: {}}
+        # TODO: Fix type for this
+        fc_temp: Dict[int, Dict[Any, Any]] = {1: {}, 2: {}}
         for row in query:
             row.timestamp = row.timestamp
             if row.timestamp not in fc_temp[row.power_board_id]:

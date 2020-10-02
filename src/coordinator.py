@@ -1,6 +1,6 @@
 import logging
 import traceback
-from typing import List, Type
+from typing import List, Set, Type
 
 from data_type.pipeline_config import PipelineConfig
 from data_type.pipeline_query import PipelineQuery
@@ -123,7 +123,7 @@ class Coordinator:
         """Calculates processing requests that indicate files to be created."""
         return self.request_getter_manager.get_processing_requests(pipeline_query)
 
-    def generate_files(self, processing_requests: List[ProcessingRequest]) -> List[str]:
+    def generate_files(self, processing_requests: List[ProcessingRequest]) -> Set[str]:
         """Generates files specified by processing requests, if necessary.
 
         Parameters
@@ -132,18 +132,16 @@ class Coordinator:
 
         Returns
         -------
-        List[str]
+        Set[str]
             A list of filenames of the generated files
         """
         if not self.generate_files:
             self.logger.info("Received option to avoid generating files")
             return []
 
-        generated_files = self.processor_manager.generate_files(processing_requests)
+        return self.processor_manager.generate_files(processing_requests)
 
-        return generated_files
-
-    def transfer_files(self, generated_files: List[str]) -> int:
+    def transfer_files(self, generated_files: Set[str]) -> int:
         """Sends generated files to the server, if necessary.
 
         Parameters

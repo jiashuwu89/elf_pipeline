@@ -1,11 +1,14 @@
 """Class to generate MRM files (both ACB or IDPU)."""
 import datetime as dt
+from typing import Dict, List, Type
 
 import pandas as pd
 from elfin.common import models
 from spacepy import pycdf
 
 from data_type.completeness_config import MrmCompletenessConfig
+from data_type.pipeline_config import PipelineConfig
+from data_type.processing_request import ProcessingRequest
 from metric.completeness import CompletenessUpdater
 from processor.science_processor import ScienceProcessor
 from util.constants import MRM_TYPES, ONE_DAY_DELTA
@@ -18,15 +21,15 @@ class MrmProcessor(ScienceProcessor):
 
     Parameters
     ----------
-    pipeline_config : PipelineConfig
+    pipeline_config : Type[PipelineConfig]
     """
 
-    def __init__(self, pipeline_config):
+    def __init__(self, pipeline_config: Type[PipelineConfig]):
         super().__init__(pipeline_config)
 
         self.completeness_updater = CompletenessUpdater(pipeline_config.session, MrmCompletenessConfig)
 
-    def generate_files(self, processing_request):
+    def generate_files(self, processing_request: ProcessingRequest) -> List[str]:
         """Generates a level 1 MRM file, given a processing request.
 
         Parameters
@@ -59,7 +62,7 @@ class MrmProcessor(ScienceProcessor):
 
         return [cdf_fname]
 
-    def get_mrm_df(self, processing_request):
+    def get_mrm_df(self, processing_request: ProcessingRequest) -> pd.DataFrame:
         """Creates a DataFrame of relevant MRM data.
 
         Parameters
@@ -92,7 +95,7 @@ class MrmProcessor(ScienceProcessor):
 
         return mrm_df
 
-    def fill_cdf(self, processing_request, df, cdf) -> None:
+    def fill_cdf(self, processing_request: ProcessingRequest, df: pd.DataFrame, cdf: pycdf.CDF) -> None:
         """Fills a given CDF with relevant MRM data.
 
         This overrides the default fill_cdf method in order to insert data
@@ -113,7 +116,7 @@ class MrmProcessor(ScienceProcessor):
         cdf.attrs["Generation_date"] = datestr_run
         cdf.attrs["MODS"] = f"Rev- {datestr_run}"
 
-    def get_cdf_fields(self, processing_request):
+    def get_cdf_fields(self, processing_request: ProcessingRequest) -> Dict[str, str]:
         """Provides a mapping of CDF fields to MRM DataFrame fields.
 
         Parameters

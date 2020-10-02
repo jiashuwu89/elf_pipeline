@@ -1,5 +1,8 @@
+from data_type.packet_info import PacketInfo
+
+
 class Downlink:
-    def __init__(self, mission_id, idpu_type, first_packet_info, last_packet_info):
+    def __init__(self, mission_id: int, idpu_type: int, first_packet_info: PacketInfo, last_packet_info: PacketInfo):
         self.mission_id = mission_id
         self.idpu_type = idpu_type
 
@@ -11,10 +14,10 @@ class Downlink:
         self.last_packet_info = last_packet_info
 
     @property
-    def denominator(self):
+    def denominator(self) -> int:
         return self.first_packet_info.denominator
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return (
             self.mission_id == other.mission_id
             and self.idpu_type == other.idpu_type
@@ -23,7 +26,7 @@ class Downlink:
             and self.last_packet_info == other.last_packet_info
         )
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         if self.last_packet_info.science_packet_id and self.first_packet_info.science_packet_id:
             self_size = self.last_packet_info.science_packet_id - self.first_packet_info.science_packet_id
         else:
@@ -38,10 +41,10 @@ class Downlink:
 
         return self_tuple < other_tuple
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.mission_id, self.idpu_type, self.denominator, self.first_packet_info, self.last_packet_info))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "\n".join(
             [
                 "Downlink(",
@@ -51,7 +54,7 @@ class Downlink:
             ]
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "\n".join(
             [
                 "Downlink(",

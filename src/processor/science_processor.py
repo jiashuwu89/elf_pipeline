@@ -1,11 +1,14 @@
 import logging
 import os
 from abc import ABC, abstractmethod
+from typing import Dict, Type
 
 import numpy as np
 import pandas as pd
 from spacepy import pycdf
 
+from data_type.pipeline_config import PipelineConfig
+from data_type.processing_request import ProcessingRequest
 from util.constants import MASTERCDF_DIR
 
 # TODO: level 0 files on server are MESSY because of COUNTS in fname, so files not OVERWRITTEN
@@ -17,7 +20,7 @@ class ScienceProcessor(ABC):
     Implements some basic functionalities common to all data products.
     """
 
-    def __init__(self, pipeline_config):
+    def __init__(self, pipeline_config: Type[PipelineConfig]):
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # TODO: Just store pipeline_config?
@@ -26,7 +29,7 @@ class ScienceProcessor(ABC):
         self.update_db = pipeline_config.update_db
 
     @abstractmethod
-    def generate_files(self, processing_request):
+    def generate_files(self, processing_request: ProcessingRequest):
         """Given a ProcessingRequest, creates all relevant files.
 
         To be overridden by derived classes.
@@ -42,7 +45,7 @@ class ScienceProcessor(ABC):
         """
         raise NotImplementedError
 
-    def make_filename(self, processing_request, level: int, size: int = None) -> str:
+    def make_filename(self, processing_request: ProcessingRequest, level: int, size: int = None) -> str:
         """Constructs the appropriate filename for a L0/L1/L2 file.
 
         Parameters
@@ -99,7 +102,7 @@ class ScienceProcessor(ABC):
 
         return pycdf.CDF(fname, master_cdf)
 
-    def fill_cdf(self, processing_request, df: pd.DataFrame, cdf: pycdf.CDF) -> None:
+    def fill_cdf(self, processing_request: ProcessingRequest, df: pd.DataFrame, cdf: pycdf.CDF) -> None:
         """Inserts data from df into a CDF file.
 
         Parameters
@@ -125,7 +128,7 @@ class ScienceProcessor(ABC):
 
                 cdf[cdf_field_name] = data
 
-    def get_cdf_fields(self, processing_request):
+    def get_cdf_fields(self, processing_request: ProcessingRequest) -> Dict[str, str]:
         """Get CDF Fields to help populate the CDF.
 
         To be overridden if necessary. By default, the method specifies that

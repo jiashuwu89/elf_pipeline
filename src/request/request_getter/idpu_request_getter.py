@@ -1,6 +1,6 @@
 from typing import List, Set, Type
 
-from data_type.Downlink import Downlink
+from data_type.downlink import Downlink
 from data_type.pipeline_config import PipelineConfig
 from data_type.pipeline_query import PipelineQuery
 from data_type.processing_request import ProcessingRequest
