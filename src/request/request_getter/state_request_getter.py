@@ -1,9 +1,11 @@
 import datetime as dt
 import os
+from typing import Set, Type
 
 from elfin.common import models
 from sqlalchemy.sql import func
 
+from data_type.pipeline_query import PipelineQuery
 from data_type.processing_request import ProcessingRequest
 from data_type.time_type import TimeType
 from request.request_getter.request_getter import RequestGetter
@@ -12,7 +14,7 @@ from util.constants import MISSION_NAME_TO_ID_MAP, ONE_DAY_DELTA, STATE_CALCULAT
 
 
 class StateRequestGetter(RequestGetter):
-    def get(self, pipeline_query):
+    def get(self, pipeline_query: Type[PipelineQuery]) -> Set[ProcessingRequest]:
         """Gets State ProcessingRequests based on relevant state data.
 
         ProcessingRequests are necessary for combinations of mission ids and
@@ -21,7 +23,7 @@ class StateRequestGetter(RequestGetter):
 
         Parameters
         ----------
-        pipeline_query
+        pipeline_query : Type[PipelineQuery]
 
         Returns
         -------
@@ -29,7 +31,7 @@ class StateRequestGetter(RequestGetter):
             A set of State processing requests relevant to the pipeline query
         """
         self.logger.info("⚾️  Getting State Requests")
-        state_processing_requests = set()
+        state_processing_requests: Set[ProcessingRequest] = set()
         if "state" not in pipeline_query.data_products:
             self.logger.info("⚾️  Got 0 State Requests")
             return state_processing_requests
@@ -41,7 +43,7 @@ class StateRequestGetter(RequestGetter):
         self.logger.info(f"⚾️  Got {len(state_processing_requests)} State processing requests")
         return state_processing_requests
 
-    def get_csv_requests(self, pipeline_query):
+    def get_csv_requests(self, pipeline_query: Type[PipelineQuery]) -> Set[ProcessingRequest]:
         """If necessary, create requests for all dates between dates in query.
 
         If we want to calculate requests given downlink times, it is not
@@ -54,7 +56,7 @@ class StateRequestGetter(RequestGetter):
 
         Parameters
         ----------
-        pipeline_query : PipelineQuery
+        pipeline_query : Type[PipelineQuery]
 
         Returns
         -------
@@ -75,7 +77,7 @@ class StateRequestGetter(RequestGetter):
                     csv_date = dt.datetime.strptime(split_name[4], "%Y%m%d").date()
                     csv_requests.add(ProcessingRequest(mission_id, "state", csv_date))
         elif pipeline_query.times == TimeType.COLLECTION:  # Always process certain days
-            mission_id = None
+            # mission_id = None  TODO: Figure this out
             for mission_id in pipeline_query.mission_ids:
                 cur_day = pipeline_query.start_time.date()
                 last_day = pipeline_query.end_time.date()
@@ -88,12 +90,12 @@ class StateRequestGetter(RequestGetter):
         self.logger.info(f"➜  Got {len(csv_requests)} " + f"State csv request{science_utils.s_if_plural(csv_requests)}")
         return csv_requests
 
-    def get_attitude_requests(self, pipeline_query):
+    def get_attitude_requests(self, pipeline_query: Type[PipelineQuery]) -> Set[ProcessingRequest]:
         """Determines, based on attitude data times, what requests are needed.
 
         Parameters
         ----------
-        pipeline_query : PipelineQuery
+        pipeline_query : Type[PipelineQuery]
 
         Returns
         -------

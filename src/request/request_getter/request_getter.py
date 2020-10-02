@@ -1,5 +1,10 @@
 import logging
 from abc import ABC, abstractmethod
+from typing import Iterable, Set, Type, Union
+
+from data_type.pipeline_config import PipelineConfig
+from data_type.pipeline_query import PipelineQuery
+from data_type.processing_request import ProcessingRequest
 
 
 class RequestGetter(ABC):
@@ -7,23 +12,23 @@ class RequestGetter(ABC):
 
     Parameters
     ----------
-    pipeline_config : PipelineConfig
+    pipeline_config : Type[PipelineConfig]
     """
 
-    def __init__(self, pipeline_config):
+    def __init__(self, pipeline_config: Type[PipelineConfig]):
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.pipeline_config = pipeline_config
 
     @abstractmethod
-    def get(self, pipeline_query):
+    def get(self, pipeline_query: Type[PipelineQuery]) -> Set[ProcessingRequest]:
         """Given a PipelineQuery, determines what needs to be processed.
 
         Should be overriden by derived classes
 
         Parameters
         ----------
-        pipeline_query : PipelineQuery
+        pipeline_query : Type[PipelineQuery]
 
         Returns
         -------
@@ -32,8 +37,9 @@ class RequestGetter(ABC):
         """
         raise NotImplementedError
 
+    # TODO: Type of product_map?
     @staticmethod
-    def get_relevant_products(data_products, product_map):
+    def get_relevant_products(data_products: Iterable[str], product_map) -> Set[Union[int, str]]:
         selected_products = set()
         for product in data_products:
             if product in product_map:

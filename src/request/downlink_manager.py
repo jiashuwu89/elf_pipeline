@@ -1,12 +1,16 @@
 """Contains class to manage/handle downlinks"""
 import datetime as dt
 import logging
+from typing import List, Type
 
 import pandas as pd
 from elfin.common import models
 
 from data_type.downlink import Downlink
 from data_type.packet_info import PacketInfo
+from data_type.pipeline_config import PipelineConfig
+from data_type.pipeline_query import PipelineQuery
+from data_type.processing_request import ProcessingRequest
 from util import byte_tools, science_utils
 from util.constants import COMPRESSED_TYPES, ONE_DAY_DELTA
 from util.general_utils import convert_date_to_datetime
@@ -27,17 +31,17 @@ class DownlinkManager:
 
     Parameters
     ----------
-    pipeline_config
+    pipeline_config : Type[PipelineConfig]
     """
 
-    def __init__(self, pipeline_config):
+    def __init__(self, pipeline_config: Type[PipelineConfig]):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.session = pipeline_config.session
         self.update_db = pipeline_config.update_db
 
-        self.saved_downlinks = []
+        self.saved_downlinks: List[Downlink] = []
 
-    def print_downlinks(self, downlinks, prefix: str = "Downlinks") -> None:
+    def print_downlinks(self, downlinks: List[Downlink], prefix: str = "Downlinks") -> None:
         """Prints the collection of downlinks given, in a formatted fashion.
 
         Parameters
@@ -57,7 +61,7 @@ class DownlinkManager:
             msg = f"{prefix}: No downlinks!"
         self.logger.info(msg)
 
-    def get_downlinks_by_collection_time(self, pipeline_query):
+    def get_downlinks_by_collection_time(self, pipeline_query: Type[PipelineQuery]) -> List[Downlink]:
         """Fetch all downlinks matching query, based on collection time.
 
         Parameters
@@ -85,7 +89,7 @@ class DownlinkManager:
 
         return downlinks
 
-    def get_downlinks_by_downlink_time(self, pipeline_query):
+    def get_downlinks_by_downlink_time(self, pipeline_query: Type[PipelineQuery]) -> List[Downlink]:
         """Fetch all downlinks matching query, based on downlink time.
 
         Obtains downlinks by calculating science Downlinks and selecting
@@ -128,7 +132,9 @@ class DownlinkManager:
         ]
 
     # HELPER FOR get_downlinks_by_downlink_time, should be private
-    def calculate_new_downlinks_by_mission_id(self, mission_id: int, start_time: dt.datetime, end_time: dt.datetime):
+    def calculate_new_downlinks_by_mission_id(
+        self, mission_id: int, start_time: dt.datetime, end_time: dt.datetime
+    ) -> List[Downlink]:
         """Use science packets to calculate downlinks for a specific mission.
 
         Parameters
@@ -252,7 +258,7 @@ class DownlinkManager:
         return sorted(downlinks, key=lambda x: x.idpu_type)
 
     # HELPER FOR get_downlinks_by_downlink_time, should be private
-    def upload_downlink_entries(self, downlinks) -> None:
+    def upload_downlink_entries(self, downlinks: List[Downlink]) -> None:
         """Uploads Downlinks to the science_downlink table in the database
 
         Duplicate entries are ignored.
@@ -295,7 +301,7 @@ class DownlinkManager:
         self.session.flush()
         self.session.commit()
 
-    def get_relevant_downlinks(self, processing_request):
+    def get_relevant_downlinks(self, processing_request: ProcessingRequest) -> List[Downlink]:
         """Get Downlinks that are relevant to the processing request.
 
         Searches the science_downlink table for downlinks that fulfill the
@@ -342,7 +348,7 @@ class DownlinkManager:
 
         return list(downlinks)
 
-    def get_df_from_downlink(self, downlink) -> pd.DataFrame:
+    def get_df_from_downlink(self, downlink: Downlink) -> pd.DataFrame:
         """Converts a Downlink to a DataFrame of science data.
 
         Obtains relevant data from the science_packet table, and performs

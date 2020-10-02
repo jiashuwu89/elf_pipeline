@@ -1,6 +1,10 @@
 import logging
 import traceback
+from typing import List, Type
 
+from data_type.pipeline_config import PipelineConfig
+from data_type.pipeline_query import PipelineQuery
+from data_type.processing_request import ProcessingRequest
 from output.exception_collector import ExceptionCollector
 from output.server_manager import ServerManager
 from processor.idpu.eng_processor import EngProcessor
@@ -29,11 +33,11 @@ class Coordinator:
 
     Parameters
     ----------
-    pipeline_config
+    pipeline_config : Type[PipelineConfig]
         Configuration object for the pipeline
     """
 
-    def __init__(self, pipeline_config):
+    def __init__(self, pipeline_config: Type[PipelineConfig]):
         self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
         self.exception_collector = ExceptionCollector(DAILY_EMAIL_LIST)
 
@@ -71,7 +75,7 @@ class Coordinator:
 
         self.server_manager = ServerManager()
 
-    def execute_pipeline(self, pipeline_query):
+    def execute_pipeline(self, pipeline_query: Type[PipelineQuery]) -> None:
         """Executes the pipeline"""
         self.logger.info(f"Executing pipeline on query:\n\n{str(pipeline_query)}\n")
         try:
@@ -115,11 +119,11 @@ class Coordinator:
                 + f"problem{science_utils.s_if_plural(self.exception_collector.exception_list)}"
             )
 
-    def get_processing_requests(self, pipeline_query):
+    def get_processing_requests(self, pipeline_query: Type[PipelineQuery]) -> List[ProcessingRequest]:
         """Calculates processing requests that indicate files to be created."""
         return self.request_getter_manager.get_processing_requests(pipeline_query)
 
-    def generate_files(self, processing_requests):
+    def generate_files(self, processing_requests: List[ProcessingRequest]) -> List[str]:
         """Generates files specified by processing requests, if necessary.
 
         Parameters
@@ -139,7 +143,7 @@ class Coordinator:
 
         return generated_files
 
-    def transfer_files(self, generated_files) -> int:
+    def transfer_files(self, generated_files: List[str]) -> int:
         """Sends generated files to the server, if necessary.
 
         Parameters

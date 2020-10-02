@@ -1,10 +1,11 @@
 """Definition of class to determine data to process, files to generate"""
 import logging
-from typing import List
+from typing import List, Type
 
 from data_type.pipeline_config import PipelineConfig
 from data_type.pipeline_query import PipelineQuery
 from data_type.processing_request import ProcessingRequest
+from request.request_getter.request_getter import RequestGetter
 
 
 class RequestGetterManager:
@@ -20,13 +21,13 @@ class RequestGetterManager:
         A list of request getters
     """
 
-    def __init__(self, pipeline_config: PipelineConfig, request_getters):
+    def __init__(self, pipeline_config: Type[PipelineConfig], request_getters: List[RequestGetter]):
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.pipeline_config = pipeline_config
         self.request_getters = request_getters
 
-    def get_processing_requests(self, pipeline_query: PipelineQuery) -> List[ProcessingRequest]:
+    def get_processing_requests(self, pipeline_query: Type[PipelineQuery]) -> List[ProcessingRequest]:
         """Determines IDPU, MRM, ENG, and State products to be created.
 
         Parameters

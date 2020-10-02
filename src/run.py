@@ -22,12 +22,12 @@ logging.basicConfig(level=logging.INFO, format=LOG_FORMAT, datefmt=DATE_FORMAT)
 class CLIHandler:
     """A class to parse arguments and use them to run the pipeline"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
         self.argparser: argparse.ArgumentParser = self.get_argparser()
 
     @staticmethod
-    def get_argparser():
+    def get_argparser() -> argparse.ArgumentParser:
         """Get argument parser for parsing arguments.
 
         Returns
@@ -105,7 +105,7 @@ class CLIHandler:
         return argparser
 
     @staticmethod
-    def add_common_options(sub_parser):
+    def add_common_options(sub_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         """Adds options for mission id, collection time, and data product."""
         # Missions
         sub_parser.add_argument("-1", "--ela", help="process ELA data", action="store_true")
@@ -135,12 +135,12 @@ class CLIHandler:
 
         return sub_parser
 
-    def run(self):
+    def run(self) -> None:
         """Get arguments and perform processing, noting the duration."""
         start_time: dt.datetime = dt.datetime.utcnow()
         self.logger.info(f"🤠  Beginning at {start_time.strftime('%Y-%m-%d %H:%M:%S')} (UTC)  🤠")
 
-        args: argparse.ArgumentParser = self.argparser.parse_args()
+        args = self.argparser.parse_args()
 
         if args.verbose:
             # https://stackoverflow.com/questions/12158048/changing-loggings-basicconfig-which-is-already-set

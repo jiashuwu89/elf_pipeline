@@ -1,6 +1,9 @@
+from typing import Set, Type
+
 from elfin.common import models
 from sqlalchemy.sql import func
 
+from data_type.pipeline_query import PipelineQuery
 from data_type.processing_request import ProcessingRequest
 from data_type.time_type import TimeType
 from request.request_getter.request_getter import RequestGetter
@@ -9,7 +12,7 @@ from util import science_utils
 
 # TODO: For all request getters, make sure that the data product is requested BEFORE getting requests
 class EngRequestGetter(RequestGetter):
-    def get(self, pipeline_query):
+    def get(self, pipeline_query: Type[PipelineQuery]) -> Set[ProcessingRequest]:
         """Gets ENG ProcessingRequests based on categorical and bmon data.
 
         NOTE: The IdpuRequestGetter will obtain ENG requests for days
@@ -19,7 +22,7 @@ class EngRequestGetter(RequestGetter):
 
         Parameters
         ----------
-        pipeline_query
+        pipeline_query : Type[PipelineQuery]
 
         Returns
         -------
@@ -28,7 +31,7 @@ class EngRequestGetter(RequestGetter):
         """
         self.logger.info("⚽️  Getting ENG Requests")
 
-        eng_processing_requests = set()
+        eng_processing_requests: Set[ProcessingRequest] = set()
 
         if "eng" not in pipeline_query.data_products:
             self.logger.info("⚽️  Got 0 ENG Requests")
@@ -46,7 +49,7 @@ class EngRequestGetter(RequestGetter):
         )
         return eng_processing_requests
 
-    def get_categoricals_requests(self, pipeline_query):
+    def get_categoricals_requests(self, pipeline_query: Type[PipelineQuery]) -> Set[ProcessingRequest]:
         """Gets processing requests, based on the categoricals table.
 
         If data in the categoricals table falls under the range and criteria
@@ -56,7 +59,7 @@ class EngRequestGetter(RequestGetter):
 
         Parameters
         ----------
-        pipeline_query
+        pipeline_query : Type[PipelineQuery]
 
         Returns
         -------
@@ -108,7 +111,7 @@ class EngRequestGetter(RequestGetter):
         )
         return categoricals_requests
 
-    def get_bmon_requests(self, pipeline_query):
+    def get_bmon_requests(self, pipeline_query: Type[PipelineQuery]) -> Set[ProcessingRequest]:
         """Gets processing requests, based on the bmon table.
 
         If data in the bmon table falls under the range and criteria specified
@@ -117,7 +120,7 @@ class EngRequestGetter(RequestGetter):
 
         Parameters
         ----------
-        pipeline_query
+        pipeline_query : Type[PipelineQuery]
 
         Returns
         -------

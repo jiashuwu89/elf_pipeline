@@ -1,6 +1,9 @@
+from typing import Set, Type
+
 from elfin.common import models
 from sqlalchemy.sql import func
 
+from data_type.pipeline_query import PipelineQuery
 from data_type.processing_request import ProcessingRequest
 from data_type.time_type import TimeType
 from request.request_getter.request_getter import RequestGetter
@@ -11,12 +14,12 @@ from util.constants import MRM_ENUM_MAP, MRM_TYPES
 
 
 class MrmRequestGetter(RequestGetter):
-    def get(self, pipeline_query):
+    def get(self, pipeline_query: Type[PipelineQuery]) -> Set[ProcessingRequest]:
         """Gets MRM ProcessingRequests based on data present in the mrm table.
 
         Parameters
         ----------
-        pipeline_query
+        pipeline_query : Type[PipelineQuery]
 
         Returns
         -------

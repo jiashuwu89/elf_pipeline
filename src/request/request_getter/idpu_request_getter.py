@@ -1,5 +1,11 @@
+from typing import List, Set, Type
+
+from data_type.Downlink import Downlink
+from data_type.pipeline_config import PipelineConfig
+from data_type.pipeline_query import PipelineQuery
 from data_type.processing_request import ProcessingRequest
 from data_type.time_type import TimeType
+from request.downlink_manager import DownlinkManager
 from request.request_getter.request_getter import RequestGetter
 from util.constants import ONE_DAY_DELTA, PACKET_MAP, SCIENCE_TYPES
 
@@ -16,16 +22,16 @@ class IdpuRequestGetter(RequestGetter):
 
     Parameters
     ----------
-    pipeline_config
+    pipeline_config : Type[PipelineConfig]
     downlink_manager : DownlinkManager
     """
 
-    def __init__(self, pipeline_config, downlink_manager):
+    def __init__(self, pipeline_config: Type[PipelineConfig], downlink_manager: DownlinkManager):
         super().__init__(pipeline_config)
 
         self.downlink_manager = downlink_manager
 
-    def get(self, pipeline_query):
+    def get(self, pipeline_query: Type[PipelineQuery]) -> Set[ProcessingRequest]:
         """Gets FGM, EPD, and ENG Processing Requests via a DownlinkManager
 
         Using the DownlinkManager, we want to get downlinks that fit the
@@ -43,7 +49,7 @@ class IdpuRequestGetter(RequestGetter):
 
         Parameters
         ----------
-        pipeline_query
+        pipeline_query : Type[PipelineQuery]
 
         Returns
         -------
@@ -68,14 +74,13 @@ class IdpuRequestGetter(RequestGetter):
         self.downlink_manager.print_downlinks(
             dl_list, prefix="➜\tFound downlinks that are relevant to the PipelineQuery"
         )
-        general_processing_requests = self.get_requests_from_downlinks(dl_list)
-        general_processing_requests = [
-            pr for pr in general_processing_requests if pr.data_product in pipeline_query.data_products
-        ]  # TODO: This is a hacky fix. Check why mapping 1 -> fgs and fgf, etc
+        general_processing_requests = {
+            pr for pr in self.get_requests_from_downlinks(dl_list) if pr.data_product in pipeline_query.data_products
+        }  # TODO: This is a hacky fix. Check why mapping 1 -> fgs and fgf, etc
         self.logger.info(f"🏀  Got {len(general_processing_requests)} requests from downlinks")
         return general_processing_requests
 
-    def get_requests_from_downlinks(self, dl_list):
+    def get_requests_from_downlinks(self, dl_list: List[Downlink]) -> Set[ProcessingRequest]:
         """Helper Function for get_general_processing_requests.
 
         Given a list of downlinks, get processing requests with the
