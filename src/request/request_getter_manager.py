@@ -1,6 +1,6 @@
 """Definition of class to determine data to process, files to generate"""
 import logging
-from typing import Set
+from typing import List
 
 from data_type.pipeline_config import PipelineConfig
 from data_type.pipeline_query import PipelineQuery
@@ -26,7 +26,7 @@ class RequestGetterManager:
         self.pipeline_config = pipeline_config
         self.request_getters = request_getters
 
-    def get_processing_requests(self, pipeline_query: PipelineQuery) -> Set[ProcessingRequest]:
+    def get_processing_requests(self, pipeline_query: PipelineQuery) -> List[ProcessingRequest]:
         """Determines IDPU, MRM, ENG, and State products to be created.
 
         Parameters

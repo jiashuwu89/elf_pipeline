@@ -25,7 +25,7 @@ class CompletenessUpdater:
         self.completeness_config = completeness_config
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def update_completeness_table(self, processing_request, times) -> None:
+    def update_completeness_table(self, processing_request, times) -> bool:
         """Update ScienceZoneCompleteness table, if possible
 
         Parameters

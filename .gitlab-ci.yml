@@ -28,13 +28,18 @@ before_script:
 check-style:
   stage: Static Analysis
   script:
-  - poetry run make check-style
+  - make check-style
   allow_failure: true
+
+check-types:
+  stage: Static Analysis
+  script:
+  - make check-types
 
 test:
   stage: Static Analysis
   script:
-  - poetry run make coverage
+  - make coverage
   artifacts:
     paths:
       - htmlcov/
@@ -51,7 +56,7 @@ pages:
   dependencies:
     - test
   script:
-    - poetry run make doc  # Sphinx autodoc
+    - make doc  # Sphinx autodoc
     - mv doc/build/html/ public/
     - mv htmlcov/ public/  # Coverage report
   artifacts:
