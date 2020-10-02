@@ -18,7 +18,12 @@ from util.science_utils import get_angle_between, interpolate_attitude
 
 
 class StateProcessor(ScienceProcessor):
-    """The processor of State data"""
+    """The processor of State data.
+
+    Parameters
+    ----------
+    pipeline_config
+    """
 
     def __init__(self, pipeline_config):
         super().__init__(pipeline_config)
@@ -28,7 +33,21 @@ class StateProcessor(ScienceProcessor):
         self.nan_df = pd.DataFrame()  # Holds nan_df if it needs to be reused (useful mostly for dumps)
 
     def generate_files(self, processing_request):
-        """Generate L1 state file for processing_request"""
+        """Generates a single level 1 STATE CDF related to the request.
+
+        There are no level 0 State products to generate.
+
+        Parameters
+        ----------
+        processing_request
+            A ProcessingRequest specifying that a specific ENG file be created
+
+        Returns
+        -------
+        List[str]
+            A list containing a single filename, the name of the generated
+            level 1 State CDF
+        """
         probe = processing_request.probe
 
         cdf_fname = self.make_filename(processing_request, 1)
@@ -52,16 +71,28 @@ class StateProcessor(ScienceProcessor):
         cdf.close()
         return [cdf_fname]
 
-    def make_filename(self, processing_request, level, size=None):
+    def make_filename(self, processing_request, level: int, size=None) -> str:
         """Constructs the appropriate filename for a L1 file, and returns the full path
 
-        Overrides default implementation
+        Overrides default implementation of `make_filename`.
+
+        Parameters
+        ----------
+        processing_request
+        level : int
+        size : Optional[int]
+
+        Returns
+        -------
+        str
+            The name of the file containing data corresponding to the
+            given ProcessingRequest
         """
         fname = self.get_fname(processing_request.probe, level, self.state_type, processing_request.date)
         return f"{self.output_dir}/{fname}"
 
     @staticmethod
-    def get_fname(probe, level, state_type, file_date):
+    def get_fname(probe, level, state_type, file_date) -> str:
         return f"{probe}_l{level}_state_{state_type}_{file_date.strftime('%Y%m%d')}_v01.cdf"
 
     def create_empty_cdf(self, fname):
@@ -176,7 +207,7 @@ class StateProcessor(ScienceProcessor):
         Approach:
             - Create DataFrame
             - Find potential attitude solutions with a time difference of at
-              most 30 days.Find the first solutions above/below the range
+              most 30 days. Find the first solutions above/below the range
               (start_time, end_time), and hold onto anything between them
               (including the found solutions)
             - Fill in DataFrame

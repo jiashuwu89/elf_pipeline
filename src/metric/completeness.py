@@ -94,6 +94,18 @@ class CompletenessUpdater:
         return True
 
     def split_science_zones(self, times):
+        """Given a series of times, group them into estimated science zones.
+
+        Parameters
+        ----------
+        times : pd.Series
+            A series of times corresponding to packets (TODO: is this frames?)
+
+        Returns
+        -------
+        List[List[dt.datetime]]
+            A list of science zones, which are each a list of times
+        """
         szs = []
         prev_time = times.iloc[0]
         sz = [prev_time]
@@ -112,6 +124,23 @@ class CompletenessUpdater:
         return szs
 
     def get_median_diff(self, szs):
+        """Calculates the median diff (delta) between packets grouped by zone.
+
+        We find the time delta between a packet and its immediate neighbors,
+        for each packet in a science zone, for each science zone in the given
+        science zones. This value can be used to help estimate the total
+        number of packets that can be expected from a science zone.
+
+        Parameters
+        ----------
+        szs : List[List[dt.datetime]]
+            A list of science zones
+
+        Returns
+        -------
+        median_diff
+            The median diff (TODO: Check the type)
+        """
         if self.completeness_config.median_diff is not None:
             return self.completeness_config.median_diff
 
@@ -125,6 +154,23 @@ class CompletenessUpdater:
         return statistics.median(diffs)
 
     def estimate_time_range(self, processing_request, sz):
+        """Estimates the start and end time of a collection.
+
+        The start and end times are estimated by using the first and last
+        packet times and comparing them with values obtained by querying the
+        `time_intervals` table and applying some calculations using the given
+        CompletenessConfig
+
+        Parameters
+        ----------
+        processing_request
+        sz
+
+        Returns
+        -------
+        (start_time, end_time)
+            The estimated start and end times of the collection
+        """
         sz_start_time = sz[0]
         sz_end_time = sz[-1]
 

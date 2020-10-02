@@ -20,6 +20,12 @@ class EngProcessor(IdpuProcessor):
         ----------
         processing_request
             A ProcessingRequest specifying that a specific ENG file be created
+
+        Returns
+        -------
+        List[str]
+            A list containing a single filename, the name of the generated
+            level 1 ENG CDF
         """
         l1_file_name, _ = self.generate_l1_products(processing_request)  # Default param to None -> will generate l0 df
 
