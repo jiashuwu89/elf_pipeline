@@ -13,6 +13,21 @@ from util.constants import MISSION_NAME_TO_ID_MAP, ONE_DAY_DELTA, STATE_CALCULAT
 
 class StateRequestGetter(RequestGetter):
     def get(self, pipeline_query):
+        """Gets State ProcessingRequests based on relevant state data.
+
+        ProcessingRequests are necessary for combinations of mission ids and
+        dates for which relevant state csvs exist and/or for which attitude
+        data is available in the `calculated_attitude` table.
+
+        Parameters
+        ----------
+        pipeline_query
+
+        Returns
+        -------
+        Set[ProcessingRequest]
+            A set of State processing requests relevant to the pipeline query
+        """
         self.logger.info("⚾️  Getting State Requests")
         state_processing_requests = set()
         if "state" not in pipeline_query.data_products:

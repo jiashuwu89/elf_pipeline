@@ -28,7 +28,13 @@ class CLIHandler:
 
     @staticmethod
     def get_argparser():
-        """ Get argparser for parsing arguments """
+        """Get argument parser for parsing arguments.
+
+        Returns
+        -------
+        argparse.ArgumentParser
+            An Argument Parser to parse arguments of the pipeline's CLI
+        """
         argparser = argparse.ArgumentParser(description="Process Science Data from ELFIN")
 
         # General Options
@@ -100,6 +106,7 @@ class CLIHandler:
 
     @staticmethod
     def add_common_options(sub_parser):
+        """Adds options for mission id, collection time, and data product."""
         # Missions
         sub_parser.add_argument("-1", "--ela", help="process ELA data", action="store_true")
         sub_parser.add_argument("-2", "--elb", help="process ELB data", action="store_true")
@@ -129,7 +136,7 @@ class CLIHandler:
         return sub_parser
 
     def run(self):
-        """ Get arguments and perform processing, noting the duration """
+        """Get arguments and perform processing, noting the duration."""
         start_time: dt.datetime = dt.datetime.utcnow()
         self.logger.info(f"🤠  Beginning at {start_time.strftime('%Y-%m-%d %H:%M:%S')} (UTC)  🤠")
 

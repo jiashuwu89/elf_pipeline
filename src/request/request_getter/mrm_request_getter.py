@@ -12,6 +12,17 @@ from util.constants import MRM_ENUM_MAP, MRM_TYPES
 
 class MrmRequestGetter(RequestGetter):
     def get(self, pipeline_query):
+        """Gets MRM ProcessingRequests based on data present in the mrm table.
+
+        Parameters
+        ----------
+        pipeline_query
+
+        Returns
+        -------
+        Set[ProcessingRequest]
+            A set of MRM processing requests relevant to the pipeline query
+        """
         self.logger.info("🏈  Getting MRM Requests")
         mrm_products = self.get_relevant_products(pipeline_query.data_products, MRM_TYPES)
         if not mrm_products:

@@ -23,7 +23,12 @@ from util.general_utils import convert_date_to_datetime
 
 
 class DownlinkManager:
-    """A class that provides utilities involving downlinks"""
+    """A class that provides functionality involving downlinks.
+
+    Parameters
+    ----------
+    pipeline_config
+    """
 
     def __init__(self, pipeline_config):
         self.logger = logging.getLogger(self.__class__.__name__)

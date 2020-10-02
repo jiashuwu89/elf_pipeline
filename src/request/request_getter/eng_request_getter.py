@@ -8,17 +8,23 @@ from util import science_utils
 
 
 # TODO: For all request getters, make sure that the data product is requested BEFORE getting requests
-# TODO: requests gotten by categoricals and bmon, but what about idpu?
-#   - For now, IDPU data categorized as ENG data will be found by IdpuRequestGetter
-#   - May be better, in the future, to decouple DownlinkManager from IdpuRequestGetter
 class EngRequestGetter(RequestGetter):
     def get(self, pipeline_query):
-        """Another request getter.
+        """Gets ENG ProcessingRequests based on categorical and bmon data.
 
         NOTE: The IdpuRequestGetter will obtain ENG requests for days
         on which relevant IDPU data was collected (IDPU types 14, 15, 16).
         This RequestGetter will get ENG requests for days on which relevant
         bmon or categoricals data was collected.
+
+        Parameters
+        ----------
+        pipeline_query
+
+        Returns
+        -------
+        Set[ProcessingRequest]
+            A set of ENG processing requests relevant to the pipeline query
         """
         self.logger.info("⚽️  Getting ENG Requests")
 
@@ -41,6 +47,23 @@ class EngRequestGetter(RequestGetter):
         return eng_processing_requests
 
     def get_categoricals_requests(self, pipeline_query):
+        """Gets processing requests, based on the categoricals table.
+
+        If data in the categoricals table falls under the range and criteria
+        specified by the pipeline query (times, mission id), and is related to
+        a value that should be inserted to a CDF file, a processing request
+        corresponding to that data will be created.
+
+        Parameters
+        ----------
+        pipeline_query
+
+        Returns
+        -------
+        Set[ProcessingRequest]
+            A set of ENG processing requests relevant to the pipeline query
+            that were calculated using information from the categoricals table
+        """
         self.logger.info("➜  Getting ENG Categoricals requests")
 
         categoricals = [
@@ -86,6 +109,22 @@ class EngRequestGetter(RequestGetter):
         return categoricals_requests
 
     def get_bmon_requests(self, pipeline_query):
+        """Gets processing requests, based on the bmon table.
+
+        If data in the bmon table falls under the range and criteria specified
+        by the pipeline query (times, mission id), a processing request
+        corresponding to that data will be created.
+
+        Parameters
+        ----------
+        pipeline_query
+
+        Returns
+        -------
+        Set[ProcessingRequest]
+            A set of ENG processing requests relevant to the pipeline query
+            that were calculated using information from the bmon table
+        """
         self.logger.info("➜  Getting ENG Bmon requests")
 
         query = (

@@ -5,24 +5,51 @@ from util.constants import ONE_DAY_DELTA, PACKET_MAP, SCIENCE_TYPES
 
 
 class IdpuRequestGetter(RequestGetter):
+    """A RequestGetter that uses a DownlinkManager to get ProcessingRequests.
+
+    ProcessingRequests are created for data that corresponds to the
+    PipelineQuery provided as a parameter to the `get` method. We find this
+    data by utilizing the `science_downlink` table (which the pipeline
+    maintains via DownlinkManagers). Downlinks (best effort at grouping
+    packets together) that have times, idpu types, and mission ids matching
+    the PipelineQuery will require the creation of a ProcessingRequest.
+
+    Parameters
+    ----------
+    pipeline_config
+    downlink_manager : DownlinkManager
+    """
+
     def __init__(self, pipeline_config, downlink_manager):
         super().__init__(pipeline_config)
 
         self.downlink_manager = downlink_manager
 
     def get(self, pipeline_query):
-        """FGM and EPD and ENG Processing Requests
+        """Gets FGM, EPD, and ENG Processing Requests via a DownlinkManager
 
-        We want to get downlinks that fit the criteria, then find the
-        corresponding collection times.
+        Using the DownlinkManager, we want to get downlinks that fit the
+        criteria of the pipeline_query, then create processing requests with
+        the corresponding information about collection times, data type, and
+        mission id.
 
-        Logic:
-        - If querying by downlink time, we MUST calculate new downlinks, can't
-        use science downlinks table bc only stores collection time
-        - If querying by collection time, we CANNOT calculate new downlinks
-        because packets in the science packets table do not contain accessible
-        collection time data necessarily (compressed packets). We MUST refer
-        refer to science downlinks table
+        The logic determining if new downlinks must be calculated is as
+        follows: If querying by downlink time, we MUST calculate new
+        downlinks, we can't use science downlinks table because it only stores
+        collection time. If querying by collection time, we CANNOT calculate
+        new downlinks because packets in the science packets table do not
+        contain accessible collection time data necessarily (compressed
+        packets). Therefore, we MUST refer to science downlinks table.
+
+        Parameters
+        ----------
+        pipeline_query
+
+        Returns
+        -------
+        Set[ProcessingRequest]
+            A set of EPD, ENG, and FGM processing requests relevant to the
+            pipeline query, found using the DownlinkManager
         """
         # TODO: Refactor so that downlink manager is outside of the request getter
         self.logger.info("🏀  Getting IDPU Requests")
@@ -49,12 +76,22 @@ class IdpuRequestGetter(RequestGetter):
         return general_processing_requests
 
     def get_requests_from_downlinks(self, dl_list):
-        """Helper Function for get_general_processing_requests
+        """Helper Function for get_general_processing_requests.
 
         Given a list of downlinks, get processing requests with the
         appropriate collection times
 
-        Returns a set
+        Parameters
+        ----------
+        dl_list : List[Downlink]
+            A list of Downlinks
+
+        Returns
+        -------
+        Set[ProcessingRequest]
+            A set of ProcessingRequests that cover all of the downlinks, such
+            that all days on which the Downlinks occurred will have the
+            files generated for the corresponding mission and data type
         """
         self.logger.debug(f"dl_list={dl_list}")
         delta = ONE_DAY_DELTA
