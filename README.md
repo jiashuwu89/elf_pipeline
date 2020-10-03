@@ -3,8 +3,8 @@
 Pipeline to process packets and generate CDFs.
 
 ## Relevant Links
-[Auto Documentation](http://science-processing.pages.elfin.ucla/pipeline-refactor/index.html)
-[Coverage Report](http://science-processing.pages.elfin.ucla/pipeline-refactor/htmlcov/index.html)
+- [Auto Documentation](http://science-processing.pages.elfin.ucla/pipeline-refactor/index.html)
+- [Coverage Report](http://science-processing.pages.elfin.ucla/pipeline-refactor/htmlcov/index.html)
 
 ## General TODOs
 - Rename Downlink -> ScienceDownlink
