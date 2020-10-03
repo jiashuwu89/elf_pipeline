@@ -1,7 +1,8 @@
+import argparse
 import datetime as dt
 import logging
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Tuple
 
 from dateutil.parser import parse as dateparser
 
@@ -49,7 +50,7 @@ class PipelineQuery(ABC):
             idpu_types += SCIENCE_TYPES.get(data_product, [])
         return idpu_types
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             "PipelineQuery(\n"
             + f"\tmission_ids={self.mission_ids},\n"
@@ -59,7 +60,7 @@ class PipelineQuery(ABC):
             + f"\tend_time={self.end_time}\n)"
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "PipelineQuery(\n"
             + f"\tmission_ids={self.mission_ids},\n"
@@ -71,7 +72,7 @@ class PipelineQuery(ABC):
 
 
 class ArgparsePipelineQuery(PipelineQuery):
-    def __init__(self, args):
+    def __init__(self, args: argparse.Namespace):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.debug(args.__dict__)
 
@@ -83,23 +84,23 @@ class ArgparsePipelineQuery(PipelineQuery):
         self._start_time, self._end_time = self.validate_time(args.start_time, args.end_time)
 
     @property
-    def mission_ids(self):
+    def mission_ids(self) -> List[int]:
         return self._mission_ids
 
     @property
-    def data_products(self):
+    def data_products(self) -> List[str]:
         return self._data_products
 
     @property
-    def times(self):
+    def times(self) -> TimeType:
         return self._times
 
     @property
-    def start_time(self):
+    def start_time(self) -> dt.datetime:
         return self._start_time
 
     @property
-    def end_time(self):
+    def end_time(self) -> dt.datetime:
         return self._end_time
 
     @staticmethod
@@ -129,7 +130,7 @@ class ArgparsePipelineQuery(PipelineQuery):
         return TimeType.COLLECTION if collection else TimeType.DOWNLINK
 
     @staticmethod
-    def validate_time(start_time: str, end_time: str):
+    def validate_time(start_time: str, end_time: str) -> Tuple[dt.datetime, dt.datetime]:
         start_time = dateparser(start_time, tzinfos=0)
         end_time = dateparser(end_time, tzinfos=0)
 

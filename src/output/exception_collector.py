@@ -2,6 +2,7 @@
 import logging
 import smtplib
 import time
+from typing import Any, List
 
 from util.science_utils import s_if_plural
 
@@ -21,13 +22,13 @@ class ExceptionCollector:
         any email notfications
     """
 
-    def __init__(self, email_list):
+    def __init__(self, email_list: List[str]):
         self.email_list = email_list
-        self.exception_list = []
+        self.exception_list: List[str] = []
 
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def record_exception(self, *to_record):
+    def record_exception(self, *to_record: Any) -> None:
         """Logs and stores all parameters passed to the method.
 
         If nothing is passed to record_exception, nothing will happen.
@@ -71,5 +72,5 @@ class ExceptionCollector:
         return subject + seperator + body
 
     @property
-    def count(self):
+    def count(self) -> int:
         return len(self.exception_list)

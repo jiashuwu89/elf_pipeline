@@ -1,4 +1,5 @@
 """Definition of PacketInfo class"""
+import datetime as dt
 
 
 class PacketInfo:
@@ -18,7 +19,7 @@ class PacketInfo:
     -------
     """
 
-    def __init__(self, science_packet_id, idpu_time, collection_time, denominator):
+    def __init__(self, science_packet_id: int, idpu_time: dt.datetime, collection_time: dt.datetime, denominator: int):
         # I've decided packet_id isn't useful enough to include here, but can be added later if necessary
         # self.packet_id = packet_id
         self.science_packet_id = science_packet_id
@@ -26,7 +27,7 @@ class PacketInfo:
         self.collection_time = collection_time
         self.denominator = denominator
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return (
             self.science_packet_id == other.science_packet_id
             and self.idpu_time == other.idpu_time
@@ -34,10 +35,10 @@ class PacketInfo:
             and self.denominator == other.denominator
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.science_packet_id, self.idpu_time, self.collection_time, self.denominator))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"PacketInfo(science_packet_id={self.science_packet_id}, "
             + f"idpu_time={self.idpu_time}, "
@@ -45,7 +46,7 @@ class PacketInfo:
             + f"denominator={self.denominator})"
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"PacketInfo(science_packet_id={self.science_packet_id}, "
             + f"idpu_time={self.idpu_time}, "

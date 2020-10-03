@@ -3,9 +3,15 @@ import datetime as dt
 import logging
 import math
 import statistics
+from typing import Any, List, Optional, Tuple, Type
 
+import numpy as np
+import pandas as pd
+import sqlalchemy
 from elfin.common import models
 
+from data_type.completeness_config import CompletenessConfig
+from data_type.processing_request import ProcessingRequest
 from util.science_utils import s_if_plural
 
 
@@ -20,12 +26,12 @@ class CompletenessUpdater:
         completeness
     """
 
-    def __init__(self, session, completeness_config):
+    def __init__(self, session: sqlalchemy.orm.session.Session, completeness_config: Type[CompletenessConfig]):
         self.session = session
         self.completeness_config = completeness_config
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def update_completeness_table(self, processing_request, times) -> bool:
+    def update_completeness_table(self, processing_request: ProcessingRequest, times: pd.Series) -> bool:
         """Update ScienceZoneCompleteness table, if possible
 
         Parameters
@@ -93,7 +99,7 @@ class CompletenessUpdater:
 
         return True
 
-    def split_science_zones(self, times):
+    def split_science_zones(self, times: pd.Series) -> List[List[np.datetime64]]:
         """Given a series of times, group them into estimated science zones.
 
         Parameters
@@ -123,7 +129,7 @@ class CompletenessUpdater:
         self.logger.info(f"Found {len(szs)} science zone{s_if_plural(szs)}")
         return szs
 
-    def get_median_diff(self, szs):
+    def get_median_diff(self, szs: List[List[np.datetime64]]) -> Optional[float]:
         """Calculates the median diff (delta) between packets grouped by zone.
 
         We find the time delta between a packet and its immediate neighbors,
@@ -153,7 +159,8 @@ class CompletenessUpdater:
 
         return statistics.median(diffs)
 
-    def estimate_time_range(self, processing_request, sz):
+    # TODO: Get better return type
+    def estimate_time_range(self, processing_request: ProcessingRequest, sz: List[np.datetime64]) -> Tuple[Any, Any]:
         """Estimates the start and end time of a collection.
 
         The start and end times are estimated by using the first and last

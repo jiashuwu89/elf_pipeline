@@ -1,6 +1,8 @@
+import argparse
 import os
 from abc import ABC, abstractmethod
 
+import sqlalchemy
 from elfin.common import db
 
 from util.constants import STATE_CSV_DIR
@@ -11,7 +13,7 @@ class PipelineConfig(ABC):
 
     @property
     @abstractmethod
-    def session(self):
+    def session(self) -> sqlalchemy.orm.session.Session:
         """From elfin.common.db, used to make queries to the database"""
         raise NotImplementedError
 
@@ -61,7 +63,7 @@ class ArgparsePipelineConfig(PipelineConfig):
         Arguments from argparse (obtained from CLI)
     """
 
-    def __init__(self, args):
+    def __init__(self, args: argparse.Namespace):
         # Initialize DB connection
         if db.SESSIONMAKER is None:
             db.connect("production")
@@ -75,31 +77,31 @@ class ArgparsePipelineConfig(PipelineConfig):
         self._email = self.email_necessary(args.quiet)
 
     @property
-    def session(self):
+    def session(self) -> sqlalchemy.orm.session.Session:
         return self._session
 
     @property
-    def update_db(self):
+    def update_db(self) -> bool:
         return self._update_db
 
     @property
-    def generate_files(self):
+    def generate_files(self) -> bool:
         return self._generate_files
 
     @property
-    def output_dir(self):
+    def output_dir(self) -> str:
         return self._output_dir
 
     @property
-    def state_csv_dir(self):
+    def state_csv_dir(self) -> str:
         return STATE_CSV_DIR
 
     @property
-    def upload(self):
+    def upload(self) -> bool:
         return self._upload
 
     @property
-    def email(self):
+    def email(self) -> bool:
         return self._email
 
     @staticmethod

@@ -1,4 +1,5 @@
 import logging
+from typing import Iterable
 
 import paramiko
 
@@ -10,8 +11,9 @@ except ModuleNotFoundError:
     HOST, PASSWORD, USERNAME = "", "", ""
 
 
+# TODO: Typing
 class ServerManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.logger.info("Create Transport")
@@ -31,7 +33,7 @@ class ServerManager:
     def __exit__(self, exc_type, exc_value, traceback):
         self.sftp_client.close()
 
-    def transfer_file(self, source, dest):
+    def transfer_file(self, source: str, dest: str) -> bool:
         try:
             self.logger.info(f"Transferring {source} to {dest}")
             self.sftp_client.put(source, dest)
@@ -40,7 +42,7 @@ class ServerManager:
             self.logger.critical(f"⚠️\tFailed to transfer {source} to {dest}: {e}")
             return False
 
-    def transfer_files(self, files):
+    def transfer_files(self, files: Iterable[str]) -> int:
         """ Transfer all files to server, return # of files transferred successfully """
         count = 0
         for f in files:

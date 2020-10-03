@@ -1,5 +1,6 @@
 """Utility functions relating to science."""
 from datetime import datetime, timedelta
+from typing import List, Optional, Sized, Tuple
 
 import numpy as np
 import pandas as pd
@@ -10,35 +11,30 @@ from util.constants import SCIENCE_TYPES
 np.set_printoptions(precision=20)
 
 
-def dt_to_tt2000(dt: datetime):
+def dt_to_tt2000(dt: datetime) -> Optional[int]:
     """Wrapper for spacepy date conversion function, handling null dates."""
     if pd.isnull(dt):
         return None
     return pycdf.lib.datetime_to_tt2000(dt)
 
 
-def s_if_plural(x):
+def s_if_plural(x: Sized) -> str:
     """Determine whether a collection should be referred to as plural."""
     return "s" if len(x) != 1 else ""
 
 
-def twos_comp(uint_val, bits=24):
+# TODO: Check these types
+def twos_comp(uint_val: int, bits: int = 24) -> int:
     """Performs a two's complement conversion"""
     mask = 2 ** (bits - 1)
     return -(uint_val & mask) + (uint_val & ~mask)
 
 
-def hex_to_int(hex_data: str):
+def hex_to_int(hex_data: str) -> int:
     """Given a string of hex data, convert the string to an integer"""
     if not isinstance(hex_data, str):
         raise ValueError(f"Expected str, not {type(hex_data)}")
     return twos_comp(65536 * int(hex_data[0:2], 16) + 256 * int(hex_data[2:4], 16) + int(hex_data[4:6], 16))
-
-
-def get_attribute_or_none(args, attribute):
-    if hasattr(args, attribute):
-        return getattr(args, attribute)
-    return None
 
 
 def get_angle_between(v1: pd.Series, v2: pd.Series) -> pd.Series:
@@ -63,7 +59,9 @@ def get_angle_between(v1: pd.Series, v2: pd.Series) -> pd.Series:
     return final_series.apply(np.degrees)
 
 
-def interpolate_attitude(S_init, t_init, S_fin, t_fin):
+def interpolate_attitude(
+    S_init: np.ndarray, t_init: datetime, S_fin: np.ndarray, t_fin: datetime
+) -> Tuple[np.ndarray, np.ndarray]:
     """Wynne's Function to perform attitude interpolation.
 
     Parameters
@@ -141,11 +139,11 @@ def interpolate_attitude(S_init, t_init, S_fin, t_fin):
     return np.array(t_arr_minres), np.array(interpolated_atts)
 
 
-def convert_data_product_to_idpu_types(data_product):
+def convert_data_product_to_idpu_types(data_product: str) -> List[int]:
     return SCIENCE_TYPES.get(data_product, [])
 
 
-def convert_data_products_to_idpu_types(data_products):
+def convert_data_products_to_idpu_types(data_products: List[str]) -> List[int]:
     idpu_types = []
     for product in data_products:
         idpu_types += convert_data_product_to_idpu_types(product)
