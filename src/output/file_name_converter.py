@@ -61,7 +61,7 @@ class FileNameConverter:
         return (
             f"{SERVER_BASE_DIR}/"
             + f"{file_info.mission}/"
-            + f"{file_info.level}/"
+            + f"l{file_info.level}/"
             + f"{self.data_product_paths[file_info.data_type][file_info.level]}/"
             + f"{file_info.file_name}"
         )
