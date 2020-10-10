@@ -380,7 +380,7 @@ class EpdProcessor(IdpuProcessor):
         """ Same as base class's fill_CDF except this function also includes EPD energies """
         super().fill_cdf(processing_request, df, cdf)
 
-        prefix = f"{processing_request}_p{processing_request.data_product[-2:]}"
+        prefix = f"{processing_request.probe}_p{processing_request.data_product[-2:]}"
         e_or_i = processing_request.data_product[-2:-1]
 
         with open(f"{EPD_CALIBRATION_DIR}/{processing_request.probe}_cal_epd{e_or_i}.txt", "r") as f:
