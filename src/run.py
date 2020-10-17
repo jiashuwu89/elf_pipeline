@@ -159,7 +159,7 @@ class CLIHandler:
         coordinator.execute_pipeline(pipeline_query)
 
         elapsed_time: dt.timedelta = dt.datetime.utcnow() - start_time
-        self.logger.info(f"🤠  Total run time: {str(elapsed_time)}  🤠")
+        self.logger.info(f"🤠  Total run time: {str(elapsed_time)}  🤠\n\n\n")  # Add empty lines before next run
 
 
 if __name__ == "__main__":

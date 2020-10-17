@@ -32,7 +32,7 @@ class ProcessorManager:
             self.logger.info(f"🔔🔔🔔  Generating files for {str(pr)}")
             try:
                 generated_files = self.processor_map[pr.data_product].generate_files(pr)
-                self.logger.info(f"🕶\tSuccessfully generated files: {generated_files}")
+                self.logger.info(f"🕶  Successfully generated files: {generated_files}")
                 files.update(generated_files)
             except Exception as e:
                 traceback_msg = traceback.format_exc()
