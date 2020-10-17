@@ -62,7 +62,7 @@ class FgmProcessor(IdpuProcessor):
         uncompressed = df["idpu_type"].isin([1, 17]).any()
         compressed = df["idpu_type"].isin([2, 18]).any()
 
-        if uncompressed and compressed:
+        if uncompressed and compressed:  # TODO: Handle both uncompressed and compressed data if found together
             self.logger.warning("⚠️ Detected both compressed and uncompressed data. This should never happen...")
             return df[df["idpu_type"].isin([1, 17])]
 
@@ -203,7 +203,7 @@ class FgmProcessor(IdpuProcessor):
         for _, row in df.iterrows():
             idpu_time = row["idpu_time"]
 
-            # find sampling rate based off of difference in time between 2 downlinked packets
+            # find sampling rate between current and previous packets
             if prev_time:
                 if self.is10hz_sampling_rate(prev_time, idpu_time) != FgmFrequencyEnum.UNKNOWN:
                     frequency = self.is10hz_sampling_rate(prev_time, idpu_time)
@@ -216,7 +216,7 @@ class FgmProcessor(IdpuProcessor):
             ]
 
             # Create the initial decompressed row, later decompressed rows will follow
-            decompressed_rows.append(FgmRow(idpu_time, list(axes_values), frequency, row["numerator"]))
+            decompressed_rows.append(FgmRow(idpu_time, axes_values.copy(), frequency, row["numerator"]))
 
             # Store remaining data so the code can look for more values
             bs = byte_tools.bin_string(row["data"][17:])

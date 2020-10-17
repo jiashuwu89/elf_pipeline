@@ -35,8 +35,6 @@ class EpdProcessor(IdpuProcessor):
             - If compressed data, decompress the data
             - Otherwise, something went wrong
         """
-        df["data"] = df["data"].apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
-
         # TODO: unify with fgm_processor
         types = df["idpu_type"].values
         uncompressed = 3 in types or 5 in types
@@ -60,7 +58,11 @@ class EpdProcessor(IdpuProcessor):
     def update_uncompressed_df(self, df):
         """ For a dataframe of uncompressed data, update the idpu_time field to None if appropriate """
         self.logger.debug("Updating a dataframe of uncompressed EPD data")
-        df["idpu_time"] = df["data"].apply(lambda x: byte_tools.raw_idpu_bytes_to_datetime(x[2:10]) if x else None)
+        df["idpu_time"] = (
+            df["data"]
+            .apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
+            .apply(lambda x: byte_tools.raw_idpu_bytes_to_datetime(x[2:10]) if x else None)
+        )
         return df
 
     def decompress_df(self, df, num_sectors, table):
@@ -137,7 +139,7 @@ class EpdProcessor(IdpuProcessor):
 
         # l0_df: holds finished periods
         # measured values: For one period, hold value from Huffman table and later is put into period_df
-        data = df["data"]
+        data = df["data"].apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
         l0_df = pd.DataFrame(columns=["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data"])
         measured_values = [None] * BIN_COUNT * num_sectors
 
