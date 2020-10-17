@@ -49,7 +49,7 @@ class ProcessingRequest:
 
     @property
     def probe(self) -> str:
-        """Gives the probe (ex. ELA, ELB, EM3)"""
+        """Gives the probe (ela, elb, or em3)"""
         return MISSION_DICT[self.mission_id]
 
     @property
