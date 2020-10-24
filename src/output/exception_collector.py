@@ -32,6 +32,10 @@ class ExceptionCollector:
         """Logs and stores all parameters passed to the method.
 
         If nothing is passed to record_exception, nothing will happen.
+
+        Parameters
+        ----------
+        to_record
         """
         if len(to_record) == 0:
             return
@@ -73,4 +77,10 @@ class ExceptionCollector:
 
     @property
     def count(self) -> int:
+        """The number of exceptions.
+
+        Returns
+        -------
+        int
+        """
         return len(self.exception_list)

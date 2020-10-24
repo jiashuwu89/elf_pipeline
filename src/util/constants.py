@@ -76,7 +76,6 @@ SURVEY_TYPES = [19, 20]
 IDL_SCRIPT_VERSION = 8
 
 # Directory Paths
-# TODO: Get good paths
 STATE_CSV_DIR = "/home/elfin-esn/state_data"
 SERVER_BASE_DIR = "/themis/data/elfin"
 CREDENTIALS_FILE = "src/util/credentials.py"

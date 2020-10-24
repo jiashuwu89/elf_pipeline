@@ -1,4 +1,8 @@
-"""Contains class to manage/handle downlinks"""
+"""Contains class to manage/handle downlinks.
+
+This is located in the 'output' directory because the DownlinkManager
+generates output in the form of updating the science_downlink table.
+"""
 import datetime as dt
 import logging
 from typing import List, Type
@@ -66,7 +70,7 @@ class DownlinkManager:
 
         Parameters
         ----------
-        pipeline_query : PipelineQuery
+        pipeline_query : Type[PipelineQuery]
 
         Returns
         -------

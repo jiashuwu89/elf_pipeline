@@ -1,18 +1,14 @@
-"""This class processes level 0/1 epdef, epdes, epdif, and epdis data.
-
-The epd_processor class handles several things, including:
-* Decompression of epd
-* Filtering of data based on collection frequency
-* Formatting of epd related data into a database.
-"""
-# TODO: This is just copied from the original epd_processor.py. Needs to be refactored
-
 import datetime as dt
+from typing import Dict, List, Tuple
 
 import pandas as pd
+from spacepy import pycdf
 
 from data_type.completeness_config import EpdeCompletenessConfig, EpdiCompletenessConfig
-from metric.completeness import CompletenessUpdater
+from data_type.pipeline_config import PipelineConfig
+from data_type.processing_request import ProcessingRequest
+from output.downlink.downlink_manager import DownlinkManager
+from output.metric.completeness import CompletenessUpdater
 from processor.idpu.idpu_processor import IdpuProcessor
 from util import byte_tools
 from util.compression_values import EPD_HUFFMAN, EPD_LOSSY_VALS
@@ -22,18 +18,42 @@ from util.constants import BIN_COUNT, EPD_CALIBRATION_DIR, VALID_NUM_SECTORS
 
 
 class EpdProcessor(IdpuProcessor):
-    def __init__(self, pipeline_config, downlink_manager):
+    """This class processes level 0/1 epdef, epdes, epdif, and epdis data.
+
+    The EpdProcessor class handles several things, including:
+        * Decompression of epd
+        * Filtering of data based on collection frequency
+
+    Parameters
+    ----------
+    pipeline_config : PipelineConfig
+    downlink_manager : DownlinkManager
+    """
+
+    def __init__(self, pipeline_config: PipelineConfig, downlink_manager: DownlinkManager):
         super().__init__(pipeline_config, downlink_manager)
 
         self.epde_completeness_updater = CompletenessUpdater(pipeline_config.session, EpdeCompletenessConfig)
         self.epdi_completeness_updater = CompletenessUpdater(pipeline_config.session, EpdiCompletenessConfig)
 
-    def process_rejoined_data(self, processing_request, df):
-        """
-        The logic is as follows: Given an EPD dataframe...
-            - If uncompressed data, go to update_uncompressed_df
-            - If compressed data, decompress the data
-            - Otherwise, something went wrong
+    def process_rejoined_data(self, processing_request: ProcessingRequest, df: pd.DataFrame) -> pd.DataFrame:
+        """Provided a DataFrame of rejoined data, perform needed processing.
+
+        This method expects that all data is of the same IDPU type, but
+        performs checking, just in case.
+
+        NOTE: Both regularly-compressed data and survey data must be
+        decompressed - the only difference is the number of sectors.
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+        df : pd.DataFrame
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame of processed data
         """
         # TODO: unify with fgm_processor
         types = df["idpu_type"].values
@@ -55,8 +75,19 @@ class EpdProcessor(IdpuProcessor):
 
         return df
 
-    def update_uncompressed_df(self, df):
-        """ For a dataframe of uncompressed data, update the idpu_time field to None if appropriate """
+    def update_uncompressed_df(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Updates the IDPU time of a dataframe of uncompressed data.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            A DataFrame of uncompressed data (IDPU types 3 or 5)
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame with updated IDPU times
+        """
         self.logger.debug("Updating a dataframe of uncompressed EPD data")
         df["idpu_time"] = (
             df["data"]
@@ -65,7 +96,7 @@ class EpdProcessor(IdpuProcessor):
         )
         return df
 
-    def decompress_df(self, df, num_sectors, table):
+    def decompress_df(self, df: pd.DataFrame, num_sectors: int, table: Dict[str, int]) -> pd.DataFrame:
         """Decompresses a DataFrame of compressed packets
 
         How EPD Compression Works:
@@ -185,11 +216,27 @@ class EpdProcessor(IdpuProcessor):
         return l0_df.reset_index(drop=True)
 
     @staticmethod
-    def find_lossy_idx(data_packet_in_bytes):
+    def find_lossy_idx(data_packet_in_bytes: bytes) -> int:
         return data_packet_in_bytes[10] - 0xAA
 
     @staticmethod
-    def find_first_header(data):
+    def find_first_header(data: pd.Series) -> int:
+        """Given EPD data, find the first header.
+
+        We have found a header when the row's data is not null and when the
+        row passes the check of AND-ing the 10th byte with 0xA0
+
+        Parameters
+        ----------
+        data : pd.Series
+
+        Returns
+        -------
+        int
+            The index of the first header, or the length of the data if no
+            headers are found
+        """
+
         packet_num = 0
         while packet_num < data.shape[0]:
             if data.iloc[packet_num] is None or data.iloc[packet_num][10] & 0xA0 != 0xA0:
@@ -199,7 +246,24 @@ class EpdProcessor(IdpuProcessor):
         return packet_num  # Went out of bounds, no header found
 
     @staticmethod
-    def get_sign(bitstring):
+    def get_sign(bitstring: str) -> Tuple[int, str]:
+        """From the front of the bitstring, determine the sign of the delta.
+
+        If the bitstring does not begin with 00 (positive) or 01 (negative),
+        a ValueError is raised. This indicates that either the parsing was
+        done improperly, or that the delta was too large to be stored in the
+        packet (this fact needs to be double checked).
+
+        Parameters
+        ----------
+        bitstring : str
+
+        Returns
+        -------
+        Tuple[int, str]
+            An integer (either 1 or -1) representing the sign of the delta,
+            and the remaining bitstring after the sign indicator
+        """
         if bitstring[:2] == "00":
             return 1, bitstring[2:]
         if bitstring[:2] == "01":
@@ -255,28 +319,46 @@ class EpdProcessor(IdpuProcessor):
         )
         return period_df
 
-    def transform_l0_df(self, processing_request, l0_df):
-        """
-        Does the necessary processing on a level 0 df to create a level 1 dataframe
+    def transform_l0_df(self, processing_request: ProcessingRequest, l0_df: pd.DataFrame) -> pd.DataFrame:
+        """Processes a level 0 DataFrame to create a level 1 DataFrame.
 
-        NOTE: collection_date is an unused parameter for EPD's transform_level_0, but
-        it could be used in other processors (so don't delete it)
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+        l0_df : pd.DataFrame
+            A DataFrame of level 0 EPD data, to be transformed
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame of level 1 EPD data
         """
         l1_df = self.parse_periods(processing_request, l0_df)
         l1_df = self.format_for_cdf(l1_df)
 
         return l1_df
 
-    def parse_periods(self, processing_request, df):
+    def parse_periods(self, processing_request: ProcessingRequest, df: pd.DataFrame) -> pd.DataFrame:
         """Parse EPD bin readings into a pandas DataFrame.
 
         Explanation:
-        * Loop through each row, each is a full revolution. Convert data to
-        bytes using function, then read in bins 0-15 for sectors 0-F
-        * Return same DataFrame structure as before
+            * Loop through each row, each is a full revolution. Convert data
+            to bytes using function, then read in bins 0-15 for sectors 0-F
+            * Return same DataFrame structure as before
+
+        Parameters
+        ----------
+        processing_request: ProcessingRequest
+        df: pd.DataFrame
+            A DataFrame of level 0 EPD data
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame containing bin count information from parsing periods
         """
 
-        bins = [[] for i in range(16)]
+        bins: List[List[int]] = [[] for i in range(16)]
         all_sec_num = []
         all_idpu_times = []
         all_spin_periods = []
@@ -350,9 +432,9 @@ class EpdProcessor(IdpuProcessor):
         self.logger.debug(f"seconds per sector = {seconds_per_sector}, center time offset = {center_time_offset}")
         return [(time_captured + seconds_per_sector * i + center_time_offset) for i in range(0, 16, 16 // num_sectors)]
 
-    def format_for_cdf(self, df):
-        """ Gets the columns corresponding to the bins, in preparation for the CDF """
-        self.logger.debug("Format EPD df for CDF")
+    @staticmethod
+    def format_for_cdf(df: pd.DataFrame) -> pd.DataFrame:
+        """Gets the columns corresponding to bins, in preparation for the CDF."""
         df["data"] = df[
             [
                 "bin00",
@@ -375,11 +457,22 @@ class EpdProcessor(IdpuProcessor):
         ].values.tolist()
         return df
 
-    #####################
-    # Utility Functions #
-    #####################
-    def fill_cdf(self, processing_request, df, cdf):
-        """ Same as base class's fill_CDF except this function also includes EPD energies """
+    def fill_cdf(self, processing_request: ProcessingRequest, df: pd.DataFrame, cdf: pycdf.CDF) -> None:
+        """Fills a CDF with the relevant EPD information from a DatFrame.
+
+        On top of the base functionality, this method also includes EPD energies.
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+        df : pd.DataFrame
+        cdf : pycdf.CDF
+
+        Returns
+        -------
+        None
+            The given CDF is directly modified
+        """
         super().fill_cdf(processing_request, df, cdf)
 
         prefix = f"{processing_request.probe}_p{processing_request.data_product[-2:]}"
@@ -420,14 +513,39 @@ class EpdProcessor(IdpuProcessor):
         if categories_filled != 3:
             self.logger.warning("Issues with Inserting Energy Information!!")
 
-    def get_completeness_updater(self, processing_request):
+    def get_completeness_updater(self, processing_request: ProcessingRequest) -> CompletenessUpdater:
+        """Returns the relevant completeness updater.
+
+        The CompletenessUpdater depends on the data product (EPDE vs EPDI)
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+
+        Returns
+        -------
+        CompletenessUpdater
+        """
         if processing_request.data_product[-2] == "e":
             return self.epde_completeness_updater
         if processing_request.data_product[-2] == "i":
             return self.epdi_completeness_updater
         raise ValueError(f"Bad data_product: {processing_request.data_product}")
 
-    def get_cdf_fields(self, processing_request):
+    def get_cdf_fields(self, processing_request: ProcessingRequest) -> Dict[str, str]:
+        """Gets a map of relevant CDF fields for EPD data to DF column names.
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+
+        Returns
+        -------
+        Dict[str, str]
+            A Python dictionary mapping CDF field names to DataFrame column
+            names, based on the probe and data product specified in the
+            processing_request
+        """
         probe = processing_request.probe
         data_product_type = f"p{processing_request.data_product[-2:]}"
         return {

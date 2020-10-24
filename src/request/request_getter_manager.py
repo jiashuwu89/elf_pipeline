@@ -16,9 +16,8 @@ class RequestGetterManager:
 
     Parameters
     ----------
-    pipeline_config: PipelineConfig
-    request_getters: List[RequestGetter]
-        A list of request getters
+    pipeline_config : PipelineConfig
+    request_getters : List[RequestGetter]
     """
 
     def __init__(self, pipeline_config: Type[PipelineConfig], request_getters: List[RequestGetter]):
@@ -28,11 +27,15 @@ class RequestGetterManager:
         self.request_getters = request_getters
 
     def get_processing_requests(self, pipeline_query: Type[PipelineQuery]) -> List[ProcessingRequest]:
-        """Determines IDPU, MRM, ENG, and State products to be created.
+        """Determines products to be created.
+
+        Utilizes RequestGetter's in self.request_getters to get the actual
+        ProcessingRequest's. The major data products are FGM, EPD, MRM, State,
+        and ENG.
 
         Parameters
         ----------
-        pipeline_query: PipelineQuery
+        pipeline_query : PipelineQuery
 
         Returns
         -------

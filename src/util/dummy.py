@@ -6,8 +6,8 @@ from elfin.common import db
 
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
+from output.downlink.downlink_manager import DownlinkManager
 from processor.science_processor import ScienceProcessor
-from request.downlink_manager import DownlinkManager
 from util.constants import TEST_DATA_DIR
 
 

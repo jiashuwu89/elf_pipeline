@@ -9,7 +9,7 @@ from spacepy import pycdf
 from data_type.completeness_config import MrmCompletenessConfig
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
-from metric.completeness import CompletenessUpdater
+from output.metric.completeness import CompletenessUpdater
 from processor.science_processor import ScienceProcessor
 from util.constants import MRM_TYPES, ONE_DAY_DELTA
 

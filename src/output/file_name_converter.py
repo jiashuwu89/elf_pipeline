@@ -35,13 +35,34 @@ class FileNameConverter:
         }
 
     def convert(self, source: str) -> str:
+        """Converts a path to a file, to the path on the server.
+
+        Parameters
+        ----------
+        source : str
+            The path to a file to be converted
+
+        Returns
+        -------
+        str
+            The path on the server to which a file should be transferred.
+        """
         file_info = self.get_file_info(source)
         return self.get_dest(file_info)
 
     def get_file_info(self, file_path: str) -> FileInfo:
-        """
-        returns a FileInfo object, given the file path to a file.
-        The object contains information about: (name_of_file, probe, level, data_type, date)
+        """Obtains the necessary information needed for a destination path.
+
+        Parameters
+        ----------
+        file_path : str
+            The path to a file
+
+        Returns
+        -------
+        FileInfo
+            An object containing information about (name_of_file, probe,
+            level, data_type, date)
         """
         # TODO: Give example file names and how they are interpreted
         file_name = file_path.split("/")[-1]
@@ -58,6 +79,17 @@ class FileNameConverter:
         return FileInfo(file_name, mission, int(level[-1]), data_type)
 
     def get_dest(self, file_info: FileInfo) -> str:
+        """Converts a FileInfo object's information into a path.
+
+        Parameters
+        ----------
+        file_info : FileInfo
+
+        Returns
+        -------
+        str
+            The full path to which the file should be transferred.
+        """
         return (
             f"{SERVER_BASE_DIR}/"
             + f"{file_info.mission}/"
