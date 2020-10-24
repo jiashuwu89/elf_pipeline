@@ -1,12 +1,18 @@
 from abc import abstractmethod
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
 from elfin.libelfin.utils import compute_crc
 from spacepy import pycdf
 
+from data_type.downlink import Downlink
+from data_type.pipeline_config import PipelineConfig
+from data_type.processing_request import ProcessingRequest
+from output.downlink import downlink_utils
+from output.downlink.downlink_manager import DownlinkManager
+from output.metric.completeness import CompletenessUpdater
 from processor.science_processor import ScienceProcessor
-from util import downlink_utils
 from util.constants import ONE_DAY_DELTA
 from util.science_utils import dt_to_tt2000, s_if_plural
 
@@ -25,17 +31,17 @@ class IdpuProcessor(ScienceProcessor):
         An object that calculates and obtains Downlinks
     """
 
-    def __init__(self, pipeline_config, downlink_manager):
+    def __init__(self, pipeline_config: PipelineConfig, downlink_manager: DownlinkManager):
         super().__init__(pipeline_config)
 
         self.downlink_manager = downlink_manager
 
-    def generate_files(self, processing_request):
+    def generate_files(self, processing_request: ProcessingRequest) -> List[str]:
         """Creates level 0 and 1 files for the given processing request.
 
         Parameters
         ----------
-        processing_request
+        processing_request : ProcessingRequest
 
         Returns
         -------
@@ -47,12 +53,12 @@ class IdpuProcessor(ScienceProcessor):
 
         return [l0_file_name, l1_file_name]
 
-    def generate_l0_products(self, processing_request):
+    def generate_l0_products(self, processing_request: ProcessingRequest) -> Tuple[str, pd.DataFrame]:
         """Creates the level 0 products associated the processing request.
 
         Parameters
         ----------
-        processing_request
+        processing_request : ProcessingRequest
 
         Returns
         -------
@@ -66,7 +72,7 @@ class IdpuProcessor(ScienceProcessor):
         l0_file_name, _ = self.generate_l0_file(processing_request, l0_df.copy())
         return l0_file_name, l0_df
 
-    def generate_l0_df(self, processing_request):
+    def generate_l0_df(self, processing_request: ProcessingRequest) -> pd.DataFrame:
         """Generate a DataFrame of level 0 data given a processing_request.
 
         All relevant downlinks are fetched, merged, and concatenated, and then
@@ -75,7 +81,7 @@ class IdpuProcessor(ScienceProcessor):
 
         Parameters
         ----------
-        processing_request
+        processing_request : ProcessingRequest
 
         Returns
         -------
@@ -108,7 +114,7 @@ class IdpuProcessor(ScienceProcessor):
 
         return df
 
-    def get_merged_dataframes(self, downlinks):
+    def get_merged_dataframes(self, downlinks: List[Downlink]) -> List[pd.DataFrame]:
         """Merges a list of downlinks and retrieves associated dataframes.
 
         Downlinks are merged only if they refer to the same physical range of
@@ -124,7 +130,7 @@ class IdpuProcessor(ScienceProcessor):
 
         Returns
         -------
-        list
+        List[pd.DataFrame]
             A list of DataFrames of data that was merged
         """
         downlinks = [
@@ -164,7 +170,7 @@ class IdpuProcessor(ScienceProcessor):
 
         return merged_downlinks
 
-    def rejoin_data(self, processing_request, d):
+    def rejoin_data(self, processing_request: ProcessingRequest, d: pd.DataFrame) -> pd.DataFrame:
         """Converts frames from ELFIN into packets on the MSP's file system.
 
         Performs a best effort conversion, as some frames may be missing (and
@@ -178,7 +184,7 @@ class IdpuProcessor(ScienceProcessor):
 
         Parameters
         ----------
-        processing_request
+        processing_request : ProcessingRequest
         d : pd.DataFrame
             A DataFrame of frames, as obtained from get_merged_dataframes
 
@@ -268,12 +274,12 @@ class IdpuProcessor(ScienceProcessor):
         return final_df[["timestamp", "mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data"]]
 
     @abstractmethod
-    def process_rejoined_data(self, processing_request, df):
+    def process_rejoined_data(self, processing_request: ProcessingRequest, df: pd.DataFrame) -> pd.DataFrame:
         """A method that allows the implementer to process rejoined packets.
 
         Parameters
         ----------
-        processing_request
+        processing_request : ProcessingRequest
         df : pd.DataFrame
             A DataFrame of packets, as obtained from rejoin_data
 
@@ -284,7 +290,7 @@ class IdpuProcessor(ScienceProcessor):
         """
         raise NotImplementedError
 
-    def merge_processed_dataframes(self, dfs, idpu_types):
+    def merge_processed_dataframes(self, dfs: List[pd.DataFrame], idpu_types: List[int]) -> pd.DataFrame:
         """Merges processed DataFrames and eliminates duplicate packets
 
         Given a list of dataframes of identical format (decompressed/raw, level 0),
@@ -297,7 +303,7 @@ class IdpuProcessor(ScienceProcessor):
         ----------
         dfs : List[pd.DataFrame]
             DataFrames of packets, as obtained from process_rejoined_data
-        idpu_types
+        idpu_types : List[int]
             Relevant IDPU types
 
         Returns
@@ -307,27 +313,27 @@ class IdpuProcessor(ScienceProcessor):
         """
         self.logger.debug("Merging processed dataframes")
         df = pd.concat(dfs)
-
         df["idpu_type"] = df["idpu_type"].astype("category").cat.set_categories(idpu_types, ordered=True)
-        df = df.dropna(subset=["data", "idpu_time"])
-        df = df.sort_values(["idpu_time", "idpu_type"])
 
         # Keeping the first item means that the first/earlier idpu_type will be preserved
         # idpu_type is ordered in the same order as self.idpu_types
-        df = df.drop_duplicates("idpu_time", keep="first")
+        return (
+            df.dropna(subset=["data", "idpu_time"])
+            .sort_values(["idpu_time", "idpu_type"])
+            .drop_duplicates("idpu_time", keep="first")
+            .reset_index()
+        )
 
-        return df.reset_index()
-
-    def update_completeness_table(self, processing_request, l0_df) -> None:
+    def update_completeness_table(self, processing_request: ProcessingRequest, l0_df: pd.DataFrame) -> None:
         """Attempts to update the completeness table with the given data.
 
         If no completeness updater is provided, completeness will not be
-        calculated or uploaded
+        calculated or uploaded.
 
         Parameters
         ----------
-        processing_request
-        l0_df
+        processing_request : ProcessingRequest
+        l0_df : pd.DataFrame
             A DataFrame of level 0 data corresponding to the processing
             request, as obtained from generate_l0_df
 
@@ -335,22 +341,22 @@ class IdpuProcessor(ScienceProcessor):
         -------
         None
         """
-        self.logger.info(f"❓\tUpdating completeness table for {str(processing_request)}")
-        df = l0_df.copy()
-        df = df[["idpu_time", "data"]].drop_duplicates().dropna()
-        df_times = df["idpu_time"]
+        self.logger.info(f"❓  Updating completeness table for {str(processing_request)}")
+        df_times = l0_df.copy()[["idpu_time", "data"]].drop_duplicates().dropna()["idpu_time"]
 
         completeness_updater = self.get_completeness_updater(processing_request)
         if completeness_updater:
             completeness_updater.update_completeness_table(processing_request, df_times)
 
     @abstractmethod
-    def get_completeness_updater(self, processing_request):
+    def get_completeness_updater(self, processing_request: ProcessingRequest) -> CompletenessUpdater:
         """Obtains a CompletenessUpdater to update completeness of data.
+
+        TODO: Is it better to have the method be get_completeness_config?
 
         Parameters
         ----------
-        processing_request
+        processing_request : ProcessingRequest
 
         Returns
         -------
@@ -358,27 +364,26 @@ class IdpuProcessor(ScienceProcessor):
         """
         raise NotImplementedError
 
-    def generate_l0_file(self, processing_request, l0_df):
+    def generate_l0_file(self, processing_request: ProcessingRequest, l0_df: pd.DataFrame) -> Tuple[str, pd.DataFrame]:
         """From the given level 0 DataFrame, create a level 0 csv.
 
         TODO: Why are more transformations applied here?
 
         Parameters
         ----------
-        processing_request
-        l0_df
+        processing_request : ProcessingRequest
+        l0_df : pd.DataFrame
             A DataFrame of level 0 data corresponding to the given request
 
         Returns
         -------
-        (str, pd.DataFrame)
+        Tuple[str, pd.DataFrame]
             A tuple of the filename of the created csv, and a DataFrame of
             the transformed data used to populate the csv
         """
         self.logger.info(f"🟡  Generating Level 0 file for {str(processing_request)}")
         # Filter fields and duplicates
-        l0_df = l0_df[["idpu_time", "data"]]
-        l0_df = l0_df.drop_duplicates().dropna()
+        l0_df = l0_df[["idpu_time", "data"]].drop_duplicates().dropna()
 
         # Select Data belonging only to a certain day
         l0_df = l0_df[
@@ -398,19 +403,45 @@ class IdpuProcessor(ScienceProcessor):
 
         return fname, l0_df
 
-    def generate_l1_products(self, processing_request, l0_df=None):
-        """
-        Generates level 1 CDFs for given collection time, optionally provided
-        a level 0 dataframe (otherwise, generate_l0_df will be called again).
+    def generate_l1_products(
+        self, processing_request: ProcessingRequest, l0_df: pd.DataFrame = None
+    ) -> Tuple[str, pd.DataFrame]:
+        """Generates level 1 products related to the ProcessingRequest.
 
-        Returns the path and name of the generated level 1 file.
+        Parameters
+        ----------
+        processing_request: ProcessingRequest
+        l0_df : pd.DataFrame
+            A DataFrame of finalized level 0 data corresponding to the
+            ProcessingRequest. If it is not provided, the method will
+            generate the level 0 DataFrame internally
+
+        Returns
+        -------
+        Tuple[str, pd.DatatFrame]
+            A tuple of the generated file's name, and a DataFrame of level 1
+            data corresponding to the ProcessingRequest
         """
         self.logger.info(f"🟢  Generating Level 1 products for {str(processing_request)}")
         l1_df = self.generate_l1_df(processing_request, l0_df)
         l1_file_name, _ = self.generate_l1_file(processing_request, l1_df.copy())
         return l1_file_name, l1_df
 
-    def generate_l1_df(self, processing_request, l0_df):
+    def generate_l1_df(self, processing_request: ProcessingRequest, l0_df: pd.DataFrame) -> pd.DataFrame:
+        """Generates a level 1 DataFrame related to the ProcessingRequest.
+
+        Parameters
+        ----------
+        processing_request: ProcessingRequest
+        l0_df : pd.DataFrame
+            A DataFrame of finalized level 0 data corresponding to the
+            ProcessingRequest. If it is not provided, the method will
+            generate the level 0 DataFrame internally
+
+        Returns
+        -------
+        pd.DataFrame
+        """
         self.logger.info(f"🔵  Generating Level 1 DataFrame for {str(processing_request)}")
         if l0_df is None:
             self.logger.info("Still need a Level 0 DataFrame, generating now")
@@ -436,10 +467,37 @@ class IdpuProcessor(ScienceProcessor):
         return l1_df
 
     @abstractmethod
-    def transform_l0_df(self, processing_request, l0_df):
+    def transform_l0_df(self, processing_request: ProcessingRequest, l0_df: pd.DataFrame) -> pd.DataFrame:
+        """A method for further transformations to the l0 DataFrame.
+
+        Should be overriden in derived classes.
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+        l0_df : pd.DataFrame
+
+        Returns
+        -------
+        pd.DataFrame
+        """
         raise NotImplementedError
 
-    def generate_l1_file(self, processing_request, l1_df):
+    def generate_l1_file(self, processing_request: ProcessingRequest, l1_df: pd.DataFrame) -> Tuple[str, pd.DataFrame]:
+        """Generates a level 1 file related to the ProcessingRequest.
+
+        Parameters
+        ----------
+        processing_request: ProcessingRequest
+        l1_df : pd.DataFrame
+            A DataFrame of finalized level 1 data corresponding to the
+            ProcessingRequest
+
+        Returns
+        -------
+        Tuple[str, pd.DataFrame]
+            The name of the generated CDF, and the provided DataFrame
+        """
         self.logger.info(f"🟣  Generating Level 1 DataFrame for {str(processing_request)}")
         fname = self.make_filename(processing_request, 1)
         cdf = self.create_empty_cdf(fname)

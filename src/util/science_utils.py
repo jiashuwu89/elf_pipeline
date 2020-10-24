@@ -77,10 +77,9 @@ def interpolate_attitude(
 
     Returns
     -------
-    (np.array, np.array)
-        Tuple of two numpy arrays:
-        1. NP Array of DateTimes (One element per minute)
-        2. NP Array of Attitudes (Interpolated)
+    Tuple[np.ndarray, np.ndarray]
+        An NP Array of DateTimes (One element per minute), and an NP Array of
+        Attitudes (Interpolated)
 
     """
     # Find total angle difference

@@ -106,7 +106,19 @@ class CLIHandler:
 
     @staticmethod
     def add_common_options(sub_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        """Adds options for mission id, collection time, and data product."""
+        """Adds options for mission id, collection time, and data product.
+
+        Parameters
+        ----------
+        sub_parser : argparse.ArgumentParser
+            A sub-parser that represents a subcommand of the science
+            processing CLI
+
+        Returns
+        -------
+        argparse.ArgumentParser
+            The sub-parser with added options
+        """
         # Missions
         sub_parser.add_argument("-1", "--ela", help="process ELA data", action="store_true")
         sub_parser.add_argument("-2", "--elb", help="process ELB data", action="store_true")

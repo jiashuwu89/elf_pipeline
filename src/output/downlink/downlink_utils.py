@@ -16,12 +16,12 @@ def calculate_offset(df1: pd.DataFrame, df2: pd.DataFrame) -> Optional[int]:
 
     Parameters
     ----------
-    df1, df2
+    df1, df2 : pd.DataFrame
         DataFrames that have been formatted by the `format_downlinks` method
 
     Returns
     -------
-    int or None
+    Optional[int]
         Offset if valid offset found, None if not
     """
     logger = logging.getLogger(calculate_offset.__name__)

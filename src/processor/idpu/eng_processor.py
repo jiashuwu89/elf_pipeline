@@ -78,7 +78,23 @@ class EngProcessor(IdpuProcessor):
         return df
 
     def generate_l1_df(self, processing_request: ProcessingRequest, l0_df: pd.DataFrame) -> pd.DataFrame:
-        """Need to override default implementation to avoid cutting out data."""
+        """Creates a level 1 ENG DataFrame from a level 0 DataFrame.
+
+        If no level 0 DataFrame is provided, this will make a call to
+        generate_l0_df.
+
+        NOTE: Need to override default implementation to avoid cutting out data.
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+        l0_df : pd.DataFrame
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame of level 1 ENG data
+        """
         self.logger.info(f"🔵  Generating Level 1 DataFrame for {str(processing_request)}")
         if l0_df is None:
             self.logger.info("Still need a Level 0 DataFrame, generating now")

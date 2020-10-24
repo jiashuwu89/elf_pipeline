@@ -144,8 +144,9 @@ class CompletenessUpdater:
 
         Returns
         -------
-        median_diff
-            The median diff (TODO: Check the type)
+        Optional[float]
+            The median diff, if a median diff can be calculated. Otherwise,
+            returns None.
         """
         if self.completeness_config.median_diff is not None:
             return self.completeness_config.median_diff

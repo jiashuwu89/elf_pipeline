@@ -5,6 +5,7 @@ from typing import List, Set, Type
 from data_type.pipeline_config import PipelineConfig
 from data_type.pipeline_query import PipelineQuery
 from data_type.processing_request import ProcessingRequest
+from output.downlink.downlink_manager import DownlinkManager
 from output.exception_collector import ExceptionCollector
 from output.server_manager import ServerManager
 from processor.idpu.eng_processor import EngProcessor
@@ -13,7 +14,6 @@ from processor.idpu.fgm_processor import FgmProcessor
 from processor.mrm_processor import MrmProcessor
 from processor.processor_manager import ProcessorManager
 from processor.state_processor import StateProcessor
-from request.downlink_manager import DownlinkManager
 from request.request_getter.eng_request_getter import EngRequestGetter
 from request.request_getter.idpu_request_getter import IdpuRequestGetter
 from request.request_getter.mrm_request_getter import MrmRequestGetter
@@ -73,10 +73,18 @@ class Coordinator:
         }
         self.processor_manager = ProcessorManager(pipeline_config, processor_map, self.exception_collector)
 
-        self.server_manager = ServerManager()
+        self.server_manager = ServerManager()  # TODO: Only instantiate this when necessary, not during initialization
 
     def execute_pipeline(self, pipeline_query: Type[PipelineQuery]) -> None:
-        """Executes the pipeline"""
+        """Executes the pipeline.
+
+        Any exceptions will be caught and recorded, if they were not caught at
+        a lower level (ex. by the ProcessorManager).
+
+        Parameters
+        ----------
+        pipeline_query : Type[PipelineQuery]
+        """
         self.logger.info(f"Executing pipeline on query:\n\n{str(pipeline_query)}\n")
         try:
             # Extract
@@ -120,7 +128,12 @@ class Coordinator:
             )
 
     def get_processing_requests(self, pipeline_query: Type[PipelineQuery]) -> List[ProcessingRequest]:
-        """Calculates processing requests that indicate files to be created."""
+        """Calculates processing requests that indicate files to be created.
+
+        Parameters
+        ----------
+        pipeline_query : Type[PipelineQuery]
+        """
         return self.request_getter_manager.get_processing_requests(pipeline_query)
 
     def generate_files(self, processing_requests: List[ProcessingRequest]) -> Set[str]:
@@ -128,7 +141,9 @@ class Coordinator:
 
         Parameters
         ----------
-        processing_requests
+        processing_requests : List[ProcessingRequest]
+            A list of objects, each representing a data product, mission, and
+            date combination for which files should be generated
 
         Returns
         -------

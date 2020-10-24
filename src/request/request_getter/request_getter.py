@@ -1,6 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Iterable, Set, Type, Union
+from typing import Any, Dict, Iterable, Set, Type, Union
 
 from data_type.pipeline_config import PipelineConfig
 from data_type.pipeline_query import PipelineQuery
@@ -37,9 +37,26 @@ class RequestGetter(ABC):
         """
         raise NotImplementedError
 
-    # TODO: Type of product_map?
     @staticmethod
-    def get_relevant_products(data_products: Iterable[str], product_map) -> Set[Union[int, str]]:
+    def get_relevant_products(data_products: Iterable[str], product_map: Dict[str, Any]) -> Set[Union[int, str]]:
+        """Given data products, look up relevant values and produce a set.
+
+        This can be used to map the names of data products to their idpu
+        types, for example.
+
+        Parameters
+        ----------
+        data_products : Iterable[str]
+            Some collection of data_products to look up in product_map
+        product_map : Dict[str, Any]
+            A mapping from data products to values.
+
+        Returns
+        -------
+        Set[Union[int, str]]
+            Values that are relevant to the given data product, according to
+            the product_map
+        """
         selected_products = set()
         for product in data_products:
             if product in product_map:

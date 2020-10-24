@@ -23,9 +23,13 @@ from util.science_utils import get_angle_between, interpolate_attitude
 class StateProcessor(ScienceProcessor):
     """The processor of State data.
 
+    NOTE: Many of this processor's methods operate on the CDF object in place.
+    Thus, many methods take in the CDF as a parameter and have no return
+    value.
+
     Parameters
     ----------
-    pipeline_config
+    pipeline_config : Type[PipelineConfig]
     """
 
     def __init__(self, pipeline_config: Type[PipelineConfig]):
@@ -100,6 +104,25 @@ class StateProcessor(ScienceProcessor):
         return f"{probe}_l{level}_state_{state_type}_{file_date.strftime('%Y%m%d')}_v01.cdf"
 
     def create_empty_cdf(self, fname: str) -> pycdf.CDF:
+        """Creates a CDF with the desired fname, using the correct mastercdf.
+
+        If a corresponding file already exists, it will be removed.
+
+        This overrides the default fill_cdf method in order to insert data
+        about generation date and "MODS". TODO: See fill_cdf in MrmProcessor,
+        it seems to do the same thing. This seems to be an example of code
+        duplication that should be resolved cleanly.
+
+        Parameters
+        ----------
+        fname : str
+            The target path and filename of the file to be created
+
+        Returns
+        -------
+        pycdf.CDF
+            A CDF object associated with the given filename
+        """
         datestr_run = dt.datetime.utcnow().strftime("%04Y-%02m-%02d")
 
         cdf = super().create_empty_cdf(fname)
@@ -109,7 +132,18 @@ class StateProcessor(ScienceProcessor):
         return cdf
 
     def combine_state_csvs(self, processing_request: ProcessingRequest) -> pd.DataFrame:
-        """Reads CSVs and returns values from 00:00:00 to 23:59:59."""
+        """Reads CSVs and returns values from 00:00:00 to 23:59:59.
+
+        Parameters
+        ----------
+        processing_request: ProcessingRequest
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame of position and velocity data (both described in three
+            columns representing X, Y, and Z)
+        """
 
         df = None
         for d in [processing_request.date - ONE_DAY_DELTA, processing_request.date]:
@@ -134,7 +168,19 @@ class StateProcessor(ScienceProcessor):
         return df.loc[(df.index >= date_lower_bound) & (df.index < date_upper_bound)]
 
     def read_state_csv(self, csv_fname: str) -> pd.DataFrame:
-        """Read the state vectors CSV produced by STK."""
+        """Read the state vectors CSV produced by STK.
+
+        Parameters
+        ----------
+        csv_fname : str
+            The name of a CSV file to read position and velocity data from
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame containing the position and velocity data found in the
+            given CSV
+        """
 
         self.logger.debug(f"Reading {csv_fname}")
         csv_state = pd.read_csv(csv_fname)
@@ -153,8 +199,23 @@ class StateProcessor(ScienceProcessor):
 
         return df
 
-    def update_cdf_with_csv_df(self, probe: str, csv_df: pd.DataFrame, cdf: pycdf.CDF) -> None:
-        self.logger.debug("Updating State CDF with position and velocity data")
+    @staticmethod
+    def update_cdf_with_csv_df(probe: str, csv_df: pd.DataFrame, cdf: pycdf.CDF) -> None:
+        """Inserts position and velocity data into the provided CDF.
+
+        Parameters
+        ----------
+        probe : str
+            The probe name (ex. "ela" or "elb")
+        csv_df : pd.DataFrame
+            A DataFrame of position and velocity data, as obtained from a
+            call to combine_state_csvs. TODO: refactor to have this method
+            just call combine_state_csvs by itself, so that the parameter
+            can just be the CDF and a ProcessingRequest
+        cdf : pycdf.CDF
+            The CDF object into which the position and velocity data should be
+            inserted.
+        """
         cdf_df = pd.DataFrame()
         cdf_df[f"{probe}_state_time"] = csv_df.index.values
         cdf_df[f"{probe}_state_time"] = cdf_df[f"{probe}_state_time"].apply(pycdf.lib.datetime_to_tt2000)
@@ -163,10 +224,19 @@ class StateProcessor(ScienceProcessor):
         for k in cdf_df.keys():
             cdf[k] = cdf_df[k].values.tolist()
 
-    def update_cdf_with_sun(self, processing_request: ProcessingRequest, cdf: pycdf) -> None:
-        """
-        Each 1 represents the satellite being 'in sun'
-        Each 0 refers to umbra or penumbra
+    def update_cdf_with_sun(self, processing_request: ProcessingRequest, cdf: pycdf.CDF) -> None:
+        """Inserts sun data into the given CDF.
+
+        As a non-technical explanation, sun data refers to if the relevant
+        satellite is in presence of the sun, or if it is in shadow.
+
+        Values in the CDF can be either 0 or 1. Each 0 refers to umbra or
+        penumbra. Each 1 represents the satellite being 'in sun'.
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+        cdf : pycdf.CDF
         """
         base_datetime = general_utils.convert_date_to_datetime(processing_request.date)
         end_time = base_datetime + dt.timedelta(seconds=86399)
@@ -209,13 +279,13 @@ class StateProcessor(ScienceProcessor):
         attitude solution or the closest solution (up to 30 days difference).
 
         Approach:
-            - Create DataFrame
-            - Find potential attitude solutions with a time difference of at
+            * Create DataFrame
+            * Find potential attitude solutions with a time difference of at
               most 30 days. Find the first solutions above/below the range
               (start_time, end_time), and hold onto anything between them
               (including the found solutions)
-            - Fill in DataFrame
-            - Return DataFrame
+            * Fill in DataFrame
+            * Return DataFrame
 
         Parameters
         ----------
@@ -283,8 +353,22 @@ class StateProcessor(ScienceProcessor):
 
     # TODO: Finish typing here
     @staticmethod
-    def select_usable_attitude_queries(query, base_datetime, end_time):
-        """Find the solutions that we want to use (One extra one on either 'side')"""
+    def select_usable_attitude_queries(query, base_datetime: dt.datetime, end_time: dt.datetime):
+        """Find the solutions that we want to use (One extra one on either 'side')
+
+        TODO: Get types for query and return value
+
+        Parameters
+        ----------
+        query
+        base_datetime : dt.datetime
+        end_time : dt.datetime
+
+        Returns
+        -------
+        List[]
+            A list of queries that are valid solutions.
+        """
         query_list = []
         found_first = False
         for q in query:
@@ -302,9 +386,24 @@ class StateProcessor(ScienceProcessor):
                     break
         return query_list
 
+    # TODO: Types
     def drop_duplicate_attitude_queries(self, query_list):
-        # Because attitude solutions are no longer replaced, we need to drop
-        # duplicates, favoring solutions with lower uncertainty
+        """Remove duplicate attitudes from query_list.
+
+        This is a helper function for get_attitude.
+
+        Because attitude solutions are no longer replaced, we need to drop
+        duplicates, favoring solutions with lower uncertainty.
+
+        Parameters
+        ----------
+        query_list
+
+        Returns
+        -------
+        ?
+            A list of queries without duplicate values
+        """
         query_list = sorted(query_list, key=lambda q: q.uncertainty if q.uncertainty else 0)
         seen = set()
         temp_query_list = []
@@ -317,6 +416,21 @@ class StateProcessor(ScienceProcessor):
         return sorted(temp_query_list, key=lambda q: q.time)
 
     def insert_interpolated_attitude_data(self, final_df: pd.DataFrame, q_dict_list) -> pd.DataFrame:
+        """Adds relevant attitude information into the attitude DataFrame.
+
+        This is a helper function for get_attitude
+
+        Parameters
+        ----------
+        final_df : pd.DataFrame
+        q_dict_list
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame with information from the queries provided in
+            q_dict_list.
+        """
         # Filling in X, Y, Z of times after the last solution, since can't do interpolation on them
         # Filling in solution_date and uncertainty for all items
         final_df.loc[:, "solution_date"] = q_dict_list[-1]["solution_date_tt2000"]
@@ -350,8 +464,18 @@ class StateProcessor(ScienceProcessor):
 
         return final_df
 
-    def update_cdf_with_att_df(self, probe: str, att_df: pd.DataFrame, cdf: pycdf.CDF) -> None:
-        self.logger.debug("Updating CDF with attitude dataframe")
+    @staticmethod
+    def update_cdf_with_att_df(probe: str, att_df: pd.DataFrame, cdf: pycdf.CDF) -> None:
+        """Adds attitude information to a given CDF
+
+        Parameters
+        ----------
+        probe : str
+        att_df : pd.DataFrame
+            A DataFrame of Attitude data, as obtained from a call to
+            get_attitude
+        cdf : pycdf.CDF
+        """
         cdf[probe + "_att_time"] = att_df["time"]
         cdf[probe + "_att_solution_date"] = att_df["solution_date"]
         cdf[probe + "_att_gei"] = att_df[["X", "Y", "Z"]].values
@@ -372,6 +496,13 @@ class StateProcessor(ScienceProcessor):
         3. Orbnorm Angle Calculations:
             - Get the cross product of position and velocity vectors (stored in pd.Series)
             - Get angle between the resulting vector and attitude vector
+
+        Parameters
+        ----------
+        probe : str
+        vel_pos_df : pd.DataFrame
+        att_df : pd.DataFrame
+        cdf : pycdf.CDF
         """
 
         # Clean up DataFrames:
@@ -426,6 +557,15 @@ class StateProcessor(ScienceProcessor):
             cdf[probe + column] = final_df[column]
 
     def update_cdf_with_nans(self, probe: str, cdf: pycdf.CDF) -> None:
+        """Fills the given CDF with nan values.
+
+        This should be used in the case that no attitude data is available.
+
+        Parameters
+        ----------
+        probe : str
+        cdf : pycdf.CDF
+        """
         nan_numeric_cols = ["_att_solution_date", "_att_uncertainty", "_spin_sun_angle", "_spin_orbnorm_angle"]
         nan_df_cols = ["_att_time", "X", "Y", "Z"] + nan_numeric_cols
 

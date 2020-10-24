@@ -1,7 +1,7 @@
 import pandas as pd
 
 from data_type.completeness_config import EpdiCompletenessConfig
-from metric.completeness import CompletenessUpdater
+from output.metric.completeness import CompletenessUpdater
 from util.dummy import DummyPipelineConfig, DummyProcessingRequest
 
 

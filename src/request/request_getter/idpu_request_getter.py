@@ -5,7 +5,7 @@ from data_type.pipeline_config import PipelineConfig
 from data_type.pipeline_query import PipelineQuery
 from data_type.processing_request import ProcessingRequest
 from data_type.time_type import TimeType
-from request.downlink_manager import DownlinkManager
+from output.downlink.downlink_manager import DownlinkManager
 from request.request_getter.request_getter import RequestGetter
 from util.constants import ONE_DAY_DELTA, PACKET_MAP, SCIENCE_TYPES
 
@@ -107,8 +107,7 @@ class IdpuRequestGetter(RequestGetter):
                 start_date = dl.first_packet_info.collection_time.date()
                 end_date = dl.last_packet_info.collection_time.date()
                 while start_date <= end_date:
-                    pr = ProcessingRequest(dl.mission_id, data_product, start_date)
-                    general_processing_requests.add(pr)
+                    general_processing_requests.add(ProcessingRequest(dl.mission_id, data_product, start_date))
                     start_date += delta
 
         return general_processing_requests
