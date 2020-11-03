@@ -72,10 +72,10 @@ MRM_ENUM_MAP = {
 COMPLETENESS_TABLE_PRODUCT_MAP = {
     "fgs": "FGM",
     "fgf": "FGM",
-    "epdef": "EPD",
-    "epdif": "EPD",
-    "epdes": "EPD",
-    "epdis": "EPD",
+    "epdef": "EPDE",
+    "epdif": "EPDI",
+    "epdes": "EPDE",
+    "epdis": "EPDI",
     "mrma": "MRM",
     "mrmi": "MRM",
 }
