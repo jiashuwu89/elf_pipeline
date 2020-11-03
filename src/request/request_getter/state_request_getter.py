@@ -66,7 +66,7 @@ class StateRequestGetter(RequestGetter):
 
         csv_requests = set()
         if pipeline_query.times == TimeType.DOWNLINK:
-            all_csv = os.listdir(self.pipeline_config.state_csv_dir)
+            all_csv = [f for f in os.listdir(self.pipeline_config.state_csv_dir) if "defn" in f]
             for csv in all_csv:  # TODO: Should this actually be mtime
                 csv_datetime = dt.datetime.fromtimestamp(
                     os.stat(f"{self.pipeline_config.state_csv_dir}/{csv}").st_mtime

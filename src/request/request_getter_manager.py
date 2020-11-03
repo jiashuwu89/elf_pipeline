@@ -1,10 +1,12 @@
 """Definition of class to determine data to process, files to generate"""
 import logging
+import traceback
 from typing import List, Type
 
 from data_type.pipeline_config import PipelineConfig
 from data_type.pipeline_query import PipelineQuery
 from data_type.processing_request import ProcessingRequest
+from output.exception_collector import ExceptionCollector
 from request.request_getter.request_getter import RequestGetter
 
 
@@ -18,13 +20,19 @@ class RequestGetterManager:
     ----------
     pipeline_config : PipelineConfig
     request_getters : List[RequestGetter]
+    exception_collector : ExceptionCollector
     """
 
-    def __init__(self, pipeline_config: Type[PipelineConfig], request_getters: List[RequestGetter]):
+    def __init__(
+        self,
+        pipeline_config: Type[PipelineConfig],
+        request_getters: List[RequestGetter],
+        exception_collector: ExceptionCollector,
+    ):
         self.logger = logging.getLogger(self.__class__.__name__)
-
         self.pipeline_config = pipeline_config
         self.request_getters = request_getters
+        self.exception_collector = exception_collector
 
     def get_processing_requests(self, pipeline_query: Type[PipelineQuery]) -> List[ProcessingRequest]:
         """Determines products to be created.
@@ -45,6 +53,10 @@ class RequestGetterManager:
         processing_requests = set()
 
         for request_getter in self.request_getters:
-            processing_requests.update(request_getter.get(pipeline_query))
+            try:
+                processing_requests.update(request_getter.get(pipeline_query))
+            except Exception as e:
+                traceback_msg = traceback.format_exc()
+                self.exception_collector.record_exception(request_getter.__class__, e, traceback_msg)
 
         return sorted(processing_requests)
