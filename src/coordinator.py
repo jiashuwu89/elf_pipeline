@@ -52,7 +52,7 @@ class Coordinator:
             EngRequestGetter(pipeline_config),
             StateRequestGetter(pipeline_config),
         ]
-        self.request_getter_manager = RequestGetterManager(pipeline_config, request_getters)
+        self.request_getter_manager = RequestGetterManager(pipeline_config, request_getters, self.exception_collector)
 
         eng_processor = EngProcessor(pipeline_config, self.downlink_manager)
         epd_processor = EpdProcessor(pipeline_config, self.downlink_manager)
