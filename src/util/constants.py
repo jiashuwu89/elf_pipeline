@@ -68,6 +68,18 @@ MRM_ENUM_MAP = {
     models.MRM_Type.IDPU: "mrmi",
 }
 
+# In the science_zone_completeness table, the data product column expects "FGM", "EPD", or "MRM"
+COMPLETENESS_TABLE_PRODUCT_MAP = {
+    "fgs": "FGM",
+    "fgf": "FGM",
+    "epdef": "EPD",
+    "epdif": "EPD",
+    "epdes": "EPD",
+    "epdis": "EPD",
+    "mrma": "MRM",
+    "mrmi": "MRM",
+}
+
 # IDPU types of compressed data, survey data
 COMPRESSED_TYPES = [2, 4, 6, 18, 19, 20]
 SURVEY_TYPES = [19, 20]
