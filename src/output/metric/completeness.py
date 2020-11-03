@@ -50,6 +50,8 @@ class CompletenessUpdater:
             self.logger.warning("Empty Time Series, cannot update completeness table")
             return False
 
+        data_type = COMPLETENESS_TABLE_PRODUCT_MAP[processing_request.data_product]
+
         szs = self.split_science_zones(times)
 
         median_diff = self.get_median_diff(szs)
@@ -68,15 +70,6 @@ class CompletenessUpdater:
             obtained = len(sz)
             estimated_total = math.ceil(collection_duration / median_diff)
 
-            # Remove previous entries that correspond to this new entry
-            data_type = COMPLETENESS_TABLE_PRODUCT_MAP[processing_request.data_product]
-            self.session.query(models.ScienceZoneCompleteness).filter(
-                models.ScienceZoneCompleteness.mission_id == processing_request.mission_id,
-                models.ScienceZoneCompleteness.data_type == data_type,
-                models.ScienceZoneCompleteness.sz_start_time <= sz[-1].to_pydatetime(),
-                models.ScienceZoneCompleteness.sz_end_time >= sz[0].to_pydatetime(),
-            ).delete()
-
             self.logger.info(
                 "Inserting completeness entry:\n\t\t"
                 + f"mission id {processing_request.mission_id}, data type {data_type}\n\t\t"
@@ -87,7 +80,7 @@ class CompletenessUpdater:
             self.session.add(
                 models.ScienceZoneCompleteness(
                     mission_id=processing_request.mission_id,
-                    data_type=processing_request.data_type,
+                    data_type=data_type,
                     sz_start_time=str(start_time),
                     sz_end_time=str(end_time),
                     num_received=obtained,
