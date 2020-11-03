@@ -12,6 +12,7 @@ from elfin.common import models
 
 from data_type.completeness_config import CompletenessConfig
 from data_type.processing_request import ProcessingRequest
+from util.constants import COMPLETENESS_TABLE_PRODUCT_MAP
 from util.science_utils import s_if_plural
 
 
@@ -68,16 +69,17 @@ class CompletenessUpdater:
             estimated_total = math.ceil(collection_duration / median_diff)
 
             # Remove previous entries that correspond to this new entry
+            data_type = COMPLETENESS_TABLE_PRODUCT_MAP[processing_request.data_product]
             self.session.query(models.ScienceZoneCompleteness).filter(
                 models.ScienceZoneCompleteness.mission_id == processing_request.mission_id,
-                models.ScienceZoneCompleteness.data_type == processing_request.data_type,
+                models.ScienceZoneCompleteness.data_type == data_type,
                 models.ScienceZoneCompleteness.sz_start_time <= sz[-1].to_pydatetime(),
                 models.ScienceZoneCompleteness.sz_end_time >= sz[0].to_pydatetime(),
             ).delete()
 
             self.logger.info(
                 "Inserting completeness entry:\n\t\t"
-                + f"mission id {processing_request.mission_id}, data type {processing_request.data_type}\n\t\t"
+                + f"mission id {processing_request.mission_id}, data type {data_type}\n\t\t"
                 + f"science zone times: {str(start_time)} - {str(end_time)}\n\t\t"
                 + f"completeness: {obtained} / {estimated_total}"
             )
