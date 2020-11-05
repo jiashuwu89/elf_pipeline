@@ -476,8 +476,8 @@ class StateProcessor(ScienceProcessor):
             get_attitude
         cdf : pycdf.CDF
         """
-        cdf[probe + "_att_time"] = att_df["time"]
-        cdf[probe + "_att_solution_date"] = att_df["solution_date"]
+        cdf[probe + "_att_time"] = att_df["time"].values
+        cdf[probe + "_att_solution_date"] = att_df["solution_date"].values
         cdf[probe + "_att_gei"] = att_df[["X", "Y", "Z"]].values
         cdf[probe + "_att_uncertainty"] = att_df["uncertainty"].values
 
@@ -554,7 +554,7 @@ class StateProcessor(ScienceProcessor):
             final_df = final_df.sort_values(by="time").reset_index(drop=True)
 
         for column in ["_spin_sun_angle", "_spin_orbnorm_angle"]:
-            cdf[probe + column] = final_df[column]
+            cdf[probe + column] = final_df[column].values
 
     def update_cdf_with_nans(self, probe: str, cdf: pycdf.CDF) -> None:
         """Fills the given CDF with nan values.
