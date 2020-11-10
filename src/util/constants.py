@@ -80,6 +80,10 @@ COMPLETENESS_TABLE_PRODUCT_MAP = {
     "mrmi": "MRM",
 }
 
+# Science zone completeness gap boundaries and science zone sections
+SMALL_LARGE_GAP_MULTIPLIERS = (1.5, 8.0)
+SCIENCE_ZONE_SECTIONS = [1 / 3, 2 / 3]
+
 # IDPU types of compressed data, survey data
 COMPRESSED_TYPES = [2, 4, 6, 18, 19, 20]
 SURVEY_TYPES = [19, 20]
