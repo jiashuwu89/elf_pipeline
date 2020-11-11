@@ -69,7 +69,8 @@ class Coordinator:
             "fgs": fgm_processor,
             "mrma": mrm_processor,
             "mrmi": mrm_processor,
-            "state": state_processor,
+            "state-defn": state_processor,
+            "state-pred": state_processor,
         }
         self.processor_manager = ProcessorManager(pipeline_config, processor_map, self.exception_collector)
 

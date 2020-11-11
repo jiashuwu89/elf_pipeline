@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import sqlalchemy
 from elfin.common import db
 
-from util.constants import STATE_CSV_DIR
+from util.constants import STATE_DEFN_CSV_DIR, STATE_PRED_CSV_DIR
 
 
 class PipelineConfig(ABC):
@@ -37,8 +37,14 @@ class PipelineConfig(ABC):
 
     @property
     @abstractmethod
-    def state_csv_dir(self) -> str:
+    def state_defn_csv_dir(self) -> str:
         """Directory that contains csv files for State CDF generation"""
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def state_pred_csv_dir(self) -> str:
+        """Directory that contains csv files for predicted State CDF generation"""
         raise NotImplementedError
 
     @property
@@ -93,8 +99,12 @@ class ArgparsePipelineConfig(PipelineConfig):
         return self._output_dir
 
     @property
-    def state_csv_dir(self) -> str:
-        return STATE_CSV_DIR
+    def state_defn_csv_dir(self) -> str:
+        return STATE_DEFN_CSV_DIR
+
+    @property
+    def state_pred_csv_dir(self) -> str:
+        return STATE_PRED_CSV_DIR
 
     @property
     def upload(self) -> bool:

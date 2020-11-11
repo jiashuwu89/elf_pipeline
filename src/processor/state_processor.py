@@ -34,9 +34,8 @@ class StateProcessor(ScienceProcessor):
 
     def __init__(self, pipeline_config: Type[PipelineConfig]):
         super().__init__(pipeline_config)
-
-        self.state_type = "defn"
-        self.state_csv_dir = pipeline_config.state_csv_dir
+        self.state_defn_csv_dir = pipeline_config.state_defn_csv_dir
+        self.state_pred_csv_dir = pipeline_config.state_pred_csv_dir
         self.nan_df = pd.DataFrame()  # Holds nan_df if it needs to be reused (useful mostly for dumps)
 
     # TODO: Should this, as well as other processors, return a Set?
@@ -96,11 +95,19 @@ class StateProcessor(ScienceProcessor):
             The name of the file containing data corresponding to the
             given ProcessingRequest
         """
-        fname = self.get_fname(processing_request.probe, level, self.state_type, processing_request.date)
+        fname = self.get_fname(
+            processing_request.probe, level, processing_request.data_product, processing_request.date
+        )
         return f"{self.output_dir}/{fname}"
 
     @staticmethod
-    def get_fname(probe: str, level: int, state_type: str, file_date: dt.datetime) -> str:
+    def get_fname(probe: str, level: int, data_product: str, file_date: dt.datetime) -> str:
+        if data_product == "state-pred":
+            state_type = "pred"
+        elif data_product == "state-defn":
+            state_type = "defn"
+        else:
+            raise ValueError("data_product should be 'pred' or 'defn'")
         return f"{probe}_l{level}_state_{state_type}_{file_date.strftime('%Y%m%d')}_v01.cdf"
 
     def create_empty_cdf(self, fname: str) -> pycdf.CDF:
@@ -147,8 +154,14 @@ class StateProcessor(ScienceProcessor):
 
         df = None
         for d in [processing_request.date - ONE_DAY_DELTA, processing_request.date]:
-            cdf_fname = self.get_fname(processing_request.probe, 1, self.state_type, d)
-            csv_fname = f"{self.state_csv_dir}/{cdf_fname.split('/')[-1].rstrip('.cdf')}.csv"
+            cdf_fname = self.get_fname(processing_request.probe, 1, processing_request.data_product, d)
+            if processing_request.data_product == "state-defn":
+                csv_fname = f"{self.state_defn_csv_dir}/{cdf_fname.split('/')[-1].rstrip('.cdf')}.csv"
+            elif processing_request.data_product == "state-pred":
+                csv_fname = f"{self.state_pred_csv_dir}/{cdf_fname.split('/')[-1].rstrip('.cdf')}.csv"
+            else:
+                raise ValueError("State must be either 'pred' or 'defn'")
+
             try:
                 csv_df = self.read_state_csv(csv_fname)
                 if df is not None:
