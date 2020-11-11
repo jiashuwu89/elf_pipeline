@@ -28,7 +28,7 @@ ENG_PRODUCTS = ["eng"]
 EPD_PRODUCTS = ["epdef", "epdif", "epdes", "epdis"]
 FGM_PRODUCTS = ["fgf", "fgs"]
 MRM_PRODUCTS = ["mrma", "mrmi"]
-STATE_PRODUCTS = ["state"]
+STATE_PRODUCTS = ["state-defn", "state-pred"]
 IDPU_PRODUCTS = EPD_PRODUCTS + FGM_PRODUCTS + ENG_PRODUCTS
 ALL_PRODUCTS = EPD_PRODUCTS + FGM_PRODUCTS + ENG_PRODUCTS + MRM_PRODUCTS + STATE_PRODUCTS
 
@@ -88,7 +88,9 @@ SURVEY_TYPES = [19, 20]
 IDL_SCRIPT_VERSION = 8
 
 # Directory Paths
-STATE_CSV_DIR = "/home/elfin-esn/state_data"
+STATE_DEFN_CSV_DIR = "/home/elfin-esn/state_data"
+STATE_PRED_CSV_DIR = "/home/elfin-esn/state_data_pred"
+
 SERVER_BASE_DIR = "/themis/data/elfin"
 CREDENTIALS_FILE = "src/util/credentials.py"
 if os.path.basename(os.getcwd()) in ["pipeline-refactor", "refactor"]:  # TODO: fix this
@@ -112,7 +114,7 @@ ONE_DAY_DELTA = dt.timedelta(days=1)
 DAILY_EMAIL_LIST = ["jcking1034@gmail.com"]
 
 
-# When an attitude is found, reprocess days that are STATE_CALCULATE_RAIDUS before or after the attitude data point
+# When an attitude is found, reprocess days that are STATE_CALCULATE_RADIUS before or after the attitude data point
 STATE_CALCULATE_RADIUS = dt.timedelta(days=5)
 ATTITUDE_SOLUTION_RADIUS = dt.timedelta(days=30)
 

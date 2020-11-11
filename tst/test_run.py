@@ -90,7 +90,19 @@ class TestCLIHandler:
             "elb": True,
             "em3": False,
             "abandon_calculated_products": False,
-            "products": ["epdef", "epdif", "epdes", "epdis", "fgf", "fgs", "eng", "mrma", "mrmi", "state"],
+            "products": [
+                "epdef",
+                "epdif",
+                "epdes",
+                "epdis",
+                "fgf",
+                "fgs",
+                "eng",
+                "mrma",
+                "mrmi",
+                "state-defn",
+                "state-pred",
+            ],
         }
 
         # TODO: Test times differently, bc daily option causes it to vary
@@ -111,7 +123,19 @@ class TestCLIHandler:
             "select_downlinks_by_collection_time": False,
             "start_time": "2020-09-09",
             "end_time": "2020-10-10",
-            "products": ["epdef", "epdif", "epdes", "epdis", "fgf", "fgs", "eng", "mrma", "mrmi", "state"],
+            "products": [
+                "epdef",
+                "epdif",
+                "epdes",
+                "epdis",
+                "fgf",
+                "fgs",
+                "eng",
+                "mrma",
+                "mrmi",
+                "state-defn",
+                "state-pred",
+            ],
         }
 
         args_3 = argparser.parse_args(
@@ -132,7 +156,19 @@ class TestCLIHandler:
             "select_downlinks_by_collection_time": True,
             "start_time": "2019-1-1",
             "end_time": "2019-2-2",
-            "products": ["epdef", "epdif", "epdes", "epdis", "fgf", "fgs", "eng", "mrma", "mrmi", "state"],
+            "products": [
+                "epdef",
+                "epdif",
+                "epdes",
+                "epdis",
+                "fgf",
+                "fgs",
+                "eng",
+                "mrma",
+                "mrmi",
+                "state-defn",
+                "state-pred",
+            ],
         }
 
         args_4 = argparser.parse_args(["-o", "..", "dump", "2020-12-01", "2020-12-2", "-p", "epdef", "epdif"])

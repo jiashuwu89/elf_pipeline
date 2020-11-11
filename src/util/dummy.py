@@ -35,7 +35,11 @@ class DummyPipelineConfig(PipelineConfig):
         return self._output_dir
 
     @property
-    def state_csv_dir(self):
+    def state_defn_csv_dir(self):
+        return f"{TEST_DATA_DIR}/csv"
+
+    @property
+    def state_pred_csv_dir(self):
         return f"{TEST_DATA_DIR}/csv"
 
     @property
@@ -81,7 +85,11 @@ class SafeTestPipelineConfig(PipelineConfig):
         return self._output_dir
 
     @property
-    def state_csv_dir(self):
+    def state_defn_csv_dir(self):
+        return f"{TEST_DATA_DIR}/csv"
+
+    @property
+    def state_pred_csv_dir(self):
         return f"{TEST_DATA_DIR}/csv"
 
     @property
