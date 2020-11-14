@@ -59,7 +59,7 @@ class CompletenessUpdater:
         if len(idpu_types) != 1:
             self.logger.warning(f"Expected only a single unique idpu type, but instead got {len(idpu_types)}")
             return False
-        idpu_type = idpu_types[0]
+        idpu_type = int(idpu_types[0])
         times = df["times"]
 
         data_type = COMPLETENESS_TABLE_PRODUCT_MAP[processing_request.data_product]
