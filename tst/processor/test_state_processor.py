@@ -17,7 +17,7 @@ class TestStateProcessor:
     def test_generate_files(self):
         state_processor = StateProcessor(SafeTestPipelineConfig())
 
-        pr_1 = ProcessingRequest(2, "mrma", dt.date(2020, 6, 13))
+        pr_1 = ProcessingRequest(2, "state-defn", dt.date(2020, 6, 13))
         generated_files = state_processor.generate_files(pr_1)
         assert len(generated_files) == 1
         (generated_l1_file,) = generated_files

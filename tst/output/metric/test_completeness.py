@@ -10,7 +10,7 @@ class TestCompletenessUpdater:
         pipeline_config = DummyPipelineConfig()
         completeness_config = EpdiCompletenessConfig()
         processing_request = DummyProcessingRequest()
-        empty_series = pd.Series(dtype="datetime64[ns]")
+        empty_df = pd.DataFrame()
 
         completeness_updater = CompletenessUpdater(pipeline_config.session, completeness_config)
-        assert completeness_updater.update_completeness_table(processing_request, empty_series) is False
+        assert completeness_updater.update_completeness_table(processing_request, empty_df) is False
