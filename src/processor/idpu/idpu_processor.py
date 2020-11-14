@@ -342,11 +342,13 @@ class IdpuProcessor(ScienceProcessor):
         None
         """
         self.logger.info(f"❓  Updating completeness table for {str(processing_request)}")
-        df_times = l0_df.copy()[["idpu_time", "data"]].drop_duplicates().dropna()["idpu_time"]
+        l0_df_copy = l0_df.copy()
+        l0_df_copy["times"] = l0_df_copy["idpu_time"]
+        df = l0_df_copy[["times", "data", "idpu_type"]].drop_duplicates().dropna()[["times", "idpu_type"]]
 
         completeness_updater = self.get_completeness_updater(processing_request)
         if completeness_updater:
-            completeness_updater.update_completeness_table(processing_request, df_times)
+            completeness_updater.update_completeness_table(processing_request, df)
 
     @abstractmethod
     def get_completeness_updater(self, processing_request: ProcessingRequest) -> CompletenessUpdater:

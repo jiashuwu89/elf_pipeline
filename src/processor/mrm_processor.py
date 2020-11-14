@@ -52,7 +52,10 @@ class MrmProcessor(ScienceProcessor):
             return []
 
         if self.update_db:
-            self.completeness_updater.update_completeness_table(processing_request, mrm_df["timestamp"])
+            mrm_df_copy = mrm_df.copy()
+            mrm_df_copy["times"] = mrm_df_copy["timestamp"]
+            mrm_df_copy["idpu_type"] = -1
+            self.completeness_updater.update_completeness_table(processing_request, mrm_df_copy)
 
         cdf_fname = self.make_filename(processing_request, level=1)
 

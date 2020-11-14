@@ -21,8 +21,9 @@ from util.science_utils import hex_to_int
 
 
 class FgmRow:
-    def __init__(self, idpu_time, axes, frequency, numerator):
+    def __init__(self, idpu_time, idpu_type, axes, frequency, numerator):
         self.idpu_time = idpu_time
+        self.idpu_type = idpu_type
         self.axes = axes
         self.frequency = frequency
         self.numerator = numerator
@@ -313,7 +314,9 @@ class FgmProcessor(IdpuProcessor):
             ]
 
             # Create the initial decompressed row, later decompressed rows will follow
-            decompressed_rows.append(FgmRow(idpu_time, axes_values.copy(), frequency, row["numerator"]))
+            decompressed_rows.append(
+                FgmRow(idpu_time, row["idpu_type"], axes_values.copy(), frequency, row["numerator"])
+            )
 
             # Store remaining data so the code can look for more values
             bs = byte_tools.bin_string(row["data"][17:])
@@ -329,7 +332,9 @@ class FgmProcessor(IdpuProcessor):
 
                 if axis_index == 2:  # Flush row
                     idpu_time += dt.timedelta(seconds=(frequency.value))
-                    decompressed_rows.append(FgmRow(idpu_time, axes_values.copy(), frequency, row["numerator"]))
+                    decompressed_rows.append(
+                        FgmRow(idpu_time, row["idpu_type"], axes_values.copy(), frequency, row["numerator"])
+                    )
 
                 axis_index = (axis_index + 1) % 3
 
@@ -432,12 +437,12 @@ class FgmProcessor(IdpuProcessor):
         }
 
         # This loops through all decompressed rows, adding to the lists to prepare for creating the returned DataFrame
+        # idpu_type was initially found with: 0x1 if row.frequency == FgmFrequencyEnum.TEN_HERTZ else 0x17
+        # However, it doesn't seem to be used elsewhere, so preserve original idpu_type to help with completeness
         for i, row in enumerate(decompressed_rows):
             if row.frequency != FgmFrequencyEnum.UNKNOWN:
                 df_dict["mission_id"].append(processing_request.mission_id)
-                df_dict["idpu_type"].append(
-                    0x1 if row.frequency == FgmFrequencyEnum.TEN_HERTZ else 0x17
-                )  # This is how the code keeps track of type
+                df_dict["idpu_type"].append(row.idpu_type)
                 df_dict["idpu_time"].append(row.idpu_time)
                 df_dict["numerator"].append(
                     row.numerator

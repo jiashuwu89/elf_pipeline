@@ -32,23 +32,35 @@ class CompletenessUpdater:
         self.completeness_config = completeness_config
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def update_completeness_table(self, processing_request: ProcessingRequest, times: pd.Series) -> bool:
+    def update_completeness_table(self, processing_request: ProcessingRequest, df: pd.Series) -> bool:
         """Update ScienceZoneCompleteness table, if possible
 
         Parameters
         ----------
         processing_request : ProcessingRequest
-        times : pd.Series
-            A series of sorted, not-null times...
+        df : pd.DataFrame
+            A DataFrame with two columns, "times" and "idpu_types". The
+            "times" column should contain sorted, not-null times...
 
         Returns
         -------
         bool
             Returns True is the table is uploaded, False if not
         """
-        if times.empty:
-            self.logger.warning("Empty Time Series, cannot update completeness table")
+
+        if df.empty:
+            self.logger.warning("Empty DataFrame, cannot update completeness table")
             return False
+
+        # Get IDPU Type so that DCT can determine if data is compressed (MRM's idpu_type will be -1)
+        # TODO: Handle multiple IDPU Types, this assumes only a single IDPU Type (seems ok for now, usually don't
+        # collect compressed and uncompressed)
+        idpu_types = df["idpu_type"].unique()
+        if len(idpu_types) != 1:
+            self.logger.warning(f"Expected only a single unique idpu type, but instead got {len(idpu_types)}")
+            return False
+        idpu_type = idpu_types[0]
+        times = df["times"]
 
         data_type = COMPLETENESS_TABLE_PRODUCT_MAP[processing_request.data_product]
 
@@ -71,21 +83,23 @@ class CompletenessUpdater:
             estimated_total = math.ceil(collection_duration / median_diff)
 
             self.logger.info(
-                "Inserting completeness entry:\n\t\t"
-                + f"mission id {processing_request.mission_id}, data type {data_type}\n\t\t"
-                + f"science zone times: {str(start_time)} - {str(end_time)}\n\t\t"
-                + f"completeness: {obtained} / {estimated_total}"
+                "Inserting completeness entry:\n\n\tmodels.ScienceZoneCompleteness("
+                + f"mission_id={processing_request.mission_id}, idpu_type={idpu_type}, data_type={data_type},\n\t\t"
+                + f"sz_start_time={str(start_time)}, sz_end_time={str(end_time)},\n\t\t"
+                + f"num_received={obtained}, num_expected={estimated_total},\n\t\t"
+                + f"insert_date~={str(dt.datetime.utcnow())})\n"  # Approximate, separate calls to dt.datetime.utcnow
             )
 
             self.session.add(
                 models.ScienceZoneCompleteness(
                     mission_id=processing_request.mission_id,
+                    idpu_type=idpu_type,
                     data_type=data_type,
                     sz_start_time=str(start_time),
                     sz_end_time=str(end_time),
                     num_received=obtained,
                     num_expected=estimated_total,
-                    insert_date=str(dt.datetime.now()),
+                    insert_date=str(dt.datetime.utcnow()),
                 )
             )
 
@@ -150,10 +164,7 @@ class CompletenessUpdater:
         for sz in szs:
             diffs += [(j - i).total_seconds() for i, j in zip(sz[:-1], sz[1:])]
 
-        if not diffs:
-            return None
-
-        return statistics.median(diffs)
+        return statistics.median(diffs) if diffs else None
 
     # TODO: Get better return type
     def estimate_time_range(self, processing_request: ProcessingRequest, sz: List[np.datetime64]) -> Tuple[Any, Any]:
