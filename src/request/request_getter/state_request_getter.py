@@ -8,9 +8,11 @@ from sqlalchemy.sql import func
 from data_type.pipeline_query import PipelineQuery
 from data_type.processing_request import ProcessingRequest
 from data_type.time_type import TimeType
+from processor.state_processor import StateProcessor
 from request.request_getter.request_getter import RequestGetter
 from util import science_utils
-from util.constants import MISSION_NAME_TO_ID_MAP, ONE_DAY_DELTA, STATE_CALCULATE_RADIUS
+from util.constants import (MISSION_DICT, MISSION_NAME_TO_ID_MAP, ONE_DAY_DELTA, STATE_CALCULATE_RADIUS,
+                            STATE_DEFN_CSV_DIR, STATE_PRED_CSV_DIR)
 
 
 class StateRequestGetter(RequestGetter):
@@ -181,11 +183,14 @@ class StateRequestGetter(RequestGetter):
             cur_date = date - STATE_CALCULATE_RADIUS
             end_limit = date + STATE_CALCULATE_RADIUS
             while cur_date <= end_limit:
-                attitude_requests.add(ProcessingRequest(mission_id, "state-defn", cur_date))
+                curr_date_fname = f"{STATE_DEFN_CSV_DIR}/{StateProcessor.get_fname(MISSION_DICT[mission_id], 1, 'state-defn', cur_date).split('.')[0]}.csv"
+                prev_date_fname = f"{STATE_DEFN_CSV_DIR}/{StateProcessor.get_fname(MISSION_DICT[mission_id], 1, 'state-defn', cur_date-ONE_DAY_DELTA).split('.')[0]}.csv"
+                if os.path.exists(curr_date_fname) or os.path.exists(prev_date_fname):
+                    attitude_requests.add(ProcessingRequest(mission_id, "state-defn", cur_date))
                 cur_date += ONE_DAY_DELTA
-
-        self.logger.info(
-            f"➜  Got {len(attitude_requests)} "
-            + f"State attitude request{science_utils.s_if_plural(attitude_requests)}"
-        )
+        if len(attitude_requests) > 0:
+            self.logger.info(
+                f"➜  Got {len(attitude_requests)} "
+                + f"State attitude request{science_utils.s_if_plural(attitude_requests)}"
+            )
         return attitude_requests
