@@ -188,9 +188,9 @@ class StateRequestGetter(RequestGetter):
                 if os.path.exists(curr_date_fname) or os.path.exists(prev_date_fname):
                     attitude_requests.add(ProcessingRequest(mission_id, "state-defn", cur_date))
                 cur_date += ONE_DAY_DELTA
-        if len(attitude_requests) > 0:
-            self.logger.info(
-                f"➜  Got {len(attitude_requests)} "
-                + f"State attitude request{science_utils.s_if_plural(attitude_requests)}"
-            )
+
+        self.logger.info(
+            f"➜  Got {len(attitude_requests)} "
+            + f"State attitude request{science_utils.s_if_plural(attitude_requests)}"
+        )
         return attitude_requests
