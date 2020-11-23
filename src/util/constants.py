@@ -89,7 +89,7 @@ IDL_SCRIPT_VERSION = 8
 
 # Directory Paths
 STATE_DEFN_CSV_DIR = "/home/elfin-esn/state_data"
-STATE_PRED_CSV_DIR = "/home/elfin-esn/state_data_pred"
+STATE_PRED_CSV_DIR = "/home/elfin-esn/state_data"
 
 SERVER_BASE_DIR = "/themis/data/elfin"
 CREDENTIALS_FILE = "src/util/credentials.py"
