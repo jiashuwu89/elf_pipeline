@@ -7,6 +7,7 @@ from spacepy import pycdf
 
 from data_type.processing_request import ProcessingRequest
 from processor.idpu.eng_processor import EngProcessor
+from util import general_utils
 from util.constants import CREDENTIALS_FILE, TEST_DATA_DIR
 from util.dummy import DUMMY_DOWNLINK_MANAGER, SafeTestPipelineConfig
 
@@ -14,7 +15,6 @@ from util.dummy import DUMMY_DOWNLINK_MANAGER, SafeTestPipelineConfig
 
 
 class TestEngProcessor:
-    @pytest.mark.skipif(not os.path.isfile(CREDENTIALS_FILE), reason="Probably in CI/CD pipeline")
     def test_generate_files(self):
         eng_processor = EngProcessor(SafeTestPipelineConfig(), DUMMY_DOWNLINK_MANAGER)
 
@@ -26,15 +26,4 @@ class TestEngProcessor:
         new_cdf = pycdf.CDF(generated_l1_file)
         expected_cdf = pycdf.CDF(f"{TEST_DATA_DIR}/cdf/ela_l1_eng_20200423_v01.cdf")
 
-        assert all([a == b for a, b in zip(new_cdf.keys(), expected_cdf.keys())]) is True
-
-        for key in new_cdf.keys():
-            for new_val, expected_val in zip(new_cdf[key][...], expected_cdf[key][...]):
-                try:
-                    assert new_val == expected_val
-                except AssertionError as e:
-                    if np.isnan(new_val) and np.isnan(expected_val):
-                        continue
-                    raise AssertionError(
-                        f"AssertionError {e} on key {key}"
-                    )  # TODO: would be good to capture the AssertionError to provide more info in the other tests
+        general_utils.compare_cdf(new_cdf, expected_cdf, [], list(new_cdf.keys()), [])

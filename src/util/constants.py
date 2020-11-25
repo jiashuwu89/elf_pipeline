@@ -111,6 +111,7 @@ BITS_IN_BYTE = 8
 # Misc
 LOOK_BEHIND_DELTA = dt.timedelta(hours=5)  # Begin search this far behind for packets
 ONE_DAY_DELTA = dt.timedelta(days=1)
+MAX_CDF_VALUE_DELTA = 1e-13  # Maximum allowable difference between values in CDFs
 DAILY_EMAIL_LIST = ["jcking1034@gmail.com"]
 
 

@@ -27,3 +27,10 @@ class TestExceptionCollector:
 
         # THEN
         assert email_msg != ""
+
+    def test_count(self):
+        exception_collector = ExceptionCollector([])
+        assert exception_collector.count == 0
+
+        exception_collector.record_exception(ERROR)
+        assert exception_collector.count == 1
