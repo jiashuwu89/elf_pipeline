@@ -104,6 +104,24 @@ elif os.path.basename(os.getcwd()) in ["src", "doc"]:
 else:
     raise RuntimeError(f"Cannot run from this directory: {os.getcwd()}")
 
+# Paths for CDFs being transferred to Themis server
+DATA_PRODUCT_PATHS = {
+    "eng": ["eng", "eng"],
+    "epde": ["epd", "epd"],
+    "epdi": ["epd", "epd"],
+    "epdef": ["epd", "epd/fast/electron"],
+    "epdes": ["epd", "epd/survey/electron"],
+    "epdif": ["epd", "epd/fast/ion"],
+    "epdis": ["epd", "epd/survey/ion"],
+    "fgs": ["fgm", "fgm/survey"],
+    "fgf": ["fgm", "fgm/fast"],
+    "fgm": ["fgm", "fgm"],
+    "mrma": ["mrma", "mrma"],
+    "mrmi": ["mrmi", "mrmi"],
+    "state_defn": ["state/defn", "state/defn"],
+    "state_pred": ["state/pred", "state/pred"],
+}
+
 # NUMBERS
 MINS_IN_DAY = 60 * 24
 BITS_IN_BYTE = 8

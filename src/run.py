@@ -6,7 +6,13 @@ For additional help, run: python run.py --help
 import argparse
 import datetime as dt
 import logging
+import os
 import tempfile
+
+try:
+    from git import Repo
+except ImportError:
+    Repo = None
 
 from coordinator import Coordinator
 from data_type.pipeline_config import ArgparsePipelineConfig
@@ -151,6 +157,16 @@ class CLIHandler:
         """Get arguments and perform processing, noting the duration."""
         start_time: dt.datetime = dt.datetime.utcnow()
         self.logger.info(f"🤠  Beginning at {start_time.strftime('%Y-%m-%d %H:%M:%S')} (UTC)  🤠")
+
+        if Repo:
+            cur_repo = Repo(os.path.pardir)  # TODO: This assumes we're running from src
+            active_branch = cur_repo.active_branch
+            self.logger.info(
+                "Git info:\n\t"
+                + f"Active Branch Name: {active_branch.name}\n\t"
+                + f"Active Branch Commit: {active_branch.commit}\n\t"
+                + f"Dirty Repo: {cur_repo.is_dirty()}"
+            )
 
         args = self.argparser.parse_args()
 
