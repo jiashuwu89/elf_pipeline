@@ -2,12 +2,14 @@ import logging
 import traceback
 from typing import List, Set, Type
 
+from elfin.transfer.server_manager import ServerManager
+
 from data_type.pipeline_config import PipelineConfig
 from data_type.pipeline_query import PipelineQuery
 from data_type.processing_request import ProcessingRequest
 from output.downlink.downlink_manager import DownlinkManager
 from output.exception_collector import ExceptionCollector
-from output.server_manager import ServerManager
+from output.pipeline_file_mapper import PipelineFileMapper
 from processor.idpu.eng_processor import EngProcessor
 from processor.idpu.epd_processor import EpdProcessor
 from processor.idpu.fgm_processor import FgmProcessor
@@ -20,7 +22,12 @@ from request.request_getter.mrm_request_getter import MrmRequestGetter
 from request.request_getter.state_request_getter import StateRequestGetter
 from request.request_getter_manager import RequestGetterManager
 from util import science_utils
-from util.constants import DAILY_EMAIL_LIST
+from util.constants import DAILY_EMAIL_LIST, DATA_PRODUCT_PATHS, SERVER_BASE_DIR
+
+try:
+    from util.credentials import HOST, PASSWORD, USERNAME
+except ModuleNotFoundError:
+    HOST, PASSWORD, USERNAME = "", "", ""
 
 
 class Coordinator:
@@ -74,7 +81,7 @@ class Coordinator:
         }
         self.processor_manager = ProcessorManager(pipeline_config, processor_map, self.exception_collector)
 
-        self.server_manager = ServerManager()  # TODO: Only instantiate this when necessary, not during initialization
+        self.pipeline_file_mapper = PipelineFileMapper(SERVER_BASE_DIR, DATA_PRODUCT_PATHS)
 
     def execute_pipeline(self, pipeline_query: Type[PipelineQuery]) -> None:
         """Executes the pipeline.
@@ -100,7 +107,7 @@ class Coordinator:
 
             # Transform
             self.logger.info("⛅️ ⛅️ ⛅️ ⛅️ ⛅️  Generating Files")
-            generated_files = self.generate_files(processing_requests)
+            generated_files = sorted(self.generate_files(processing_requests))
             self.logger.info(
                 f"⛅️ ⛅️ ⛅️ ⛅️ ⛅️  Generated {len(generated_files)} file{science_utils.s_if_plural(generated_files)}:"
                 + "\n\n\t"
@@ -157,7 +164,7 @@ class Coordinator:
 
         return self.processor_manager.generate_files(processing_requests)
 
-    def transfer_files(self, generated_files: Set[str]) -> int:
+    def transfer_files(self, generated_files: List[str]) -> int:
         """Sends generated files to the server, if necessary.
 
         Parameters
@@ -174,7 +181,15 @@ class Coordinator:
             self.logger.info("Received option to avoid transferring files")
             return 0
 
-        transferred_files_count = self.server_manager.transfer_files(generated_files)
+        if not HOST or not USERNAME or not PASSWORD:
+            self.logger.warning("One of {HOST, USERNAME, PASSWORD} not valid")
+            return 0
+
+        generated_files_mapping = self.pipeline_file_mapper.map_files(generated_files)
+
+        transferred_files_count = 0
+        with ServerManager(HOST, USERNAME, PASSWORD) as server_manager:
+            transferred_files_count = server_manager.put_files(generated_files_mapping)
 
         if len(generated_files) != transferred_files_count:
             raise RuntimeError(f"Transferred only {transferred_files_count}/{len(generated_files)} files")
