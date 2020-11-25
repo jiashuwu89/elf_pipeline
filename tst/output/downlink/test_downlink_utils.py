@@ -1,7 +1,10 @@
+import os
+
 import pandas as pd
+import pytest
 
 from output.downlink import downlink_utils
-from util.constants import TEST_DATA_DIR
+from util.constants import CREDENTIALS_FILE, TEST_DATA_DIR
 
 
 class TestDownlinkUtils:
@@ -19,6 +22,7 @@ class TestDownlinkUtils:
         assert downlink_utils.calculate_offset(self.df_3, self.df_4) == 0
         assert downlink_utils.calculate_offset(self.df_4, self.df_3) == 0
 
+    # @pytest.mark.skipif(not os.path.isfile(CREDENTIALS_FILE), reason="Probably in CI/CD pipeline")
     def test_merge_downlinks(self):
         columns_to_check = [
             "packet_data",

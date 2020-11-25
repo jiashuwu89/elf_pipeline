@@ -27,7 +27,7 @@ class PipelineQuery(ABC):
 
     @property
     @abstractmethod
-    def times(self) -> str:
+    def times(self) -> TimeType:
         """Specifies if times are downlink or collection times"""
         raise NotImplementedError
 
@@ -69,6 +69,54 @@ class PipelineQuery(ABC):
             + f"\tstart_time={self.start_time},\n"
             + f"\tend_time={self.end_time}\n)"
         )
+
+
+class ParameterizedPipelineQuery(PipelineQuery):
+    """A PipelineQuery that can be initialized with parameters.
+
+    This class exists to help with testing the various request getters.
+
+    Parameters
+    ----------
+    mission_ids : List[int]
+    data_products : List[str]
+    time_tuple : Tuple[dt.datetime, dt.datetime, TimeType]
+        A tuple to describe the time values of the query. The first two items
+        are the start and end times of the query, and the final value is a
+        TimeType to specify how the times should be interpreted.
+    """
+
+    def __init__(
+        self, mission_ids: List[int], data_products: List[str], time_tuple: Tuple[dt.datetime, dt.datetime, TimeType]
+    ):
+        self._mission_ids = mission_ids
+        self._data_products = data_products
+        self._start_time, self._end_time, self._times = time_tuple
+
+    @property
+    def mission_ids(self) -> List[int]:
+        """List of mission IDs with the mapping: ELA=1 ELB=2 EM3=3"""
+        return self._mission_ids
+
+    @property
+    def data_products(self) -> List[str]:
+        """List of data products ("fgf", "epdef", "state", etc.)"""
+        return self._data_products
+
+    @property
+    def times(self) -> TimeType:
+        """Specifies if times are downlink or collection times"""
+        return self._times
+
+    @property
+    def start_time(self) -> dt.datetime:
+        """The earliest time for data to occur"""
+        return self._start_time
+
+    @property
+    def end_time(self) -> dt.datetime:
+        """The time which all data must precede"""
+        return self._end_time
 
 
 class ArgparsePipelineQuery(PipelineQuery):

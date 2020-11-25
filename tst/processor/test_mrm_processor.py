@@ -6,6 +6,7 @@ from spacepy import pycdf
 
 from data_type.processing_request import ProcessingRequest
 from processor.mrm_processor import MrmProcessor
+from util import general_utils
 from util.constants import CREDENTIALS_FILE, TEST_DATA_DIR
 from util.dummy import SafeTestPipelineConfig
 
@@ -13,7 +14,6 @@ from util.dummy import SafeTestPipelineConfig
 
 
 class TestMrmProcessor:
-    @pytest.mark.skipif(not os.path.isfile(CREDENTIALS_FILE), reason="Probably in CI/CD pipeline")
     def test_generate_files(self):
         mrm_processor = MrmProcessor(SafeTestPipelineConfig())
 
@@ -25,14 +25,7 @@ class TestMrmProcessor:
         new_cdf = pycdf.CDF(generated_l1_file)
         expected_cdf = pycdf.CDF(f"{TEST_DATA_DIR}/cdf/elb_l1_mrma_20200418_v01.cdf")
 
-        assert all([a == b for a, b in zip(new_cdf.keys(), expected_cdf.keys())]) is True
-
-        for new_time, expected_time in zip(new_cdf["elb_mrma_time"][...], expected_cdf["elb_mrma_time"][...]):
-            assert new_time == expected_time
-
-        for new_row, expected_row in zip(new_cdf["elb_mrma"][...], expected_cdf["elb_mrma"][...]):
-            for new_val, expected_val in zip(new_row, expected_row):
-                assert new_val == expected_val
+        general_utils.compare_cdf(new_cdf, expected_cdf, ["elb_mrma"], ["elb_mrma_time"], [])
 
         pr_2 = ProcessingRequest(2, "mrmi", dt.date(2019, 1, 1))
         assert mrm_processor.generate_files(pr_2) == []

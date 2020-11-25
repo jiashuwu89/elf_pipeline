@@ -157,7 +157,7 @@ class EpdProcessor(IdpuProcessor):
                     self.logger.warning(f"⚠️ Not enough bytes in continuation packet: {e}, packet {packet_num}")
                     ignore_packet = True
 
-                measured_values[i] += sign * ((delta1 << 4) + delta2)
+                measured_values[i] += sign * ((delta1 << 4) + delta2)  # These values could be unbound
 
                 if not 0 <= measured_values[i] <= 255:
                     self.logger.warning(f"⚠️ measured_values went out of range [0, 255]: {measured_values[i]}")
