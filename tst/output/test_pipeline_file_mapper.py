@@ -14,9 +14,13 @@ class TestPipelineFileMapper:
 
         fname_1 = "/var/folders/6b/k8zzkvks79z_2ly7x7j94ph00000gn/T/tmp0bdbomk2/ela_l1_eng_20000101_v01.cdf"
         dest_1 = pfm.map_file(fname_1)
-        assert dest_1 == "/themis/data/elfin/ela/l1/eng/ela_l1_eng_20000101_v01.cdf"
+        assert dest_1 == "/themis/data/elfin/ela/l1/eng/2000/ela_l1_eng_20000101_v01.cdf"
 
         # State names must be handled differently
         fname_2 = "/usr/bin/elb_l1_state_defn_20200901_v01.cdf"
         dest_2 = pfm.map_file(fname_2)
-        assert dest_2 == "/themis/data/elfin/elb/l1/state/defn/elb_l1_state_defn_20200901_v01.cdf"
+        assert dest_2 == "/themis/data/elfin/elb/l1/state/defn/2020/elb_l1_state_defn_20200901_v01.cdf"
+
+        fname_3 = "/usr/bin/elb_l0_fgm_20181011_354.pkt"
+        dest_3 = pfm.map_file(fname_3)
+        assert dest_3 == "/themis/data/elfin/elb/l0/fgm/elb_l0_fgm_20181011_354.pkt"

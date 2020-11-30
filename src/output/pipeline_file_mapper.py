@@ -46,10 +46,12 @@ class PipelineFileMapper(FileMapper):
             mission, level, _, data_type, date, _ = basename.split("_")
             data_type = f"state_{data_type}"
         level_num = int(level[-1])
-        data_product_path = self.data_product_paths[data_type][level_num]
+        year = date[:4]
+        data_product_path = self.data_product_paths[data_type][level_num] + (f"/{year}" if level_num == 1 else "")
 
         self.logger.debug(
-            f"Parsed {file}: basename={basename} mission={mission} " + f"level={level} data_type={data_type} date={date}"
+            f"Parsed {file}: basename={basename} mission={mission} "
+            + f"level={level} data_type={data_type} date={date}"
         )
 
         return f"{self.server_base_dir}/{mission}/l{level_num}/{data_product_path}/{basename}"
