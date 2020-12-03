@@ -67,8 +67,7 @@ class IdpuProcessor(ScienceProcessor):
         """
         self.logger.info(f"🔴  Generating Level 0 products for {str(processing_request)}")
         l0_df = self.generate_l0_df(processing_request)
-        if self.update_db:
-            self.update_completeness_table(processing_request, l0_df)
+        self.update_completeness_table(processing_request, l0_df)
         l0_file_name, _ = self.generate_l0_file(processing_request, l0_df.copy())
         return l0_file_name, l0_df
 
@@ -348,7 +347,7 @@ class IdpuProcessor(ScienceProcessor):
 
         completeness_updater = self.get_completeness_updater(processing_request)
         if completeness_updater:
-            completeness_updater.update_completeness_table(processing_request, df)
+            completeness_updater.update_completeness_table(processing_request, df_times, self.update_db)
 
     @abstractmethod
     def get_completeness_updater(self, processing_request: ProcessingRequest) -> CompletenessUpdater:

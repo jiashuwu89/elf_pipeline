@@ -13,4 +13,4 @@ class TestCompletenessUpdater:
         empty_df = pd.DataFrame()
 
         completeness_updater = CompletenessUpdater(pipeline_config.session, completeness_config)
-        assert completeness_updater.update_completeness_table(processing_request, empty_df) is False
+        assert completeness_updater.update_completeness_table(processing_request, empty_series, False) is False
