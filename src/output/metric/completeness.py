@@ -33,15 +33,16 @@ class CompletenessUpdater:
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def update_completeness_table(
-        self, processing_request: ProcessingRequest, times: pd.Series, update_table: bool
+        self, processing_request: ProcessingRequest, df: pd.DataFrame, update_table: bool
     ) -> bool:
         """Update ScienceZoneCompleteness table, if possible
 
         Parameters
         ----------
         processing_request : ProcessingRequest
-        times : pd.Series
-            A series of sorted, not-null times...
+        df : pd.DataFrame
+            A DataFrame with two columns, "times" and "idpu_types". The
+            "times" column should contain sorted, not-null times...
         update_table : bool
             Determines if completeness entries are written to the database
 
@@ -156,6 +157,7 @@ class CompletenessUpdater:
                 self.session.add(
                     models.ScienceZoneCompleteness(
                         mission_id=processing_request.mission_id,
+                        idpu_type=idpu_type,
                         data_type=data_type,
                         sz_start_time=str(start_time),
                         sz_end_time=str(end_time),
