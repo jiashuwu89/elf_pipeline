@@ -25,10 +25,21 @@ before_script:
   - python -V  # Print out python version for debugging
   - poetry install
 
-check-style:
+check-format:
   stage: Static Analysis
   script:
-  - make check-style
+  - make check-format
+
+flake8:
+  stage: Static Analysis
+  script:
+  - make flake8
+  allow_failure: true
+
+pylint:
+  stage: Static Analysis
+  script:
+  - make pylint
   allow_failure: true
 
 check-types:

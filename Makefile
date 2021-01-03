@@ -21,11 +21,24 @@ clean:
 	rm -rf .coverage htmlcov doc/build doc/source/pages
 
 format:
-	@echo "⭐ Formatting ⭐";
+	@echo "⭐ Formatting ⭐\n";
 	$(PR) black --line-length $(LINE_LENGTH) $(SRC);
+	@printf "\n";
 	$(PR) isort --line-length $(LINE_LENGTH) $(SRC);
+	@printf "\n";
 	$(PR) black --line-length $(LINE_LENGTH) $(TST);
+	@printf "\n";
 	$(PR) isort --line-length $(LINE_LENGTH) $(TST);
+
+check-format:
+	@echo "⭐ Checking format ⭐\n";
+	$(PR) black --check --line-length $(LINE_LENGTH) $(SRC);
+	@printf "\n";
+	$(PR) isort --check --line-length $(LINE_LENGTH) $(SRC);
+	@printf "\n";
+	$(PR) black --check --line-length $(LINE_LENGTH) $(TST);
+	@printf "\n";
+	$(PR) isort --check --line-length $(LINE_LENGTH) $(TST);
 
 # E203 (whitespace before ':') conflicts with black, will silence
 flake8:
