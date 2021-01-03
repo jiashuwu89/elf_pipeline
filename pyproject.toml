@@ -31,6 +31,13 @@ coverage = {extras = ["toml"], version = "^5.3"}
 name = "elfin"  # This name will be used in the configuration to retreive the proper credentials
 url = "http://git.elfin.ucla/api/v4/projects/5/packages/pypi/simple"  # URL used to download your packages from
 
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
 [tool.pylint.message_control]
 disable = [
     "invalid-name",
