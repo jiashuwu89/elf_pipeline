@@ -64,6 +64,10 @@ class ExceptionCollector:
     def generate_email(self) -> str:
         """Creates a formatted email containing all recorded errors.
 
+        This method ensures that any messages included in the email will be
+        safe to encode, even if there are characters (i.e. emojis) that cannot
+        be encoded to ascii.
+
         Returns
         -------
         str
@@ -72,8 +76,9 @@ class ExceptionCollector:
         subject = f"Subject: Exception{s_if_plural(self.exception_list)} occurred"
         seperator = "\n\n"
         body = "\n".join(self.exception_list)
+        msg = subject + seperator + body
 
-        return subject + seperator + body
+        return msg.encode("ascii", "backslashreplace").decode("ascii")
 
     @property
     def count(self) -> int:

@@ -228,7 +228,7 @@ class DownlinkManager:
                     except ValueError as e:
                         # Start a New Downlink if this seems to be a bad packet
                         self.logger.warning(
-                            f"⚠️ New Downlink, skipping current packet (ID: {science_packet.science_packet_id})"
+                            f"⚠️ New Downlink, skipping current packet (ID: {science_packet.id})"
                             + f"due to unreadable datetime {science_packet.data[:16]}: {e}"
                         )
                         first_id = None
