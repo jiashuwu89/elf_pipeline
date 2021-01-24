@@ -1,5 +1,6 @@
 """General utility functions"""
 import datetime as dt
+import hashlib
 import logging
 from typing import Any, List
 
@@ -78,3 +79,27 @@ def compare_cdf(
         assert len(cdf_a[key][...]) == len(cdf_b[key][...])
         for new_row, expected_row in zip(cdf_a[key][...], cdf_b[key][...]):
             assert abs(new_row - expected_row) < MAX_CDF_VALUE_DELTA
+
+
+def calculate_file_md5sum(fname: str) -> str:
+    """Calculates the md5sum for a file
+
+    Based on https://www.kite.com/python/answers/how-to-generate-an-md5-checksum-of-a-file-in-python
+
+    Parameters
+    ----------
+    fname : str
+        The name of the file
+
+    Returns
+    -------
+    str
+        The md5sum of the file, calculated using hashlib
+    """
+    md5_hash = hashlib.md5()
+    with open(fname, "rb") as f:
+        content = f.read()
+    md5_hash.update(content)
+    digest = md5_hash.hexdigest()
+
+    return digest
