@@ -1,4 +1,5 @@
 import logging
+import os
 import traceback
 from typing import List, Set, Type
 
@@ -23,6 +24,7 @@ from request.request_getter.state_request_getter import StateRequestGetter
 from request.request_getter_manager import RequestGetterManager
 from util import science_utils
 from util.constants import DAILY_EMAIL_LIST, DATA_PRODUCT_PATHS, SERVER_BASE_DIR
+from util.general_utils import calculate_file_md5sum
 
 try:
     from util.credentials import HOST, PASSWORD, USERNAME
@@ -108,11 +110,17 @@ class Coordinator:
             # Transform
             self.logger.info("⛅️ ⛅️ ⛅️ ⛅️ ⛅️  Generating Files")
             generated_files = sorted(self.generate_files(processing_requests))
+            formatted_files_str = "".join(
+                f"\n\t{fname} ({size} bytes, md5: {md5sum})"
+                for fname, size, md5sum in zip(
+                    generated_files,
+                    (os.path.getsize(fname) for fname in generated_files),
+                    (calculate_file_md5sum(fname) for fname in generated_files),
+                )
+            )
             self.logger.info(
                 f"⛅️ ⛅️ ⛅️ ⛅️ ⛅️  Generated {len(generated_files)} file{science_utils.s_if_plural(generated_files)}:"
-                + "\n\n\t"
-                + "\n\t".join(generated_files)
-                + "\n"
+                + (f"\n{formatted_files_str}\n" if generated_files else "")
             )
 
             # Load
