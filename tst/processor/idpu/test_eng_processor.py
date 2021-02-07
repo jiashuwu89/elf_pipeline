@@ -1,14 +1,11 @@
 import datetime as dt
-import os
 
-import numpy as np
-import pytest
 from spacepy import pycdf
 
 from data_type.processing_request import ProcessingRequest
 from processor.idpu.eng_processor import EngProcessor
 from util import general_utils
-from util.constants import CREDENTIALS_FILE, TEST_DATA_DIR
+from util.constants import TEST_DATA_DIR
 from util.dummy import DUMMY_DOWNLINK_MANAGER, SafeTestPipelineConfig
 
 # TODO: Eng data was processed incorrectly by original pipeline!!!!!

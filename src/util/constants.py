@@ -40,13 +40,16 @@ PACKET_MAP = {
     18: ["fgf"],
     3: ["epdef"],
     4: ["epdef"],
+    22: ["epdef"],
     5: ["epdif"],
     6: ["epdif"],
+    23: ["epdif"],
     19: ["epdis"],
     20: ["epdes"],
     14: ["eng"],
     15: ["eng"],
     16: ["eng"],
+    24: ["epdef", "epdif"],
 }
 
 # A Dictionary mapping products to IDPU type
@@ -55,9 +58,9 @@ SCIENCE_TYPES = {
     "eng": [14, 15, 16],  # 14: SIPS, 15: EPD, 16: FGM
     "fgf": [17, 18],
     "fgs": [1, 2],
-    "epdef": [3, 4],
+    "epdef": [3, 4, 22, 24],
     "epdes": [20],
-    "epdif": [5, 6],
+    "epdif": [5, 6, 23, 24],
     "epdis": [19],
 }
 
@@ -85,7 +88,7 @@ SMALL_LARGE_GAP_MULTIPLIERS = (1.5, 8.0)
 SCIENCE_ZONE_SECTIONS = [1 / 3, 2 / 3]
 
 # IDPU types of compressed data, survey data
-COMPRESSED_TYPES = [2, 4, 6, 18, 19, 20]
+COMPRESSED_TYPES = [2, 4, 6, 18, 19, 20, 24]
 SURVEY_TYPES = [19, 20]
 
 # IDL

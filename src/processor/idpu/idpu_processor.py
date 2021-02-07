@@ -258,7 +258,7 @@ class IdpuProcessor(ScienceProcessor):
             "idpu_type": idpu_type,
             "idpu_time": None,
             "data": None,
-            "numerator": pd.Series(missing_numerators),  # TODO: avoid warning by adding "", dtype=np.float64"
+            "numerator": pd.Series(missing_numerators, dtype=np.float64),
             "denominator": denominator,
             "packet_data": None,
             "timestamp": None,

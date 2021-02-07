@@ -1,10 +1,7 @@
-import os
-
 import pandas as pd
-import pytest
 
 from output.downlink import downlink_utils
-from util.constants import CREDENTIALS_FILE, TEST_DATA_DIR
+from util.constants import TEST_DATA_DIR
 
 
 class TestDownlinkUtils:

@@ -57,9 +57,11 @@ class EpdProcessor(IdpuProcessor):
         """
         # TODO: unify with fgm_processor
         types = df["idpu_type"].values
-        uncompressed = 3 in types or 5 in types
-        compressed = 4 in types or 6 in types
-        survey = 19 in types or 20 in types
+        # TODO: Update to use mapping of IDPU types to labels (each Dataframe has one IDPU type)
+        uncompressed = bool(set([3, 5, 22, 23]).intersection(types))
+        compressed = bool(set([4, 6, 24]).intersection(types))
+        survey = bool(set([19, 20]).intersection(types))
+        inner = bool(set([22, 23, 24]).intersection(types))
 
         if uncompressed + compressed + survey > 1:
             raise ValueError("⚠️ Detected more than one kind of EPD data (uncompressed, compressed, survey).")
@@ -67,7 +69,12 @@ class EpdProcessor(IdpuProcessor):
         if uncompressed:
             df = self.update_uncompressed_df(df)
         elif compressed:
-            df = self.decompress_df(df=df, num_sectors=16, table=EPD_HUFFMAN)
+            if inner:
+                df = self.decompress_df(
+                    df=df, num_sectors=16, table=EPD_HUFFMAN, data_product=processing_request.data_product
+                )
+            else:
+                df = self.decompress_df(df=df, num_sectors=16, table=EPD_HUFFMAN)
         elif survey:
             df = self.decompress_df(df=df, num_sectors=4, table=EPD_HUFFMAN)
         else:
@@ -96,7 +103,9 @@ class EpdProcessor(IdpuProcessor):
         )
         return df
 
-    def decompress_df(self, df: pd.DataFrame, num_sectors: int, table: Dict[str, int]) -> pd.DataFrame:
+    def decompress_df(
+        self, df: pd.DataFrame, num_sectors: int, table: Dict[str, int], data_product: str = None
+    ) -> pd.DataFrame:
         """Decompresses a DataFrame of compressed packets
 
         How EPD Compression Works:
@@ -131,9 +140,9 @@ class EpdProcessor(IdpuProcessor):
             A DataFrame of decompressed data
         """
 
-        def get_measured_values_if_valid(packet_num, cur_data):
+        def get_measured_values_if_valid(packet_num, cur_data, header_marker):
             """Returns a list to replace measured_values, will be empty if bad cur_data"""
-            values = cur_data[11:]
+            values = cur_data[header_marker + 1 :]
             if len(values) != BIN_COUNT * num_sectors:
                 self.logger.warning(f"⚠️ Header at packet number {packet_num} didn't have all reference bins")
                 return True, []
@@ -168,6 +177,12 @@ class EpdProcessor(IdpuProcessor):
 
             return ignore_packet, measured_values
 
+        # IDPU 24 (IBO compressed) has a different bit layout, so data is offset by 1
+        # .values is needed to prevent looking at indexing instead of value
+        # stackoverflow.com/questions/35956712/check-if-certain-value-is-contained-in-a-dataframe-column-in-pandas/40419531#40419531
+        ibo_offset = 1 if 24.0 in df["idpu_type"].values else 0
+        header_marker_byte = 10 + ibo_offset
+
         # l0_df: holds finished periods
         # measured values: For one period, hold value from Huffman table and later is put into period_df
         data = df["data"].apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
@@ -175,19 +190,32 @@ class EpdProcessor(IdpuProcessor):
         measured_values = [None] * BIN_COUNT * num_sectors
 
         # Set the index to initially point to the first header
-        packet_num = self.find_first_header(data)
+        packet_num = self.find_first_header(data=data, header_marker_byte=header_marker_byte)
+
         if packet_num == data.shape[0]:
             return l0_df
 
-        lossy_idx = self.find_lossy_idx(data.iloc[packet_num])
+        lossy_idx = self.find_lossy_idx(data.iloc[packet_num], header_marker_byte)
         marker = 0xAA + lossy_idx  # Determines if a packet is a header
         consecutive_nonheader_packets = 0
-        ignore_packet = False  # Determine if we need to search for a new header, ex. bc of problem with current packet
-
+        ignore_packet = True  # Determine if we need to search for a new header, ex. bc of problem with current packet
         while packet_num < data.shape[0]:
             cur_data = data.iloc[packet_num]
-            if cur_data[10] == marker:  # Current packet is a header (reference frame)
-                ignore_packet, measured_values = get_measured_values_if_valid(packet_num, cur_data)
+            if cur_data[header_marker_byte] == marker:  # Current packet is a header (reference frame)
+                if ibo_offset:  # Special case of compressed IBO data
+                    data_type_byte = 10
+                    data_type = "epdif" if cur_data[data_type_byte] >> 4 == 1 else "epdef"  # Top 4 bits are 0001
+                    correct_data_type = data_type == data_product
+                else:  # All other types will always be true
+                    correct_data_type = True
+
+                if correct_data_type:
+                    ignore_packet, measured_values = get_measured_values_if_valid(
+                        packet_num, cur_data, header_marker_byte
+                    )
+                else:
+                    ignore_packet = True
+
             else:  # We get a non-header/non-reference frame/continuation frame
                 ignore_packet, measured_values = update_measured_values_if_valid(measured_values, packet_num, cur_data)
                 consecutive_nonheader_packets += 1
@@ -195,7 +223,12 @@ class EpdProcessor(IdpuProcessor):
             # Append the period (found from either the header or non-header packet) to l0_df
             l0_df = (
                 l0_df.append(
-                    self.get_period_df(measured_values, EPD_LOSSY_VALS[lossy_idx], cur_data, df.iloc[packet_num]),
+                    self.get_period_df(
+                        measured_values,
+                        EPD_LOSSY_VALS[lossy_idx],
+                        cur_data,
+                        df.iloc[packet_num],
+                    ),
                     sort=True,
                 )
                 if not ignore_packet
@@ -210,26 +243,26 @@ class EpdProcessor(IdpuProcessor):
                 or ignore_packet
                 or consecutive_nonheader_packets >= 9
             ):
-                packet_num += self.find_first_header(data.iloc[packet_num:])
+                packet_num += self.find_first_header(data=data.iloc[packet_num:], header_marker_byte=header_marker_byte)
                 consecutive_nonheader_packets = 0
 
         return l0_df.reset_index(drop=True)
 
     @staticmethod
-    def find_lossy_idx(data_packet_in_bytes: bytes) -> int:
-        return data_packet_in_bytes[10] - 0xAA
+    def find_lossy_idx(data_packet_in_bytes: bytes, header_marker_byte: int) -> int:
+        return data_packet_in_bytes[header_marker_byte] - 0xAA
 
     @staticmethod
-    def find_first_header(data: pd.Series) -> int:
+    def find_first_header(data: pd.Series, header_marker_byte: int) -> int:
         """Given EPD data, find the first header.
 
         We have found a header when the row's data is not null and when the
-        row passes the check of AND-ing the 10th byte with 0xA0
+        row passes the check of AND-ing the header_marker_byte with 0xA0
 
         Parameters
         ----------
         data : pd.Series
-
+        header_marker_byte : int
         Returns
         -------
         int
@@ -239,7 +272,7 @@ class EpdProcessor(IdpuProcessor):
 
         packet_num = 0
         while packet_num < data.shape[0]:
-            if data.iloc[packet_num] is None or data.iloc[packet_num][10] & 0xA0 != 0xA0:
+            if data.iloc[packet_num] is None or data.iloc[packet_num][header_marker_byte] & 0xA0 != 0xA0:
                 packet_num += 1
             else:
                 return packet_num
@@ -298,7 +331,6 @@ class EpdProcessor(IdpuProcessor):
                 sector_num += 0x10 if num_sectors == 16 else 0x40
                 bytes_data += bytes([sector_num])
                 num_bins = 0
-
             lossy_val = lossy_vals[loss_val_idx]
             bytes_data += byte_tools.get_two_unsigned_bytes(lossy_val & 0xFFFF)  # least significant word first
             bytes_data += byte_tools.get_two_unsigned_bytes(lossy_val >> 16)  # most significant word next

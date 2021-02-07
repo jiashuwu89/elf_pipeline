@@ -501,10 +501,10 @@ class FgmProcessor(IdpuProcessor):
         """
         if processing_request.data_product == "fgf":
             return df[df["10hz_mode"] == FgmFrequencyEnum.EIGHTY_HERTZ]
-        elif processing_request.data_product == "fgs":
+        if processing_request.data_product == "fgs":
             return df[df["10hz_mode"] == FgmFrequencyEnum.TEN_HERTZ]
-        else:
-            raise ValueError("Invalid data_product_name")
+
+        raise ValueError("Invalid data_product_name")
 
     def merge_processed_dataframes(self, dfs: List[pd.DataFrame], idpu_types: List[int]) -> pd.DataFrame:
         """FGM-specific version of merge_processed_dataframes.
