@@ -1,14 +1,13 @@
 import datetime as dt
 import filecmp
-import os
 
-import pytest
+import pandas as pd
 from spacepy import pycdf
 
 from data_type.processing_request import ProcessingRequest
 from processor.idpu.epd_processor import EpdProcessor
 from util import general_utils
-from util.constants import CREDENTIALS_FILE, TEST_DATA_DIR
+from util.constants import TEST_DATA_DIR
 from util.dummy import DUMMY_DOWNLINK_MANAGER, SafeTestPipelineConfig
 
 
@@ -30,4 +29,130 @@ class TestEpdProcessor:
         )
 
         # TODO: Test ela_pef_energies_max, ela_pef_energies_mean, ela_pef_energies_min
+
         # TODO: Spinphase is 0?
+        new_cdf.close()
+        expected_cdf.close()
+
+    def test_em3_iepde_uncompressed_data(self):
+        pc = SafeTestPipelineConfig()
+        epd_processor = EpdProcessor(pc, DUMMY_DOWNLINK_MANAGER)
+
+        pr = ProcessingRequest(
+            1, "epdef", dt.date(2020, 12, 4)
+        )  # NOTE: There are no CDFs set up for EM3, so pretending it's ELA data - IT'S NOT!
+        iepde_df = pd.read_csv(f"{TEST_DATA_DIR}/csv/ibo/iepde_22_v3.csv")
+
+        r_df = epd_processor.rejoin_data(pr, iepde_df)
+        p_df = epd_processor.process_rejoined_data(pr, r_df)
+        # This should effectively be the final l0_df since there is only a single dataframe, no need to merge anything
+
+        l0_fname, _ = epd_processor.generate_l0_file(pr, p_df)
+        l1_fname, _ = epd_processor.generate_l1_products(pr, p_df)
+        l1_cdf = pycdf.CDF(l1_fname)
+        test_cdf = pycdf.CDF(f"{TEST_DATA_DIR}/cdf/ibo_cdf/uncompressed/em3_l1_epdef_20201204_v01.cdf")
+
+        assert filecmp.cmp(
+            l0_fname,
+            f"{TEST_DATA_DIR}/pkt/ibo_pkt/uncompressed/em3_l0_epdef_20201204_31.pkt",
+        )
+        general_utils.compare_cdf(
+            l1_cdf,
+            test_cdf,
+            ["ela_pef"],
+            ["ela_pef_sectnum", "ela_pef_spinper", "ela_pef_time"],
+            [],
+        )
+        l1_cdf.close()
+        test_cdf.close()
+
+    def test_em3_iepdi_uncompressed_data(self):
+        pc = SafeTestPipelineConfig()
+        epd_processor = EpdProcessor(pc, DUMMY_DOWNLINK_MANAGER)
+
+        pr = ProcessingRequest(1, "epdif", dt.date(2020, 12, 4))
+        iepdi_df = pd.read_csv(f"{TEST_DATA_DIR}/csv/ibo/iepdi_23_v3.csv")
+
+        r_df = epd_processor.rejoin_data(pr, iepdi_df)
+        p_df = epd_processor.process_rejoined_data(pr, r_df)
+
+        l0_fname, _ = epd_processor.generate_l0_file(pr, p_df)
+        l1_fname, _ = epd_processor.generate_l1_products(pr, p_df)
+        l1_cdf = pycdf.CDF(l1_fname)
+        test_cdf = pycdf.CDF(f"{TEST_DATA_DIR}/cdf/ibo_cdf/uncompressed/em3_l1_epdif_20201204_v01.cdf")
+
+        assert filecmp.cmp(
+            l0_fname,
+            f"{TEST_DATA_DIR}/pkt/ibo_pkt/uncompressed/em3_l0_epdif_20201204_14.pkt",
+        )
+        general_utils.compare_cdf(
+            l1_cdf,
+            test_cdf,
+            ["ela_pif"],
+            ["ela_pif_sectnum", "ela_pif_spinper", "ela_pif_time"],
+            [],
+        )
+        l1_cdf.close()
+        test_cdf.close()
+
+    def test_em3_iepde_compressed_data(self):
+        pc = SafeTestPipelineConfig()
+        epd_processor = EpdProcessor(pc, DUMMY_DOWNLINK_MANAGER)
+
+        pr = ProcessingRequest(1, "epdef", dt.date(2020, 12, 4))
+        iepd_compressed_df = pd.read_csv(f"{TEST_DATA_DIR}/csv/ibo/iepd_compressed_24_v3.csv")
+
+        r_df = epd_processor.rejoin_data(pr, iepd_compressed_df)
+        p_df = epd_processor.process_rejoined_data(pr, r_df)
+
+        l0_fname, _ = epd_processor.generate_l0_file(pr, p_df)
+        l1_fname, _ = epd_processor.generate_l1_products(pr, p_df)
+        l1_cdf = pycdf.CDF(l1_fname)
+        test_cdf = pycdf.CDF(f"{TEST_DATA_DIR}/cdf/ibo_cdf/compressed/em3_l1_epdef_20201204_v01.cdf")
+
+        assert filecmp.cmp(
+            l0_fname,
+            f"{TEST_DATA_DIR}/pkt/ibo_pkt/compressed/em3_l0_epdef_20201204_31.pkt",
+        )
+
+        general_utils.compare_cdf(
+            l1_cdf,
+            test_cdf,
+            ["ela_pef"],
+            ["ela_pef_sectnum", "ela_pef_spinper", "ela_pef_time"],
+            [],
+        )
+        l1_cdf.close()
+        test_cdf.close()
+
+    def test_em3_iepdi_compressed_data(self):
+        pc = SafeTestPipelineConfig()
+        epd_processor = EpdProcessor(pc, DUMMY_DOWNLINK_MANAGER)
+
+        pr = ProcessingRequest(1, "epdef", dt.date(2020, 12, 4))
+        iepd_compressed_df = pd.read_csv(f"{TEST_DATA_DIR}/csv/ibo/iepd_compressed_24_v3.csv")
+
+        pr = ProcessingRequest(1, "epdif", dt.date(2020, 12, 4))
+        r_df = epd_processor.rejoin_data(pr, iepd_compressed_df)
+        p_df = epd_processor.process_rejoined_data(pr, r_df)
+
+        l0_fname, _ = epd_processor.generate_l0_file(pr, p_df)
+        l1_fname, _ = epd_processor.generate_l1_products(pr, p_df)
+        l1_cdf = pycdf.CDF(l1_fname)
+        test_cdf = pycdf.CDF(f"{TEST_DATA_DIR}/cdf/ibo_cdf/compressed/em3_l1_epdif_20201204_v01.cdf")
+
+        assert filecmp.cmp(
+            l0_fname,
+            f"{TEST_DATA_DIR}/pkt/ibo_pkt/compressed/em3_l0_epdif_20201204_14.pkt",
+        )
+
+        general_utils.compare_cdf(
+            l1_cdf,
+            test_cdf,
+            ["ela_pif"],
+            ["ela_pif_sectnum", "ela_pif_spinper", "ela_pif_time"],
+            [],
+        )
+
+        l1_cdf.close()
+        test_cdf.close()

@@ -66,7 +66,7 @@ class TestProcessingRequest:
 
     def test_idpu_types(self):
         pr_1 = ProcessingRequest(self.MISSION_ID, self.DATA_PRODUCT, self.DATE)
-        assert pr_1.idpu_types == [3, 4]
+        assert pr_1.idpu_types == [3, 4, 22, 24]
 
         pr_2 = ProcessingRequest(self.MISSION_ID, self.ALT_DATA_PRODUCT, self.DATE)
         assert pr_2.idpu_types == []

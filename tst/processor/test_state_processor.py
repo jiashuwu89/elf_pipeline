@@ -1,13 +1,11 @@
 import datetime as dt
-import os
 
-import pytest
 from spacepy import pycdf
 
 from data_type.processing_request import ProcessingRequest
 from processor.state_processor import StateProcessor
 from util import general_utils
-from util.constants import CREDENTIALS_FILE, TEST_DATA_DIR
+from util.constants import TEST_DATA_DIR
 from util.dummy import DummyProcessingRequest, SafeTestPipelineConfig
 
 # TODO: test_utils dir!

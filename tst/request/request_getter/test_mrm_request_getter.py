@@ -1,12 +1,8 @@
 import datetime as dt
-import os
-
-import pytest
 
 from data_type.pipeline_query import ParameterizedPipelineQuery
 from data_type.time_type import TimeType
 from request.request_getter.mrm_request_getter import MrmRequestGetter
-from util.constants import CREDENTIALS_FILE
 from util.dummy import DummyPipelineConfig
 
 

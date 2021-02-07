@@ -1,6 +1,5 @@
 import datetime as dt
 import filecmp
-import os
 
 import pandas as pd
 import pytest
@@ -9,7 +8,7 @@ from spacepy import pycdf
 from data_type.processing_request import ProcessingRequest
 from processor.idpu.fgm_processor import FgmProcessor
 from util import general_utils
-from util.constants import CREDENTIALS_FILE, TEST_DATA_DIR
+from util.constants import TEST_DATA_DIR
 from util.dummy import DUMMY_DOWNLINK_MANAGER, SafeTestPipelineConfig
 
 

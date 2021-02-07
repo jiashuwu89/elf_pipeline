@@ -17,7 +17,6 @@ from util.constants import (
     ONE_DAY_DELTA,
     STATE_CALCULATE_RADIUS,
     STATE_DEFN_CSV_DIR,
-    STATE_PRED_CSV_DIR,
 )
 
 
@@ -189,8 +188,10 @@ class StateRequestGetter(RequestGetter):
             cur_date = date - STATE_CALCULATE_RADIUS
             end_limit = date + STATE_CALCULATE_RADIUS
             while cur_date <= end_limit:
-                curr_date_fname = f"{STATE_DEFN_CSV_DIR}/{StateProcessor.get_fname(MISSION_DICT[mission_id], 1, 'state-defn', cur_date).split('.')[0]}.csv"
-                prev_date_fname = f"{STATE_DEFN_CSV_DIR}/{StateProcessor.get_fname(MISSION_DICT[mission_id], 1, 'state-defn', cur_date-ONE_DAY_DELTA).split('.')[0]}.csv"
+                curr_date_fname = f"""{STATE_DEFN_CSV_DIR}/{StateProcessor.get_fname(MISSION_DICT[mission_id],
+                                  1, 'state-defn', cur_date).split('.')[0]}.csv"""
+                prev_date_fname = f"""{STATE_DEFN_CSV_DIR}/{StateProcessor.get_fname(MISSION_DICT[mission_id],
+                                  1, 'state-defn', cur_date-ONE_DAY_DELTA).split('.')[0]}.csv"""
                 if os.path.exists(curr_date_fname) or os.path.exists(prev_date_fname):
                     attitude_requests.add(ProcessingRequest(mission_id, "state-defn", cur_date))
                 cur_date += ONE_DAY_DELTA
