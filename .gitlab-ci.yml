@@ -16,10 +16,9 @@ cache:
     - .cache/pip
     - .venv
 
-# 'build' stage not necessary right now
 stages:
   - Static Analysis
-  - release
+  - Deploy
 
 before_script:
   - python -V  # Print out python version for debugging
@@ -56,14 +55,8 @@ test:
       - htmlcov/
   coverage: '/TOTAL.* ([0-9.]{4,6})%/'
 
-# Not necessary right now
-# build-image:
-#   stage: build
-#   script:
-#     - echo "Nothing right now!"
-
 pages:
-  stage: release
+  stage: Deploy
   dependencies:
     - test
   script:
@@ -75,3 +68,22 @@ pages:
       - public
   only:
     - master
+
+deploy-vm:
+  stage: Deploy
+  environment:
+    name: Production
+    url: sciproc.elfin.ucla
+  tags:
+    - shell
+    - sciproc
+  before_script:
+    - echo "Deploying!"
+  script:
+    - cd /home/elfin/pipeline-refactor
+    - git fetch
+    - git checkout $CI_COMMIT_SHA
+    - poetry install
+  only:
+    - master
+  when: manual
