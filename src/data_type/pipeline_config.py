@@ -59,6 +59,19 @@ class PipelineConfig(ABC):
         """Specifies if warnings should be emailed, if problems occur"""
         raise NotImplementedError
 
+    def __repr__(self):
+        return (
+            "PipelineConfig(\n"
+            + f"\tsession.bind={self.session.bind},\n"
+            + f"\tupdate_db={self.update_db},\n"
+            + f"\tgenerate_files={self.generate_files},\n"
+            + f"\toutput_dir={self.output_dir},\n"
+            + f"\tstate_defn_csv_dir={self.state_defn_csv_dir},\n"
+            + f"\tstate_pred_csv_dir={self.state_pred_csv_dir},\n"
+            + f"\tupload={self.upload},\n"
+            + f"\temail={self.email}\n)"
+        )
+
 
 class ArgparsePipelineConfig(PipelineConfig):
     """An object that uses args from argparse to provide a PipelineConfig.

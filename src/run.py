@@ -7,7 +7,6 @@ import argparse
 import datetime as dt
 import logging
 import os
-import tempfile
 
 try:
     from git import Repo
@@ -18,6 +17,7 @@ from coordinator import Coordinator
 from data_type.pipeline_config import ArgparsePipelineConfig
 from data_type.pipeline_query import ArgparsePipelineQuery
 from util.constants import ALL_PRODUCTS, LOOK_BEHIND_DELTA
+from util.general_utils import tmpdir
 
 # Logging Init
 LOG_FORMAT: str = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
@@ -61,7 +61,7 @@ class CLIHandler:
             "--output-dir",
             help="specify directory to output generated files (Default: temporary directory)",
             action="store",
-            default=tempfile.mkdtemp(),
+            default=tmpdir(),
             metavar="DIR",
         )
 
