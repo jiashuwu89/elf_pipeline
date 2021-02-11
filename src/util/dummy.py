@@ -1,6 +1,5 @@
 """Dummy classes to help with testing"""
 import datetime as dt
-import tempfile
 
 from elfin.common import db
 
@@ -9,6 +8,7 @@ from data_type.processing_request import ProcessingRequest
 from output.downlink.downlink_manager import DownlinkManager
 from processor.science_processor import ScienceProcessor
 from util.constants import TEST_DATA_DIR
+from util.general_utils import tmpdir
 
 
 class DummyPipelineConfig(PipelineConfig):
@@ -16,7 +16,7 @@ class DummyPipelineConfig(PipelineConfig):
         if db.SESSIONMAKER is None:
             db.connect("production")
         self._session = db.SESSIONMAKER()
-        self._output_dir = tempfile.mkdtemp()
+        self._output_dir = tmpdir()
 
     @property
     def session(self):
@@ -66,7 +66,7 @@ class SafeTestPipelineConfig(PipelineConfig):
         if db.SESSIONMAKER is None:
             db.connect("production")
         self._session = db.SESSIONMAKER()
-        self._output_dir = tempfile.mkdtemp()
+        self._output_dir = tmpdir()
 
     @property
     def session(self):

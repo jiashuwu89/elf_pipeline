@@ -51,6 +51,7 @@ class Coordinator:
         self.exception_collector = ExceptionCollector(DAILY_EMAIL_LIST)
 
         self.pipeline_config = pipeline_config
+        self.logger.info(f"Initializing Coordinator with PipelineConfig:\n\n{self.pipeline_config}\n")
 
         self.downlink_manager = DownlinkManager(pipeline_config)
 

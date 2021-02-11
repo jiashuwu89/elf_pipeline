@@ -1,7 +1,10 @@
 """General utility functions"""
+import atexit
 import datetime as dt
 import hashlib
 import logging
+import shutil
+import tempfile
 from typing import Any, List
 
 import numpy as np
@@ -103,3 +106,26 @@ def calculate_file_md5sum(fname: str) -> str:
     digest = md5_hash.hexdigest()
 
     return digest
+
+
+def tmpdir() -> str:
+    """Creates a temporary directory that will be cleaned up.
+
+    It is better practice to avoid using this function. Instead, try opting
+    for context managers. In the case that context managers cannot be easily
+    utilized, this function may suffice.
+
+    Note that the directory will not be cleaned up when:
+        - The program is killed by a signal not handled by Python
+        - When a Python fatal internal error is detected
+        - When os._exit() is called
+    See https://docs.python.org/3/library/atexit.html for more information.
+
+    Returns
+    -------
+    str
+        Name of the generated temporary directory
+    """
+    dname = tempfile.mkdtemp()
+    atexit.register(lambda: shutil.rmtree(dname))
+    return dname
