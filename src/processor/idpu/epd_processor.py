@@ -141,41 +141,61 @@ class EpdProcessor(IdpuProcessor):
         """
 
         def get_measured_values_if_valid(packet_num, cur_data, header_marker):
-            """Returns a list to replace measured_values, will be empty if bad cur_data"""
+            """Uses data from a header packet to obtain new measured values.
+
+            Returns
+            -------
+            Tuple[bool, Union[List[None], List[int]]]
+                The first item represents whether the packet should be
+                ignored, whereas the second item represents the new value of
+                measured_values. The new measured_values will contain all None
+                if a problem is found (ie. the packet should be ignored)
+            """
             values = cur_data[header_marker + 1 :]
             if len(values) != BIN_COUNT * num_sectors:
                 self.logger.warning(f"⚠️ Header at packet number {packet_num} didn't have all reference bins")
-                return True, []
+                return True, [None] * BIN_COUNT * num_sectors
             return False, list(values)
 
         def update_measured_values_if_valid(measured_values, packet_num, cur_data):
-            """TODO: Modifies measured_values in place, but maybe it's better to just return it"""
+            """Use a non-header and previous measured_values to get new values.
+
+            TODO: Modifies measured_values in place, but maybe it's better to
+            just return it.
+
+            Returns
+            -------
+            Tuple[bool, Union[List[None], List[int]]]
+                The first item represents whether the packet should be
+                ignored, whereas the second item represents the new value of
+                measured_values. The new measured_values will contain all None
+                if a problem is found (ie. the packet should be ignored)
+            """
+            if None in measured_values:
+                return True, [None] * BIN_COUNT * num_sectors
+
             bitstring = byte_tools.bin_string(cur_data[10:])
-            ignore_packet = False
             for i in range(BIN_COUNT * num_sectors):  # Updating each of the 256 values in the period
                 try:
                     sign, bitstring = self.get_sign(bitstring)
                 except ValueError as e:
                     self.logger.warning(f"⚠️ Bad Sign: {e}, ind: {i}, packet {packet_num}")
-                    ignore_packet = True
+                    return True, [None] * BIN_COUNT * num_sectors
 
                 try:
                     delta1, bitstring = byte_tools.get_huffman(bitstring, table)
                     delta2, bitstring = byte_tools.get_huffman(bitstring, table)
                 except IndexError as e:
                     self.logger.warning(f"⚠️ Not enough bytes in continuation packet: {e}, packet {packet_num}")
-                    ignore_packet = True
+                    return True, [None] * BIN_COUNT * num_sectors
 
                 measured_values[i] += sign * ((delta1 << 4) + delta2)  # These values could be unbound
 
                 if not 0 <= measured_values[i] <= 255:
                     self.logger.warning(f"⚠️ measured_values went out of range [0, 255]: {measured_values[i]}")
-                    ignore_packet = True
+                    return True, [None] * BIN_COUNT * num_sectors
 
-                if ignore_packet:
-                    break
-
-            return ignore_packet, measured_values
+            return False, measured_values
 
         # IDPU 24 (IBO compressed) has a different bit layout, so data is offset by 1
         # .values is needed to prevent looking at indexing instead of value
@@ -214,7 +234,7 @@ class EpdProcessor(IdpuProcessor):
                         packet_num, cur_data, header_marker_byte
                     )
                 else:
-                    ignore_packet = True
+                    ignore_packet, measured_values = True, [None] * BIN_COUNT * num_sectors
 
             else:  # We get a non-header/non-reference frame/continuation frame
                 ignore_packet, measured_values = update_measured_values_if_valid(measured_values, packet_num, cur_data)
