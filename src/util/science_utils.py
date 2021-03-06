@@ -143,7 +143,7 @@ def convert_data_product_to_idpu_types(data_product: str) -> List[int]:
 
 
 def convert_data_products_to_idpu_types(data_products: List[str]) -> List[int]:
-    idpu_types = []
+    idpu_types = set()
     for product in data_products:
-        idpu_types += convert_data_product_to_idpu_types(product)
-    return idpu_types
+        idpu_types.update(convert_data_product_to_idpu_types(product))
+    return list(idpu_types)

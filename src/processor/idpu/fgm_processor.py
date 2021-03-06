@@ -42,7 +42,7 @@ class FgmFrequencyEnum(Enum):
 
     TEN_HERTZ = 0.1
     EIGHTY_HERTZ = 0.0125
-    UNKNOWN = 0.0125
+    UNKNOWN = -1
 
 
 class FgmProcessor(IdpuProcessor):
@@ -120,7 +120,7 @@ class FgmProcessor(IdpuProcessor):
         """
         df["sampling_rate"] = self.find_diff(df)
         df["10hz_mode"] = df["sampling_rate"].apply(
-            lambda x: self.check_sampling_rate(x.to_pytimedelta(), compressed=False)
+            lambda x: self.check_sampling_rate(x.to_pytimedelta(), multiplier=1)
         )
         df = self.drop_packets_by_freq(processing_request, df)
 
@@ -191,7 +191,9 @@ class FgmProcessor(IdpuProcessor):
 
         return l1_df
 
-    def is10hz_sampling_rate(self, first_ts: pd.Timestamp, second_ts: pd.Timestamp) -> FgmFrequencyEnum:
+    def is10hz_sampling_rate(
+        self, first_ts: pd.Timestamp, second_ts: pd.Timestamp, multiplier: int
+    ) -> FgmFrequencyEnum:
         """Checks the sampling rate between two times.
 
         This function actually checks if this is 80 hz or 10 hz.
@@ -205,16 +207,20 @@ class FgmProcessor(IdpuProcessor):
         ----------
         first_ts : pd.Timestamp
         second_ts : pd.Timestamp
+        multiplier: int
+            The number of packets compressed into a compressed packet. Can
+            be calculated with method packets_in_compressed_packet. If not
+            compressed, multiplier should probably be 1.
 
         Returns
         -------
         FgmFrequencyEnum
         """
         time_gap = second_ts - first_ts
-        return self.check_sampling_rate(time_gap, compressed=True)
+        return self.check_sampling_rate(time_gap, multiplier)
 
     @staticmethod
-    def check_sampling_rate(time_gap: Union[pd.Timedelta, dt.timedelta], compressed: bool = True) -> FgmFrequencyEnum:
+    def check_sampling_rate(time_gap: Union[pd.Timedelta, dt.timedelta], multiplier: int) -> FgmFrequencyEnum:
         """Given a time delta, determine the frequency.
 
         compressed is 10 decompressed packets per packet, so expect 1/freq*10
@@ -226,17 +232,16 @@ class FgmProcessor(IdpuProcessor):
             The time between two packets. One TODO is to eliminate the usage
             of two distinct representations of time and timedelta (pandas
             and datetime), as this just introduces unnecessary confusion
-        compressed : bool
-            A Boolean which indicates if the time delta is between packets of
-            compressed data. Defaults to True.
+        multiplier: int
+            The number of packets compressed into a compressed packet. Can
+            be calculated with method packets_in_compressed_packet. If not
+            compressed, multiplier should be 1.
 
         Returns
         -------
         FgmFrequencyEnum
             An enum with possible values of 10 hz, 80 hz, or neither
         """
-        multiplier = 10 if compressed else 1
-
         # check for 80 hz    microseconds in 81 hz < time_gap < microseconds in 79 hz
         if (
             dt.timedelta(microseconds=1 / 81 * 1e6) * multiplier
@@ -255,6 +260,31 @@ class FgmProcessor(IdpuProcessor):
             return FgmFrequencyEnum.TEN_HERTZ
 
         return FgmFrequencyEnum.UNKNOWN
+
+    @staticmethod
+    def packets_in_compressed_packet(idpu_time: Union[pd.Timestamp, dt.datetime]) -> int:
+        """Determines the number of packets in a compressed packet.
+
+        Used primarily in method check_sample_rate. From the start of the
+        mission until 2021-02-26 18:00:00, there were 10 packets compressed
+        into a compressed packet. Due to IBO, FGM changes were made such that
+        compressed packets after 2021-02-26 18:00:00 contain 25 packets.
+
+        TODO: An alternate approach to be explored is to empirically determine
+        the number of packets by counting as we parse each packet. This should
+        be implemented when this code is refactored.
+
+        Parameters
+        ----------
+        idpu_time: Union[pd.Timedelta, dt.timedelta]
+            Compression time of packet
+
+        Returns
+        -------
+        int
+            The number of decompressed packets in a compressed packet.
+        """
+        return 10 if idpu_time < dt.datetime(2021, 2, 26, 18) else 25
 
     def decompress_df(self, processing_request: ProcessingRequest, df: pd.DataFrame) -> pd.DataFrame:
         """Decompresses a compressed df of FGM data.
@@ -290,6 +320,7 @@ class FgmProcessor(IdpuProcessor):
 
         # Preparing the DataFrame that was received
         df["data"] = df["data"].apply(bytes.fromhex)
+        df["multiplier"] = df["idpu_time"].apply(self.packets_in_compressed_packet)
         df["idpu_time"] = df["data"].apply(lambda x: byte_tools.raw_idpu_bytes_to_datetime(x[:8]))
         df = df.sort_values(by=["idpu_time"]).drop_duplicates(["idpu_time", "data"])
 
@@ -303,8 +334,8 @@ class FgmProcessor(IdpuProcessor):
 
             # find sampling rate between current and previous packets
             if prev_time:
-                if self.is10hz_sampling_rate(prev_time, idpu_time) != FgmFrequencyEnum.UNKNOWN:
-                    frequency = self.is10hz_sampling_rate(prev_time, idpu_time)
+                if self.is10hz_sampling_rate(prev_time, idpu_time, row["multiplier"]) != FgmFrequencyEnum.UNKNOWN:
+                    frequency = self.is10hz_sampling_rate(prev_time, idpu_time, row["multiplier"])
             prev_time = idpu_time
 
             axes_values = [
