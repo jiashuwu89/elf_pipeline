@@ -34,10 +34,10 @@ ALL_PRODUCTS = EPD_PRODUCTS + FGM_PRODUCTS + ENG_PRODUCTS + MRM_PRODUCTS + STATE
 
 # A Dictionary mapping IDPU type to products
 PACKET_MAP = {
-    1: ["fgs"],  # TODO: Document this based on conversation with Ethan
-    2: ["fgs"],
-    17: ["fgf"],
-    18: ["fgf"],
+    1: ["fgs", "fgf"],  # TODO: Document this based on conversation with Ethan
+    2: ["fgs", "fgf"],
+    17: ["fgf", "fgf"],
+    18: ["fgf", "fgf"],
     3: ["epdef"],
     4: ["epdef"],
     22: ["epdef"],
@@ -56,8 +56,8 @@ PACKET_MAP = {
 # TODO: Figure this out (why are 1/2 fgs and fgf packets, but so are 17 and 18)
 SCIENCE_TYPES = {
     "eng": [14, 15, 16],  # 14: SIPS, 15: EPD, 16: FGM
-    "fgf": [17, 18],
-    "fgs": [1, 2],
+    "fgf": [1, 2, 17, 18],
+    "fgs": [1, 2, 17, 18],
     "epdef": [3, 4, 22, 24],
     "epdes": [20],
     "epdif": [5, 6, 23, 24],
