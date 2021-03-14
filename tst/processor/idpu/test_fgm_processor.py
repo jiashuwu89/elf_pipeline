@@ -51,8 +51,3 @@ class TestFgmProcessor:
         pr = ProcessingRequest(1, "state", dt.date(2020, 7, 1))
         with pytest.raises(ValueError):
             self.fgm_processor.drop_packets_by_freq(pr, pd.DataFrame())
-
-    def test_get_completeness_updater(self):
-        pr = ProcessingRequest(1, "fgs", dt.date(2020, 7, 1))
-        completeness_updater = self.fgm_processor.get_completeness_updater(pr)
-        assert completeness_updater is not None

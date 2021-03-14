@@ -3,7 +3,7 @@ import datetime as dt
 import logging
 import math
 import statistics
-from typing import Any, List, Optional, Tuple, Type
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import numpy as np
 import pandas as pd
@@ -27,21 +27,49 @@ class CompletenessUpdater:
         completeness
     """
 
-    def __init__(self, session: sqlalchemy.orm.session.Session, completeness_config: Type[CompletenessConfig]):
+    def __init__(
+        self, session: sqlalchemy.orm.session.Session, completeness_config_map: Dict[Any, Type[CompletenessConfig]]
+    ):
         self.session = session
-        self.completeness_config = completeness_config
+        self.completeness_config_map = completeness_config_map
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def update_completeness_table(
         self, processing_request: ProcessingRequest, df: pd.DataFrame, update_table: bool
-    ) -> bool:
+    ) -> None:
         """Update ScienceZoneCompleteness table, if possible
 
         Parameters
         ----------
         processing_request : ProcessingRequest
         df : pd.DataFrame
-            A DataFrame with two columns, "times" and "idpu_types". The
+            A DataFrame with two columns, "times" and "idpu_type". The
+            "times" column should contain sorted, not-null times...
+        update_table : bool
+            Determines if completeness entries are written to the database
+        """
+
+        if df.empty:
+            self.logger.warning("Empty DataFrame, cannot update completeness table")
+            return
+
+        for idpu_type in df["idpu_type"].unique():
+            cur_df = df.loc[df["idpu_type"] == idpu_type]
+            self.update_completeness_table_with_single_idpu_type(processing_request, cur_df, update_table)
+
+    def update_completeness_table_with_single_idpu_type(
+        self, processing_request: ProcessingRequest, df: pd.DataFrame, update_table: bool
+    ) -> bool:
+        """Update ScienceZoneCompleteness table, if possible
+
+        Serves as a helper for method update_completeness_table.
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+        df : pd.DataFrame
+            A DataFrame with two columns, "times" and "idpu_type". The
+            "idpu_type" column should consist of a single type. The
             "times" column should contain sorted, not-null times...
         update_table : bool
             Determines if completeness entries are written to the database
@@ -49,28 +77,26 @@ class CompletenessUpdater:
         Returns
         -------
         bool
-            Returns True is the table is uploaded, False if not
+            True if the completeness table could be successfully updated,
+            False otherwise
         """
-
         if df.empty:
             self.logger.warning("Empty DataFrame, cannot update completeness table")
             return False
 
-        # Get IDPU Type so that DCT can determine if data is compressed (MRM's idpu_type will be -1)
-        # TODO: Handle multiple IDPU Types, this assumes only a single IDPU Type (seems ok for now, usually don't
-        # collect compressed and uncompressed)
         idpu_types = df["idpu_type"].unique()
         if len(idpu_types) != 1:
-            self.logger.warning(f"Expected only a single unique idpu type, but instead got {len(idpu_types)}")
+            self.logger.warning(f"Expected a single unique idpu type, not {len(idpu_types)} - skipping completeness!")
             return False
+
         idpu_type = int(idpu_types[0])
+        data_type = COMPLETENESS_TABLE_PRODUCT_MAP[processing_request.data_product][idpu_type]
+        completeness_config = self.completeness_config_map[data_type]
+
         times = df["times"]
-
-        data_type = COMPLETENESS_TABLE_PRODUCT_MAP[processing_request.data_product]
-
         szs = self.split_science_zones(times)
 
-        median_diff = self.get_median_diff(szs)
+        median_diff = self.get_median_diff(completeness_config, szs)
         if median_diff is None:
             self.logger.warning("Could not calculate median diff, so could not calculate completeness")
             return False
@@ -80,7 +106,7 @@ class CompletenessUpdater:
 
         # Update completeness for each science zone
         for sz in szs:
-            start_time, end_time = self.estimate_time_range(processing_request, sz)
+            start_time, end_time = self.estimate_time_range(processing_request, completeness_config, sz)
             if start_time is None and end_time is None:
                 continue
 
@@ -207,7 +233,9 @@ class CompletenessUpdater:
         self.logger.info(f"Found {len(szs)} science zone{s_if_plural(szs)}")
         return szs
 
-    def get_median_diff(self, szs: List[List[np.datetime64]]) -> Optional[float]:
+    def get_median_diff(
+        self, completeness_config: CompletenessConfig, szs: List[List[np.datetime64]]
+    ) -> Optional[float]:
         """Calculates the median diff (delta) between packets grouped by zone.
 
         We find the time delta between a packet and its immediate neighbors,
@@ -226,8 +254,8 @@ class CompletenessUpdater:
             The median diff, if a median diff can be calculated. Otherwise,
             returns None.
         """
-        if self.completeness_config.median_diff is not None:
-            return self.completeness_config.median_diff
+        if completeness_config.median_diff is not None:
+            return completeness_config.median_diff
 
         diffs = []
         for sz in szs:
@@ -236,7 +264,9 @@ class CompletenessUpdater:
         return statistics.median(diffs) if diffs else None
 
     # TODO: Get better return type
-    def estimate_time_range(self, processing_request: ProcessingRequest, sz: List[np.datetime64]) -> Tuple[Any, Any]:
+    def estimate_time_range(
+        self, processing_request: ProcessingRequest, completeness_config: CompletenessConfig, sz: List[np.datetime64]
+    ) -> Tuple[Any, Any]:
         """Estimates the start and end time of a collection.
 
         The start and end times are estimated by using the first and last
@@ -246,8 +276,9 @@ class CompletenessUpdater:
 
         Parameters
         ----------
-        processing_request
-        sz
+        processing_request : ProcessingRequest
+        completeness_config : CompletenessConfig
+        sz : List[np.datetime64]
 
         Returns
         -------
@@ -266,7 +297,7 @@ class CompletenessUpdater:
                 models.TimeIntervals.end_time >= sz_start_time.to_pydatetime(),
                 models.TimeIntervals.mission_id == processing_request.mission_id,
                 models.TimeIntervals.interval_type == "ExecutionTime",
-                models.Intent.intent_type == self.completeness_config.intent_type,
+                models.Intent.intent_type == completeness_config.intent_type,
             )
             .join(models.Intent, models.TimeIntervals.intent_id == models.Intent.id)
             .first()
@@ -277,11 +308,11 @@ class CompletenessUpdater:
 
         start_time = min(
             sz_start_time,
-            q.start_time + self.completeness_config.start_delay + self.completeness_config.start_margin,
+            q.start_time + completeness_config.start_delay + completeness_config.start_margin,
         )
         end_time = max(
             sz_end_time,
-            q.start_time + self.completeness_config.start_delay + self.completeness_config.expected_collection_duration,
+            q.start_time + completeness_config.start_delay + completeness_config.expected_collection_duration,
         )
 
         return start_time, end_time

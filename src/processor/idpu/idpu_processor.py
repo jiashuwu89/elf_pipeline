@@ -6,6 +6,7 @@ import pandas as pd
 from elfin.libelfin.utils import compute_crc
 from spacepy import pycdf
 
+from data_type.completeness_config import COMPLETENESS_CONFIG_MAP
 from data_type.downlink import Downlink
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
@@ -35,6 +36,7 @@ class IdpuProcessor(ScienceProcessor):
         super().__init__(pipeline_config)
 
         self.downlink_manager = downlink_manager
+        self.completeness_updater = CompletenessUpdater(pipeline_config.session, COMPLETENESS_CONFIG_MAP)
 
     def generate_files(self, processing_request: ProcessingRequest) -> List[str]:
         """Creates level 0 and 1 files for the given processing request.
@@ -345,25 +347,7 @@ class IdpuProcessor(ScienceProcessor):
         l0_df_copy["times"] = l0_df_copy["idpu_time"]
         df = l0_df_copy[["times", "data", "idpu_type"]].drop_duplicates().dropna()[["times", "idpu_type"]]
 
-        completeness_updater = self.get_completeness_updater(processing_request)
-        if completeness_updater:
-            completeness_updater.update_completeness_table(processing_request, df, self.update_db)
-
-    @abstractmethod
-    def get_completeness_updater(self, processing_request: ProcessingRequest) -> CompletenessUpdater:
-        """Obtains a CompletenessUpdater to update completeness of data.
-
-        TODO: Is it better to have the method be get_completeness_config?
-
-        Parameters
-        ----------
-        processing_request : ProcessingRequest
-
-        Returns
-        -------
-        CompletenessUpdater
-        """
-        raise NotImplementedError
+        self.completeness_updater.update_completeness_table(processing_request, df, self.update_db)
 
     def generate_l0_file(self, processing_request: ProcessingRequest, l0_df: pd.DataFrame) -> Tuple[str, pd.DataFrame]:
         """From the given level 0 DataFrame, create a level 0 csv.

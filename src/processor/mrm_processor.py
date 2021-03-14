@@ -6,7 +6,7 @@ import pandas as pd
 from elfin.common import models
 from spacepy import pycdf
 
-from data_type.completeness_config import MrmCompletenessConfig
+from data_type.completeness_config import COMPLETENESS_CONFIG_MAP
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
 from output.metric.completeness import CompletenessUpdater
@@ -27,7 +27,7 @@ class MrmProcessor(ScienceProcessor):
     def __init__(self, pipeline_config: Type[PipelineConfig]):
         super().__init__(pipeline_config)
 
-        self.completeness_updater = CompletenessUpdater(pipeline_config.session, MrmCompletenessConfig)
+        self.completeness_updater = CompletenessUpdater(pipeline_config.session, COMPLETENESS_CONFIG_MAP)
 
     def generate_files(self, processing_request: ProcessingRequest) -> List[str]:
         """Generates a level 1 MRM file, given a processing request.

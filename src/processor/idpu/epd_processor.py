@@ -4,11 +4,9 @@ from typing import Dict, List, Tuple
 import pandas as pd
 from spacepy import pycdf
 
-from data_type.completeness_config import EpdeCompletenessConfig, EpdiCompletenessConfig
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
 from output.downlink.downlink_manager import DownlinkManager
-from output.metric.completeness import CompletenessUpdater
 from processor.idpu.idpu_processor import IdpuProcessor
 from util import byte_tools
 from util.compression_values import EPD_HUFFMAN, EPD_LOSSY_VALS
@@ -33,14 +31,11 @@ class EpdProcessor(IdpuProcessor):
     def __init__(self, pipeline_config: PipelineConfig, downlink_manager: DownlinkManager):
         super().__init__(pipeline_config, downlink_manager)
 
-        self.epde_completeness_updater = CompletenessUpdater(pipeline_config.session, EpdeCompletenessConfig)
-        self.epdi_completeness_updater = CompletenessUpdater(pipeline_config.session, EpdiCompletenessConfig)
-
     def process_rejoined_data(self, processing_request: ProcessingRequest, df: pd.DataFrame) -> pd.DataFrame:
         """Provided a DataFrame of rejoined data, perform needed processing.
 
         This method expects that all data is of the same IDPU type, but
-        performs checking, just in case.
+        performs checking, just in case. This is an IMPORTANT invariant!
 
         NOTE: Both regularly-compressed data and survey data must be
         decompressed - the only difference is the number of sectors.
@@ -70,13 +65,11 @@ class EpdProcessor(IdpuProcessor):
             df = self.update_uncompressed_df(df)
         elif compressed:
             if inner:
-                df = self.decompress_df(
-                    df=df, num_sectors=16, table=EPD_HUFFMAN, data_product=processing_request.data_product
-                )
+                df = self.decompress_df(processing_request, df=df, num_sectors=16, table=EPD_HUFFMAN)
             else:
-                df = self.decompress_df(df=df, num_sectors=16, table=EPD_HUFFMAN)
+                df = self.decompress_df(processing_request, df=df, num_sectors=16, table=EPD_HUFFMAN)
         elif survey:
-            df = self.decompress_df(df=df, num_sectors=4, table=EPD_HUFFMAN)
+            df = self.decompress_df(processing_request, df=df, num_sectors=4, table=EPD_HUFFMAN)
         else:
             self.logger.warning("⚠️ Detected neither compressed nor uncompressed nor survey data.")
 
@@ -104,7 +97,7 @@ class EpdProcessor(IdpuProcessor):
         return df
 
     def decompress_df(
-        self, df: pd.DataFrame, num_sectors: int, table: Dict[str, int], data_product: str = None
+        self, processing_request: ProcessingRequest, df: pd.DataFrame, num_sectors: int, table: Dict[str, int]
     ) -> pd.DataFrame:
         """Decompresses a DataFrame of compressed packets
 
@@ -127,6 +120,7 @@ class EpdProcessor(IdpuProcessor):
 
         Parameters
         ----------
+        processing_request : ProcessingRequest
         df : pd.DataFrame
             DataFrame of EPD data to be decompressed
         num_sectors : int
@@ -225,7 +219,7 @@ class EpdProcessor(IdpuProcessor):
                 if ibo_offset:  # Special case of compressed IBO data
                     data_type_byte = 10
                     data_type = "epdif" if cur_data[data_type_byte] >> 4 == 1 else "epdef"  # Top 4 bits are 0001
-                    correct_data_type = data_type == data_product
+                    correct_data_type = data_type == processing_request.data_product
                 else:  # All other types will always be true
                     correct_data_type = True
 
@@ -564,25 +558,6 @@ class EpdProcessor(IdpuProcessor):
 
         if categories_filled != 3:
             self.logger.warning("Issues with Inserting Energy Information!!")
-
-    def get_completeness_updater(self, processing_request: ProcessingRequest) -> CompletenessUpdater:
-        """Returns the relevant completeness updater.
-
-        The CompletenessUpdater depends on the data product (EPDE vs EPDI)
-
-        Parameters
-        ----------
-        processing_request : ProcessingRequest
-
-        Returns
-        -------
-        CompletenessUpdater
-        """
-        if processing_request.data_product[-2] == "e":
-            return self.epde_completeness_updater
-        if processing_request.data_product[-2] == "i":
-            return self.epdi_completeness_updater
-        raise ValueError(f"Bad data_product: {processing_request.data_product}")
 
     def get_cdf_fields(self, processing_request: ProcessingRequest) -> Dict[str, str]:
         """Gets a map of relevant CDF fields for EPD data to DF column names.
