@@ -1,53 +1,61 @@
 import datetime as dt
-from abc import ABC
+from dataclasses import dataclass
+from typing import Optional
 
 
-class CompletenessConfig(ABC):
-    idpu_type = None
-    data_type = None
-    intent_type = None
-    start_delay = None
-    start_margin = None
-    median_diff = None
-    expected_collection_duration = None
+@dataclass
+class CompletenessConfig:
+    data_type: str
+    start_delay: dt.timedelta
+    start_margin: dt.timedelta
+    expected_collection_duration: dt.timedelta
+
+    idpu_type: int = -1
+    intent_type: str = "ScienceCollection"
+    median_diff: Optional[float] = None
 
 
-class MrmCompletenessConfig(CompletenessConfig):
-    idpu_type = -1
-    data_type = "MRM"
-    intent_type = "AttitudeCollection"
-    start_delay = dt.timedelta(seconds=0)
-    start_margin = dt.timedelta(seconds=3)
-    median_diff = 0.32  # (mrm sample rate = 56.25/18)
-    expected_collection_duration = dt.timedelta(minutes=24)
+MRM_COMPLETENESS_CONFIG = CompletenessConfig(
+    data_type="MRM",
+    start_delay=dt.timedelta(seconds=0),
+    start_margin=dt.timedelta(seconds=3),
+    expected_collection_duration=dt.timedelta(minutes=24),
+    intent_type="AttitudeCollection",
+    median_diff=0.32,  # (mrm sample rate = 56.25/18)
+)
 
+FGM_COMPLETENESS_CONFIG = CompletenessConfig(
+    data_type="FGM",
+    start_delay=dt.timedelta(seconds=50),  # 3 second margin
+    start_margin=dt.timedelta(seconds=3),
+    expected_collection_duration=dt.timedelta(minutes=6, seconds=5),
+    idpu_type=2,
+)
 
-class FgmCompletenessConfig(CompletenessConfig):
-    idpu_type = 2
-    data_type = "FGM"
-    intent_type = "ScienceCollection"
-    start_delay = dt.timedelta(seconds=50)  # 3 second margin
-    start_margin = dt.timedelta(seconds=3)
-    median_diff = None
-    expected_collection_duration = dt.timedelta(minutes=6, seconds=5)
+EPDE_COMPLETENESS_CONFIG = CompletenessConfig(
+    data_type="EPDE",
+    start_delay=dt.timedelta(seconds=50),  # first two spin periods discarded, with 3 seconds margin
+    start_margin=dt.timedelta(seconds=9),
+    expected_collection_duration=dt.timedelta(minutes=6, seconds=5),
+    idpu_type=4,
+)
 
+EPDI_COMPLETENESS_CONFIG = CompletenessConfig(
+    data_type="EPDI",
+    start_delay=dt.timedelta(seconds=50),
+    start_margin=dt.timedelta(seconds=9),
+    expected_collection_duration=dt.timedelta(minutes=6, seconds=5),
+    idpu_type=6,
+)
 
-class EpdeCompletenessConfig(CompletenessConfig):
-    idpu_type = 4
-    data_type = "EPDE"
-    intent_type = "ScienceCollection"
-    # first two spin periods discarded, with 3 seconds margin
-    start_delay = dt.timedelta(seconds=50)
-    start_margin = dt.timedelta(seconds=9)
-    median_diff = None
-    expected_collection_duration = dt.timedelta(minutes=6, seconds=5)
+IEPDE_COMPLETENESS_CONFIG = EPDE_COMPLETENESS_CONFIG
+IEPDI_COMPLETENESS_CONFIG = EPDI_COMPLETENESS_CONFIG
 
-
-class EpdiCompletenessConfig(CompletenessConfig):
-    idpu_type = 6
-    data_type = "EPDI"
-    intent_type = "ScienceCollection"
-    start_delay = dt.timedelta(seconds=50)
-    start_margin = dt.timedelta(seconds=9)
-    median_diff = None
-    expected_collection_duration = dt.timedelta(minutes=6, seconds=5)
+COMPLETENESS_CONFIG_MAP = {
+    "MRM": MRM_COMPLETENESS_CONFIG,
+    "FGM": FGM_COMPLETENESS_CONFIG,
+    "EPDE": EPDE_COMPLETENESS_CONFIG,
+    "EPDI": EPDI_COMPLETENESS_CONFIG,
+    "IEPDE": IEPDE_COMPLETENESS_CONFIG,
+    "IEPDI": IEPDI_COMPLETENESS_CONFIG,
+}

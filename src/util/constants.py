@@ -71,16 +71,36 @@ MRM_ENUM_MAP = {
     models.MRM_Type.IDPU: "mrmi",
 }
 
-# In the science_zone_completeness table, the data product column expects "FGM", "EPD", or "MRM"
+# Dictionaries relating to completeness
+FGM_COMPLETENESS_TABLE_PRODUCT_MAP = {1: "FGM", 2: "FGM", 17: "FGM", 18: "FGM"}
+
+EPDE_COMPLETENESS_TABLE_PRODUCT_MAP = {
+    3: "EPDE",
+    4: "EPDE",
+    20: "EPDE",  # TODO: Separate label for survey mode?
+    22: "IEPDE",
+    24: "IEPDE",
+}
+
+EPDI_COMPLETENESS_TABLE_PRODUCT_MAP = {
+    5: "EPDI",
+    6: "EPDI",
+    19: "EPDI",  # TODO: Separate label for survey mode?
+    23: "IEPDI",
+    24: "IEPDI",
+}
+
+MRM_COMPLETENESS_TABLE_PRODUCT_MAP = {-1: "MRM"}
+
 COMPLETENESS_TABLE_PRODUCT_MAP = {
-    "fgs": "FGM",
-    "fgf": "FGM",
-    "epdef": "EPDE",
-    "epdif": "EPDI",
-    "epdes": "EPDE",
-    "epdis": "EPDI",
-    "mrma": "MRM",
-    "mrmi": "MRM",
+    "fgs": FGM_COMPLETENESS_TABLE_PRODUCT_MAP,
+    "fgf": FGM_COMPLETENESS_TABLE_PRODUCT_MAP,
+    "epdef": EPDE_COMPLETENESS_TABLE_PRODUCT_MAP,
+    "epdes": EPDE_COMPLETENESS_TABLE_PRODUCT_MAP,
+    "epdif": EPDI_COMPLETENESS_TABLE_PRODUCT_MAP,
+    "epdis": EPDI_COMPLETENESS_TABLE_PRODUCT_MAP,
+    "mrma": MRM_COMPLETENESS_TABLE_PRODUCT_MAP,
+    "mrmi": MRM_COMPLETENESS_TABLE_PRODUCT_MAP,
 }
 
 # Science zone completeness gap boundaries and science zone sections

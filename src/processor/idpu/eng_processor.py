@@ -294,19 +294,6 @@ class EngProcessor(IdpuProcessor):
         bmon_df = pd.concat([fc_avionics_temp_1, fc_avionics_temp_2], axis=0, ignore_index=True, sort=True)
         return bmon_df
 
-    def get_completeness_updater(self, processing_request):
-        """No completeness calculations necessary for ENG data.
-
-        Parameters
-        ----------
-        processing_request
-
-        Returns
-        -------
-        None
-        """
-        return None
-
     def get_cdf_fields(self, processing_request):
         """Provides a mapping of CDF fields to DataFrame fields for ENG data.
 

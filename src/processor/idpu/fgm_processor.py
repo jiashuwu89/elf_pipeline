@@ -6,11 +6,9 @@ from typing import Dict, List, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from data_type.completeness_config import FgmCompletenessConfig
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
 from output.downlink.downlink_manager import DownlinkManager
-from output.metric.completeness import CompletenessUpdater
 from processor.idpu.idpu_processor import IdpuProcessor
 from util import byte_tools
 from util.compression_values import FGM_HUFFMAN
@@ -60,8 +58,6 @@ class FgmProcessor(IdpuProcessor):
 
     def __init__(self, pipeline_config: PipelineConfig, downlink_manager: DownlinkManager):
         super().__init__(pipeline_config, downlink_manager)
-
-        self.completeness_updater = CompletenessUpdater(pipeline_config.session, FgmCompletenessConfig)
 
     def process_rejoined_data(self, processing_request: ProcessingRequest, df: pd.DataFrame) -> pd.DataFrame:
         """Return a dataframe corresponding to correctly formatted data products
@@ -573,20 +569,6 @@ class FgmProcessor(IdpuProcessor):
         df = df[["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "10hz_mode"]]
 
         return df.reset_index()
-
-    def get_completeness_updater(self, processing_request: ProcessingRequest) -> CompletenessUpdater:
-        """Provides an FGM-specific CompletenessUpdater.
-
-        Parameters
-        ----------
-        processing_request : ProcessingRequest
-
-        Returns
-        -------
-        CompletenessUpdater
-            An FGM-specific CompletenessUpdater
-        """
-        return self.completeness_updater
 
     def get_cdf_fields(self, processing_request: ProcessingRequest) -> Dict[str, str]:
         """Gets a map of relevant CDF fields for FGM data to DF column names.
