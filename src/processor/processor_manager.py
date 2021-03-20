@@ -4,6 +4,7 @@ import os
 import traceback
 from typing import Dict, Iterable, Set, Type
 
+from data_type.exception import EmptyException
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
 from output.exception_collector import ExceptionCollector
@@ -59,6 +60,8 @@ class ProcessorManager:
                     f"🕶  Successfully generated files: {', '.join(os.path.basename(f) for f in generated_files)}"
                 )
                 files.update(generated_files)
+            except EmptyException as e:
+                self.logger.warning(f"EmptyException caught: {e}")
             except Exception as e:
                 traceback_msg = traceback.format_exc()
                 self.exception_collector.record_exception(str(pr), e, traceback_msg)

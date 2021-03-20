@@ -8,6 +8,7 @@ from spacepy import pycdf
 
 from data_type.completeness_config import COMPLETENESS_CONFIG_MAP
 from data_type.downlink import Downlink
+from data_type.exception import EmptyException
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
 from output.downlink import downlink_utils
@@ -111,7 +112,7 @@ class IdpuProcessor(ScienceProcessor):
         self.logger.info("✔️ Done with final merge")
 
         if df.empty:
-            raise RuntimeError(f"Final Dataframe is empty: {str(processing_request)}")
+            raise EmptyException(f"Final Dataframe is empty: {str(processing_request)}")
 
         return df
 
@@ -380,7 +381,7 @@ class IdpuProcessor(ScienceProcessor):
         l0_df["idpu_time"] = l0_df["idpu_time"].apply(pycdf.lib.datetime_to_tt2000)
 
         if l0_df.empty:
-            raise RuntimeError(f"Empty level 0 DataFrame: {str(processing_request)}")
+            raise EmptyException(f"Empty level 0 DataFrame: {str(processing_request)}")
 
         # Generate L0 file
         fname = self.make_filename(processing_request, 0, l0_df.shape[0])
@@ -444,7 +445,7 @@ class IdpuProcessor(ScienceProcessor):
             ]
             l1_df["idpu_time"] = l1_df["idpu_time"].apply(dt_to_tt2000)
             if l1_df.empty:
-                raise RuntimeError(f"Final Dataframe is empty: {str(processing_request)}")
+                raise EmptyException(f"Final Dataframe is empty: {str(processing_request)}")
 
         except KeyError:
             self.logger.debug("The column 'idpu_time' does not exist, but it's probably OK")

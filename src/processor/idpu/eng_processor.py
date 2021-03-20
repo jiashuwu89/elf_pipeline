@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from elfin.common import models
 
+from data_type.exception import EmptyException
 from data_type.processing_request import ProcessingRequest
 from processor.idpu.idpu_processor import IdpuProcessor
 from util.constants import ONE_DAY_DELTA
@@ -120,7 +121,7 @@ class EngProcessor(IdpuProcessor):
                 l1_df[time_col] = l1_df[time_col].apply(dt_to_tt2000)
 
         if l1_df.empty:
-            raise RuntimeError(f"Final Dataframe is empty: {str(processing_request)}")
+            raise EmptyException(f"Final Dataframe is empty: {str(processing_request)}")
 
         return l1_df
 
@@ -165,7 +166,7 @@ class EngProcessor(IdpuProcessor):
             self.logger.info("No Battery Monitor Data")
 
         if final_df.empty:
-            raise RuntimeError("Empty df")
+            raise EmptyException("Empty df")
         return final_df
 
     # TODO: figure out type of idpu_time
