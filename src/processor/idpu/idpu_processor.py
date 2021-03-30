@@ -237,6 +237,10 @@ class IdpuProcessor(ScienceProcessor):
                 while len(cur_data) < expected_length:
                     idx += 1
                     cur_data += data.iloc[idx]
+            except IndexError:
+                self.logger.debug("End of DataFrame!")
+                missing_numerators.append(d["numerator"].iloc[-1])
+                continue
             except Exception as e:  # Missing packet (or something else)
                 self.logger.debug(f"Dropping idx={idx}: Empty continuation (Exception={e})\n")
                 missing_numerators.append(d["numerator"].iloc[idx])
