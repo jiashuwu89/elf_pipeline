@@ -178,7 +178,10 @@ class StateProcessor(ScienceProcessor):
 
         date_lower_bound = pd.Timestamp(processing_request.date)
         date_upper_bound = pd.Timestamp(processing_request.date + ONE_DAY_DELTA)
-        return df.loc[(df.index >= date_lower_bound) & (df.index < date_upper_bound)]
+        cleaned_df = df.loc[(df.index >= date_lower_bound) & (df.index < date_upper_bound)]
+        cleaned_df = cleaned_df.loc[~cleaned_df.index.duplicated(keep="last")]
+
+        return cleaned_df
 
     def read_state_csv(self, csv_fname: str) -> pd.DataFrame:
         """Read the state vectors CSV produced by STK.
