@@ -15,7 +15,7 @@ class TestGeneralUtils:
         assert general_utils.calculate_file_md5sum(fname_1) == "08a87dbef01519e6bf502bf0e5f4219e"
 
         fname_2 = "tst/test_data/cdf/elb_l1_state_defn_20200613_v01.cdf"
-        assert general_utils.calculate_file_md5sum(fname_2) == "9cde058e6c6c9e967728409dd56c8377"
+        assert general_utils.calculate_file_md5sum(fname_2) == "6e9339185dd45c338df3e691df236e65"
 
     def test_tmpdir(self):
         dname = general_utils.tmpdir()
