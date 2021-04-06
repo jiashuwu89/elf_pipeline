@@ -107,9 +107,10 @@ COMPLETENESS_TABLE_PRODUCT_MAP = {
 SMALL_LARGE_GAP_MULTIPLIERS = (1.5, 8.0)
 SCIENCE_ZONE_SECTIONS = [1 / 3, 2 / 3]
 
-# IDPU types of compressed data, survey data
+# IDPU types of compressed data, survey data, IBO data
 COMPRESSED_TYPES = [2, 4, 6, 18, 19, 20, 24]
 SURVEY_TYPES = [19, 20]
+IBO_TYPES = [22, 23, 24]
 
 # IDL
 IDL_SCRIPT_VERSION = 8
@@ -167,3 +168,4 @@ ATTITUDE_SOLUTION_RADIUS = dt.timedelta(days=30)
 # EPD
 BIN_COUNT = 16
 VALID_NUM_SECTORS = [4, 16]
+IBO_DATA_BYTE = 10
