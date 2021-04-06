@@ -458,6 +458,7 @@ class EpdProcessor(IdpuProcessor):
                 "spin_period": all_spin_periods,
                 "spin_integration_factor": all_spin_integration_factors,
                 "sec_num": all_sec_num,
+                "numsectors": num_sectors,  # NOTE: Revisit this if the number of sectors changes!
                 "bin00": bins[0],
                 "bin01": bins[1],
                 "bin02": bins[2],
@@ -595,6 +596,7 @@ class EpdProcessor(IdpuProcessor):
             f"{prefix}": "data",
             f"{prefix}_time": "idpu_time",
             f"{prefix}_sectnum": "sec_num",
+            f"{prefix}_numsectors": "numsectors",
             f"{prefix}_spinper": "spin_period",
             f"{prefix}_nspinsinsum": "spin_integration_factor",  # Used spin_integration_factor because I like it more
         }
