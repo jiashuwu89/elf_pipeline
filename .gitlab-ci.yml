@@ -5,7 +5,7 @@ variables:
   # only cache local items.
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   # Update this variable whenever a new development image is compiled.
-  DEV_IMAGE: git.elfin.ucla:5050/science-processing/pipeline-refactor/dev-image:fef5d134
+  DEV_IMAGE: git.elfin.ucla:5050/science-processing/pipeline-refactor/dev-image:06a51800
 
 # Use a custom docker image that contains our development environment
 # (CDF, gFortran, and Poetry). See docker/ for more details.
@@ -60,8 +60,8 @@ pages:
   dependencies:
     - test
   script:
-    - make doc  # Sphinx autodoc
-    - mv doc/build/html/ public/
+    - make doc
+    - mv doc/build/html/ public/  # Sphinx autodoc
     - mv htmlcov/ public/  # Coverage report
   artifacts:
     paths:
@@ -81,9 +81,8 @@ deploy-vm:
     - echo "Deploying!"
   script:
     - cd /home/elfin/pipeline-refactor
-    - git fetch
-    - git checkout $CI_COMMIT_SHA
+    - git checkout $CI_DEFAULT_BRANCH
+    - git pull
     - poetry install
   only:
     - master
-  when: manual
