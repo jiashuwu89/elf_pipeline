@@ -10,7 +10,14 @@ from output.downlink.downlink_manager import DownlinkManager
 from processor.idpu.idpu_processor import IdpuProcessor
 from util import byte_tools
 from util.compression_values import EPD_HUFFMAN, EPD_LOSSY_VALS
-from util.constants import BIN_COUNT, EPD_CALIBRATION_DIR, IBO_DATA_BYTE, VALID_NUM_SECTORS
+from util.constants import (
+    BIN_COUNT,
+    EPD_CALIBRATION_DIR,
+    IBO_DATA_BYTE,
+    IBO_TYPES,
+    INSTRUMENT_CLK_FACTOR,
+    VALID_NUM_SECTORS,
+)
 
 # EPD_ENERGIES = [[50., 70., 110., 160., 210., 270., 345., 430., 630., 900., 1300., 1800., 2500., 3000., 3850., 4500.]]
 
@@ -439,7 +446,9 @@ class EpdProcessor(IdpuProcessor):
         for _, row in df.iterrows():
             cur_spin_period, cur_time_captured, bin_data = self.get_context(row["data"])
             all_idpu_times.extend(
-                self.calculate_center_times_for_period(cur_spin_period, cur_time_captured, num_sectors)
+                self.calculate_center_times_for_period(
+                    cur_spin_period, cur_time_captured, num_sectors, row["idpu_type"], row["spin_integration_factor"]
+                )
             )
             all_spin_periods.extend([cur_spin_period for _ in range(num_sectors)])
             all_spin_integration_factors.extend([row["spin_integration_factor"] for _ in range(num_sectors)])
@@ -489,12 +498,31 @@ class EpdProcessor(IdpuProcessor):
         bin_data = bytes.fromhex(data[20:])
         return spin_period, byte_tools.raw_idpu_bytes_to_datetime(time_bytes), bin_data
 
-    def calculate_center_times_for_period(self, spin_period, time_captured, num_sectors):
+    def calculate_center_times_for_period(
+        self, spin_period, time_captured, num_sectors, data_type, spin_integration_factor
+    ):
         """ Interpolates center times for in between sectors and converts to tt2000 """
-        seconds_per_sector = dt.timedelta(seconds=(spin_period / 80) / 16)
+        seconds_per_sector = dt.timedelta(seconds=(spin_period / INSTRUMENT_CLK_FACTOR) / num_sectors)
         center_time_offset = seconds_per_sector / 2
-        self.logger.debug(f"seconds per sector = {seconds_per_sector}, center time offset = {center_time_offset}")
-        return [(time_captured + seconds_per_sector * i + center_time_offset) for i in range(0, 16, 16 // num_sectors)]
+
+        spin_integration_offset = dt.timedelta(seconds=0)
+        # Set IBO Time to find center of all the spins instead of the beginning
+        if data_type in IBO_TYPES:
+            spin_integration_offset = dt.timedelta(
+                seconds=(spin_integration_factor / 2 - 0.5) * (spin_period / INSTRUMENT_CLK_FACTOR)
+            )
+
+        self.logger.debug(
+            f"seconds per sector = {seconds_per_sector},"
+            f" center time offset = {center_time_offset},"
+            f" spin_integration_offset = {spin_integration_offset}"
+        )
+
+        # List of times at each sector
+        return [
+            (time_captured + seconds_per_sector * i + center_time_offset + spin_integration_offset)
+            for i in range(0, 16, 16 // num_sectors)
+        ]
 
     @staticmethod
     def format_for_cdf(df: pd.DataFrame) -> pd.DataFrame:

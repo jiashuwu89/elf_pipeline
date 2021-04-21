@@ -158,3 +158,23 @@ class TestEpdProcessor:
 
         l1_cdf.close()
         test_cdf.close()
+
+    def test_calculate_center_times_for_period(self):
+        pc = SafeTestPipelineConfig()
+        epd_processor = EpdProcessor(pc, DUMMY_DOWNLINK_MANAGER)
+
+        spin_period = 16 * 80  # Time for 1 spin
+        time_captured = dt.timedelta(seconds=0)  # The time it was captured (Baseline/offset)
+        num_sectors = 16  # Num of times each spin is split into
+        data_type = 24  # IBO
+        spin_integration_factor = 4  # Number of spins in a spin frame
+
+        assert epd_processor.calculate_center_times_for_period(
+            spin_period, time_captured, num_sectors, data_type, spin_integration_factor
+        ) == [dt.timedelta(seconds=(0 + 1 * i + 0.5 + 24)) for i in range(16)]
+
+        data_type = 3
+
+        assert epd_processor.calculate_center_times_for_period(
+            spin_period, time_captured, num_sectors, data_type, spin_integration_factor
+        ) == [dt.timedelta(seconds=(0 + 1 * i + 0.5)) for i in range(16)]
