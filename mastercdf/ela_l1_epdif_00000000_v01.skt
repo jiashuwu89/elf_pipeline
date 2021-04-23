@@ -410,7 +410,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ela_pif_numsectors"       
+  "ela_pif_nsectors"       
                    CDF_INT1      1       0                       T 
 
   ! VAR_COMPRESSION: None
@@ -427,7 +427,7 @@
     "DEPEND_0"    CDF_CHAR     { "ela_pif_time" }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
-    "FIELDNAM"    CDF_CHAR     { "ela_pif_numsectors" }
+    "FIELDNAM"    CDF_CHAR     { "ela_pif_nsectors" }
     "FILLVAL"     CDF_INT1     {  0 }
     "FORMAT"      CDF_CHAR     { "i2" }
     "LABLAXIS"    CDF_CHAR     { "Number of sectors" } 

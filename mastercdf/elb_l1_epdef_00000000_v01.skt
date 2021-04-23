@@ -412,7 +412,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "elb_pef_numsectors"       
+  "elb_pef_nsectors"       
                    CDF_INT1      1       0                       T 
 
   ! VAR_COMPRESSION: None
@@ -429,7 +429,7 @@
     "DEPEND_0"    CDF_CHAR     { "elb_pef_time" }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
-    "FIELDNAM"    CDF_CHAR     { "elb_pef_numsectors" }
+    "FIELDNAM"    CDF_CHAR     { "elb_pef_nsectors" }
     "FILLVAL"     CDF_INT1     {  0 }
     "FORMAT"      CDF_CHAR     { "i2" }
     "LABLAXIS"    CDF_CHAR     { "Number of sectors" } 

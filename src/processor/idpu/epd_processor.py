@@ -624,7 +624,7 @@ class EpdProcessor(IdpuProcessor):
             f"{prefix}": "data",
             f"{prefix}_time": "idpu_time",
             f"{prefix}_sectnum": "sec_num",
-            f"{prefix}_numsectors": "numsectors",
+            f"{prefix}_nsectors": "numsectors",
             f"{prefix}_spinper": "spin_period",
             f"{prefix}_nspinsinsum": "spin_integration_factor",  # Used spin_integration_factor because I like it more
         }
