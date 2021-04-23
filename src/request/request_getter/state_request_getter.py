@@ -75,7 +75,7 @@ class StateRequestGetter(RequestGetter):
         if pipeline_query.times == TimeType.DOWNLINK:
             all_csv = [f for f in os.listdir(self.pipeline_config.state_defn_csv_dir) if "defn" in f]
             for csv in all_csv:  # TODO: Should this actually be mtime
-                csv_datetime = dt.datetime.fromtimestamp(
+                csv_datetime = dt.datetime.utcfromtimestamp(
                     os.stat(f"{self.pipeline_config.state_defn_csv_dir}/{csv}").st_mtime
                 )
                 if pipeline_query.start_time <= csv_datetime < pipeline_query.end_time:
@@ -122,7 +122,7 @@ class StateRequestGetter(RequestGetter):
         if pipeline_query.times == TimeType.DOWNLINK:
             all_csv = [f for f in os.listdir(self.pipeline_config.state_pred_csv_dir) if "pred" in f]
             for csv in all_csv:  # TODO: Should this actually be mtime
-                csv_datetime = dt.datetime.fromtimestamp(
+                csv_datetime = dt.datetime.utcfromtimestamp(
                     os.stat(f"{self.pipeline_config.state_pred_csv_dir}/{csv}").st_mtime
                 )
                 if pipeline_query.start_time <= csv_datetime < pipeline_query.end_time:
@@ -190,9 +190,7 @@ class StateRequestGetter(RequestGetter):
             while cur_date <= end_limit:
                 curr_date_fname = f"""{STATE_DEFN_CSV_DIR}/{StateProcessor.get_fname(MISSION_DICT[mission_id],
                                   1, 'state-defn', cur_date).split('.')[0]}.csv"""
-                prev_date_fname = f"""{STATE_DEFN_CSV_DIR}/{StateProcessor.get_fname(MISSION_DICT[mission_id],
-                                  1, 'state-defn', cur_date-ONE_DAY_DELTA).split('.')[0]}.csv"""
-                if os.path.exists(curr_date_fname) or os.path.exists(prev_date_fname):
+                if os.path.exists(curr_date_fname):
                     attitude_requests.add(ProcessingRequest(mission_id, "state-defn", cur_date))
                 cur_date += ONE_DAY_DELTA
 
