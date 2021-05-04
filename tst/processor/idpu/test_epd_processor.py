@@ -8,8 +8,35 @@ from spacepy import pycdf
 from data_type.processing_request import ProcessingRequest
 from processor.idpu.epd_processor import EpdProcessor
 from util import general_utils
+from util.compression_values import EPD_HUFFMAN
 from util.constants import TEST_DATA_DIR
 from util.dummy import DUMMY_DOWNLINK_MANAGER, SafeTestPipelineConfig
+
+
+# Exists because IBO-changes-era tests use non-existant data that does not work with Bogus-EPD testing
+def temp_process_rejoined_data(EPD: EpdProcessor, processing_request: ProcessingRequest, df: pd.DataFrame):
+    types = df["idpu_type"].values
+    uncompressed = bool(set([3, 5, 22, 23]).intersection(types))
+    compressed = bool(set([4, 6, 24]).intersection(types))
+    survey = bool(set([19, 20]).intersection(types))
+    inner = bool(set([22, 23, 24]).intersection(types))
+
+    if uncompressed + compressed + survey > 1:
+        raise ValueError("⚠️ Detected more than one kind of EPD data (uncompressed, compressed, survey).")
+
+    if uncompressed:
+        df = EPD.update_uncompressed_df(df)
+    elif compressed:
+        if inner:
+            df = EPD.decompress_df(processing_request, df=df, num_sectors=16, table=EPD_HUFFMAN)
+        else:
+            df = EPD.decompress_df(processing_request, df=df, num_sectors=16, table=EPD_HUFFMAN)
+    elif survey:
+        df = EPD.decompress_df(processing_request, df=df, num_sectors=4, table=EPD_HUFFMAN)
+    else:
+        EPD.logger.warning("⚠️ Detected neither compressed nor uncompressed nor survey data.")
+
+    return df
 
 
 @pytest.mark.skip(reason="sample CDFs will need to be updated multiple times, pushing this off for now")
@@ -46,7 +73,7 @@ class TestEpdProcessor:
         iepde_df = pd.read_csv(f"{TEST_DATA_DIR}/csv/ibo/iepde_22_v3.csv")
 
         r_df = epd_processor.rejoin_data(pr, iepde_df)
-        p_df = epd_processor.process_rejoined_data(pr, r_df)
+        p_df = temp_process_rejoined_data(epd_processor, pr, r_df)
         # This should effectively be the final l0_df since there is only a single dataframe, no need to merge anything
 
         l0_fname, _ = epd_processor.generate_l0_file(pr, p_df)
@@ -76,7 +103,7 @@ class TestEpdProcessor:
         iepdi_df = pd.read_csv(f"{TEST_DATA_DIR}/csv/ibo/iepdi_23_v3.csv")
 
         r_df = epd_processor.rejoin_data(pr, iepdi_df)
-        p_df = epd_processor.process_rejoined_data(pr, r_df)
+        p_df = temp_process_rejoined_data(epd_processor, pr, r_df)
 
         l0_fname, _ = epd_processor.generate_l0_file(pr, p_df)
         l1_fname, _ = epd_processor.generate_l1_products(pr, p_df)
@@ -105,7 +132,7 @@ class TestEpdProcessor:
         iepd_compressed_df = pd.read_csv(f"{TEST_DATA_DIR}/csv/ibo/iepd_compressed_24_v3.csv")
 
         r_df = epd_processor.rejoin_data(pr, iepd_compressed_df)
-        p_df = epd_processor.process_rejoined_data(pr, r_df)
+        p_df = temp_process_rejoined_data(epd_processor, pr, r_df)
 
         l0_fname, _ = epd_processor.generate_l0_file(pr, p_df)
         l1_fname, _ = epd_processor.generate_l1_products(pr, p_df)
@@ -136,7 +163,7 @@ class TestEpdProcessor:
 
         pr = ProcessingRequest(1, "epdif", dt.date(2020, 12, 4))
         r_df = epd_processor.rejoin_data(pr, iepd_compressed_df)
-        p_df = epd_processor.process_rejoined_data(pr, r_df)
+        p_df = temp_process_rejoined_data(epd_processor, pr, r_df)
 
         l0_fname, _ = epd_processor.generate_l0_file(pr, p_df)
         l1_fname, _ = epd_processor.generate_l1_products(pr, p_df)

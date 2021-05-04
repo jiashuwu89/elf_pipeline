@@ -2,7 +2,11 @@ import datetime as dt
 from typing import Dict, List, Tuple
 
 import pandas as pd
+from elfin.common import models
+from intervaltree import Interval, IntervalTree
 from spacepy import pycdf
+from sqlalchemy import func, text
+from sqlalchemy.orm import Query
 
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
@@ -79,6 +83,10 @@ class EpdProcessor(IdpuProcessor):
             df = self.decompress_df(processing_request, df=df, num_sectors=4, table=EPD_HUFFMAN)
         else:
             self.logger.warning("⚠️ Detected neither compressed nor uncompressed nor survey data.")
+
+        # All Bogus EPD is idpu_type 4
+        if 4 in types:
+            df = self.filter_bogus_epd(processing_request, df)
 
         return df
 
@@ -628,3 +636,70 @@ class EpdProcessor(IdpuProcessor):
             f"{prefix}_spinper": "spin_period",
             f"{prefix}_nspinsinsum": "spin_integration_factor",  # Used spin_integration_factor because I like it more
         }
+
+    def filter_bogus_epd(self, processing_request: ProcessingRequest, df: pd.DataFrame) -> pd.DataFrame:
+        """Filters out epd data of type 4 that is appearing during IBO collection times.
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+        df : pd.DataFrame
+
+        Returns
+        -------
+        pd.DataFrame
+            A copy of the input DataFrame without data in IBO collection
+        """
+
+        if df.empty:
+            return df
+
+        def get_collection_interval(df: pd.DataFrame):
+            # One extra minute is being added to both sides as a buffer time
+            return (
+                pd.to_datetime(df.start_time) - dt.timedelta(minutes=1),
+                pd.to_datetime(df.end_time) + dt.timedelta(minutes=1),
+            )
+
+        self.logger.info("Filtering out bogus EPD data")
+
+        # Querying for IBO collections (outer belt collections should all be < 8 minutes)
+        intents_query = (
+            Query([models.TimeIntervals, models.Intent.intent_type])
+            .filter(
+                models.TimeIntervals.mission_id == processing_request.mission_id,
+                func.timestampdiff(text("second"), models.TimeIntervals.start_time, models.TimeIntervals.end_time)
+                > 60 * 8,
+                (
+                    (models.TimeIntervals.interval_type == "ExecutionTime")
+                    & (models.Intent.intent_type == "ScienceCollection")
+                ),
+            )
+            .join(models.Intent, models.TimeIntervals.intent_id == models.Intent.id)
+            .join(models.Allocation, models.TimeIntervals.allocation_id == models.Allocation.id)
+        )
+
+        intents_df = pd.read_sql_query(intents_query.statement, self.session.bind)
+
+        self.logger.info(
+            f"Found {len(intents_df) if not intents_df.empty else 0} intents/allocations longer than 8 minutes"
+        )
+
+        ibo_intervals = IntervalTree.from_tuples(intents_df.apply(lambda x: get_collection_interval(x), axis=1).values)
+
+        # Checking if any idpu_time is in an ibo collection interval
+        df["bogus"] = df.apply(lambda x: len(ibo_intervals.at(x.idpu_time)) != 0, axis=1)
+
+        removed_dfs = df[df.bogus == True]
+        self.logger.info(
+            f"Removed Bogus data from the following dates:\n\t"
+            + f"\n\t".join(str(date) for date in removed_dfs["idpu_time"].values)
+            + f"\n\t"
+            + f"Total = {len(removed_dfs)}"
+            + f"\n"
+        )
+
+        df = df[df.bogus == False]
+        del df["bogus"]
+
+        return df
