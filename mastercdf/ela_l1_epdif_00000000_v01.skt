@@ -1,5 +1,5 @@
 ! Skeleton table for the "ela_l1_epdif_00000000_v01.cdf" CDF.
-! Generated: Wednesday, 20-Feb-2019 09:56:05
+! Generated: Wednesday, 02-Nov-2020 09:56:05
 ! CDF created/modified by CDF V3.6.2
 ! Skeleton table created by CDF V3.6.2_1
 
@@ -12,7 +12,7 @@
 
 ! Variables  G.Attributes  V.Attributes  Records  Dims  Sizes
 ! ---------  ------------  ------------  -------  ----  -----
-     0/9          25            17         0/z      0
+     0/10          25            17         0/z      0
 ! CDF_COMPRESSION: None
 ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
 ! CDF_CHECKSUM: None
@@ -367,8 +367,72 @@
     "FILLVAL"     CDF_INT1     {  0 }
     "FORMAT"      CDF_CHAR     { "i2" }
     "LABLAXIS"    CDF_CHAR     { "Sector Number" } 
-    "VALIDMIN"    CDF_REAL4    { 0 }
-    "VALIDMAX"    CDF_REAL4    { 16 }
+    "VALIDMIN"    CDF_INT1     { 0 }
+    "VALIDMAX"    CDF_INT1    { 16 }
+    "VAR_TYPE"    CDF_CHAR     { "data" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ela_pif_nspinsinsum"       
+                   CDF_INT1      1       0                       T 
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0e+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "number of spins summed" }
+    "DEPEND_0"    CDF_CHAR     { "ela_pif_time" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "FIELDNAM"    CDF_CHAR     { "ela_pif_nspinsinsum" }
+    "FILLVAL"     CDF_INT1     {  0 }
+    "FORMAT"      CDF_CHAR     { "i2" }
+    "LABLAXIS"    CDF_CHAR     { "Number Spins Summed" } 
+    "VALIDMIN"    CDF_INT1     { 0 }
+    "VALIDMAX"    CDF_INT1     { 16 }
+    "VAR_TYPE"    CDF_CHAR     { "data" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ela_pif_nsectors"       
+                   CDF_INT1      1       0                       T 
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -1.0e+30
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "number of sectors" }
+    "DEPEND_0"    CDF_CHAR     { "ela_pif_time" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "FIELDNAM"    CDF_CHAR     { "ela_pif_nsectors" }
+    "FILLVAL"     CDF_INT1     {  0 }
+    "FORMAT"      CDF_CHAR     { "i2" }
+    "LABLAXIS"    CDF_CHAR     { "Number of sectors" } 
+    "VALIDMIN"    CDF_INT1     { 0 }
+    "VALIDMAX"    CDF_INT1     { 16 }
     "VAR_TYPE"    CDF_CHAR     { "data" } .
 
   ! RV values were not requested.
@@ -393,12 +457,12 @@
     "CATDESC"     CDF_CHAR     { "spinperiod" }
     "DEPEND_0"    CDF_CHAR     { "ela_pif_time" }
     "FIELDNAM"    CDF_CHAR     { "ela_pif_spinper" }
-    "FILLVAL"     CDF_REAL8    { nan }
+    "FILLVAL"     CDF_REAL4    { nan }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "LABLAXIS"    CDF_CHAR     { "spinper" }
     "UNITS"       CDF_CHAR     { "sec" }
-    "VALIDMIN"    CDF_REAL8    { 0.0 }
-    "VALIDMAX"    CDF_REAL8    { 40.0 }
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 40.0 }
     "VAR_TYPE"    CDF_CHAR     { "data" } .
 
   ! RV values were not requested.

@@ -10,7 +10,14 @@ from output.downlink.downlink_manager import DownlinkManager
 from processor.idpu.idpu_processor import IdpuProcessor
 from util import byte_tools
 from util.compression_values import EPD_HUFFMAN, EPD_LOSSY_VALS
-from util.constants import BIN_COUNT, EPD_CALIBRATION_DIR, VALID_NUM_SECTORS
+from util.constants import (
+    BIN_COUNT,
+    EPD_CALIBRATION_DIR,
+    IBO_DATA_BYTE,
+    IBO_TYPES,
+    INSTRUMENT_CLK_FACTOR,
+    VALID_NUM_SECTORS,
+)
 
 # EPD_ENERGIES = [[50., 70., 110., 160., 210., 270., 345., 430., 630., 900., 1300., 1800., 2500., 3000., 3850., 4500.]]
 
@@ -94,6 +101,8 @@ class EpdProcessor(IdpuProcessor):
             .apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
             .apply(lambda x: byte_tools.raw_idpu_bytes_to_datetime(x[2:10]) if x else None)
         )
+        df["spin_integration_factor"] = 1  # Spin integration factor defaults to 1
+
         return df
 
     def decompress_df(
@@ -194,13 +203,24 @@ class EpdProcessor(IdpuProcessor):
         # IDPU 24 (IBO compressed) has a different bit layout, so data is offset by 1
         # .values is needed to prevent looking at indexing instead of value
         # stackoverflow.com/questions/35956712/check-if-certain-value-is-contained-in-a-dataframe-column-in-pandas/40419531#40419531
-        ibo_offset = 1 if 24.0 in df["idpu_type"].values else 0
+        is_ibo_data = 24.0 in df["idpu_type"].values
+        ibo_offset = int(is_ibo_data)
         header_marker_byte = 10 + ibo_offset
 
         # l0_df: holds finished periods
         # measured values: For one period, hold value from Huffman table and later is put into period_df
         data = df["data"].apply(lambda x: None if pd.isnull(x) else bytes.fromhex(x))
-        l0_df = pd.DataFrame(columns=["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data"])
+        l0_df = pd.DataFrame(
+            columns=[
+                "mission_id",
+                "idpu_type",
+                "idpu_time",
+                "numerator",
+                "denominator",
+                "data",
+                "spin_integration_factor",
+            ]
+        )
         measured_values = [None] * BIN_COUNT * num_sectors
 
         # Set the index to initially point to the first header
@@ -208,6 +228,13 @@ class EpdProcessor(IdpuProcessor):
 
         if packet_num == data.shape[0]:
             return l0_df
+
+        # TODO: Check if spin integration factor is consistent throughout downlink
+        if is_ibo_data:
+            # Akhil says only possible values are 2**n, 0<=n<=15
+            spin_integration_factor = 2 ** (data.iloc[packet_num][IBO_DATA_BYTE] & 0x0F)
+        else:
+            spin_integration_factor = 1
 
         lossy_idx = self.find_lossy_idx(data.iloc[packet_num], header_marker_byte)
         marker = 0xAA + lossy_idx  # Determines if a packet is a header
@@ -217,8 +244,8 @@ class EpdProcessor(IdpuProcessor):
             cur_data = data.iloc[packet_num]
             if cur_data[header_marker_byte] == marker:  # Current packet is a header (reference frame)
                 if ibo_offset:  # Special case of compressed IBO data
-                    data_type_byte = 10
-                    data_type = "epdif" if cur_data[data_type_byte] >> 4 == 1 else "epdef"  # Top 4 bits are 0001
+
+                    data_type = "epdif" if cur_data[IBO_DATA_BYTE] >> 4 == 1 else "epdef"  # Top 4 bits are 0001
                     correct_data_type = data_type == processing_request.data_product
                 else:  # All other types will always be true
                     correct_data_type = True
@@ -235,19 +262,12 @@ class EpdProcessor(IdpuProcessor):
                 consecutive_nonheader_packets += 1
 
             # Append the period (found from either the header or non-header packet) to l0_df
-            l0_df = (
-                l0_df.append(
-                    self.get_period_df(
-                        measured_values,
-                        EPD_LOSSY_VALS[lossy_idx],
-                        cur_data,
-                        df.iloc[packet_num],
-                    ),
-                    sort=True,
+            if not ignore_packet:
+                period_df = self.get_period_df(
+                    measured_values, EPD_LOSSY_VALS[lossy_idx], cur_data, df.iloc[packet_num], spin_integration_factor
                 )
-                if not ignore_packet
-                else l0_df
-            )
+
+                l0_df = l0_df.append(period_df, sort=True)
 
             # Get the next needed packet (perhaps a header is needed if something was wrong with a previous packet)
             packet_num += 1
@@ -317,7 +337,7 @@ class EpdProcessor(IdpuProcessor):
             return -1, bitstring[2:]
         raise ValueError(f"Got {bitstring[:2]} instead of '00' or '01'")
 
-    def get_period_df(self, measured_values, lossy_vals, cur_data, row):
+    def get_period_df(self, measured_values, lossy_vals, cur_data, row, spin_integration_factor):
         """
         Using the indices found, as well as the table of 255 values, find the values
         for a period, and return it as a DataFrame. Basically, this is used to create new
@@ -360,6 +380,7 @@ class EpdProcessor(IdpuProcessor):
                 "idpu_type": row["idpu_type"],
                 "numerator": row["numerator"],
                 "denominator": row["denominator"],
+                "spin_integration_factor": spin_integration_factor,
             },
             index=[0],
         )
@@ -408,6 +429,7 @@ class EpdProcessor(IdpuProcessor):
         all_sec_num = []
         all_idpu_times = []
         all_spin_periods = []
+        all_spin_integration_factors = []
 
         # Determine the number of sectors
         # TODO: The way this works could be much better, but it was written befor survey mode
@@ -423,10 +445,13 @@ class EpdProcessor(IdpuProcessor):
 
         for _, row in df.iterrows():
             cur_spin_period, cur_time_captured, bin_data = self.get_context(row["data"])
-            all_spin_periods.extend([cur_spin_period for i in range(num_sectors)])
             all_idpu_times.extend(
-                self.calculate_center_times_for_period(cur_spin_period, cur_time_captured, num_sectors)
+                self.calculate_center_times_for_period(
+                    cur_spin_period, cur_time_captured, num_sectors, row["idpu_type"], row["spin_integration_factor"]
+                )
             )
+            all_spin_periods.extend([cur_spin_period for _ in range(num_sectors)])
+            all_spin_integration_factors.extend([row["spin_integration_factor"] for _ in range(num_sectors)])
 
             for i in range(0, 16, 16 // num_sectors):
                 all_sec_num.append(i)
@@ -440,7 +465,9 @@ class EpdProcessor(IdpuProcessor):
             {
                 "idpu_time": all_idpu_times,
                 "spin_period": all_spin_periods,
+                "spin_integration_factor": all_spin_integration_factors,
                 "sec_num": all_sec_num,
+                "numsectors": num_sectors,  # NOTE: Revisit this if the number of sectors changes!
                 "bin00": bins[0],
                 "bin01": bins[1],
                 "bin02": bins[2],
@@ -471,12 +498,31 @@ class EpdProcessor(IdpuProcessor):
         bin_data = bytes.fromhex(data[20:])
         return spin_period, byte_tools.raw_idpu_bytes_to_datetime(time_bytes), bin_data
 
-    def calculate_center_times_for_period(self, spin_period, time_captured, num_sectors):
+    def calculate_center_times_for_period(
+        self, spin_period, time_captured, num_sectors, data_type, spin_integration_factor
+    ):
         """ Interpolates center times for in between sectors and converts to tt2000 """
-        seconds_per_sector = dt.timedelta(seconds=(spin_period / 80) / 16)
+        seconds_per_sector = dt.timedelta(seconds=(spin_period / INSTRUMENT_CLK_FACTOR) / num_sectors)
         center_time_offset = seconds_per_sector / 2
-        self.logger.debug(f"seconds per sector = {seconds_per_sector}, center time offset = {center_time_offset}")
-        return [(time_captured + seconds_per_sector * i + center_time_offset) for i in range(0, 16, 16 // num_sectors)]
+
+        spin_integration_offset = dt.timedelta(seconds=0)
+        # Set IBO Time to find center of all the spins instead of the beginning
+        if data_type in IBO_TYPES:
+            spin_integration_offset = dt.timedelta(
+                seconds=(spin_integration_factor / 2 - 0.5) * (spin_period / INSTRUMENT_CLK_FACTOR)
+            )
+
+        self.logger.debug(
+            f"seconds per sector = {seconds_per_sector},"
+            f" center time offset = {center_time_offset},"
+            f" spin_integration_offset = {spin_integration_offset}"
+        )
+
+        # List of times at each sector
+        return [
+            (time_captured + seconds_per_sector * i + center_time_offset + spin_integration_offset)
+            for i in range(0, 16, 16 // num_sectors)
+        ]
 
     @staticmethod
     def format_for_cdf(df: pd.DataFrame) -> pd.DataFrame:
@@ -573,11 +619,12 @@ class EpdProcessor(IdpuProcessor):
             names, based on the probe and data product specified in the
             processing_request
         """
-        probe = processing_request.probe
-        data_product_type = f"p{processing_request.data_product[-2:]}"
+        prefix = f"{processing_request.probe}_p{processing_request.data_product[-2:]}"
         return {
-            f"{probe}_{data_product_type}": "data",
-            f"{probe}_{data_product_type}_time": "idpu_time",
-            f"{probe}_{data_product_type}_sectnum": "sec_num",
-            f"{probe}_{data_product_type}_spinper": "spin_period",
+            f"{prefix}": "data",
+            f"{prefix}_time": "idpu_time",
+            f"{prefix}_sectnum": "sec_num",
+            f"{prefix}_nsectors": "numsectors",
+            f"{prefix}_spinper": "spin_period",
+            f"{prefix}_nspinsinsum": "spin_integration_factor",  # Used spin_integration_factor because I like it more
         }

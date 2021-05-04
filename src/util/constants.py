@@ -107,9 +107,10 @@ COMPLETENESS_TABLE_PRODUCT_MAP = {
 SMALL_LARGE_GAP_MULTIPLIERS = (1.5, 8.0)
 SCIENCE_ZONE_SECTIONS = [1 / 3, 2 / 3]
 
-# IDPU types of compressed data, survey data
+# IDPU types of compressed data, survey data, IBO data
 COMPRESSED_TYPES = [2, 4, 6, 18, 19, 20, 24]
 SURVEY_TYPES = [19, 20]
+IBO_TYPES = [22, 23, 24]
 
 # IDL
 IDL_SCRIPT_VERSION = 8
@@ -157,7 +158,7 @@ BITS_IN_BYTE = 8
 LOOK_BEHIND_DELTA = dt.timedelta(hours=5)  # Begin search this far behind for packets
 ONE_DAY_DELTA = dt.timedelta(days=1)
 MAX_CDF_VALUE_DELTA = 1e-13  # Maximum allowable difference between values in CDFs
-DAILY_EMAIL_LIST = ["jcking1034@gmail.com"]
+DAILY_EMAIL_LIST = ["jcking1034@gmail.com", "derekclee232@gmail.com"]
 
 
 # When an attitude is found, reprocess days that are STATE_CALCULATE_RADIUS before or after the attitude data point
@@ -167,3 +168,7 @@ ATTITUDE_SOLUTION_RADIUS = dt.timedelta(days=30)
 # EPD
 BIN_COUNT = 16
 VALID_NUM_SECTORS = [4, 16]
+IBO_DATA_BYTE = 10
+
+# Instruments run at 80 Hz and report data in terms of 1/80 second.
+INSTRUMENT_CLK_FACTOR = 80
