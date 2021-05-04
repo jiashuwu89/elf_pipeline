@@ -160,7 +160,6 @@ ONE_DAY_DELTA = dt.timedelta(days=1)
 MAX_CDF_VALUE_DELTA = 1e-13  # Maximum allowable difference between values in CDFs
 DAILY_EMAIL_LIST = ["jcking1034@gmail.com", "derekclee232@gmail.com"]
 
-
 # When an attitude is found, reprocess days that are STATE_CALCULATE_RADIUS before or after the attitude data point
 STATE_CALCULATE_RADIUS = dt.timedelta(days=5)
 ATTITUDE_SOLUTION_RADIUS = dt.timedelta(days=30)
