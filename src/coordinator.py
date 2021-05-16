@@ -3,14 +3,13 @@ import os
 import traceback
 from typing import List, Set, Type
 
-from elfin.transfer.server_manager import ServerManager
-
 from data_type.pipeline_config import PipelineConfig
 from data_type.pipeline_query import PipelineQuery
 from data_type.processing_request import ProcessingRequest
 from output.downlink.downlink_manager import DownlinkManager
 from output.exception_collector import ExceptionCollector
 from output.pipeline_file_mapper import PipelineFileMapper
+from output.pipeline_server_manager import PipelineServerManager
 from processor.idpu.eng_processor import EngProcessor
 from processor.idpu.epd_processor import EpdProcessor
 from processor.idpu.fgm_processor import FgmProcessor
@@ -197,7 +196,7 @@ class Coordinator:
         generated_files_mapping = self.pipeline_file_mapper.map_files(generated_files)
 
         transferred_files_count = 0
-        with ServerManager(HOST, USERNAME, PASSWORD) as server_manager:
+        with PipelineServerManager(HOST, USERNAME, PASSWORD) as server_manager:
             transferred_files_count = server_manager.put_files(generated_files_mapping)
 
         if len(generated_files) != transferred_files_count:
