@@ -22,6 +22,7 @@ from util.constants import (
     INSTRUMENT_CLK_FACTOR,
     VALID_NUM_SECTORS,
 )
+from util.science_utils import handle_adjacent_sectors
 
 # EPD_ENERGIES = [[50., 70., 110., 160., 210., 270., 345., 430., 630., 900., 1300., 1800., 2500., 3000., 3850., 4500.]]
 
@@ -409,6 +410,9 @@ class EpdProcessor(IdpuProcessor):
             A DataFrame of level 1 EPD data
         """
         l1_df = self.parse_periods(processing_request, l0_df)
+        if processing_request.data_product in ("epdef", "epdif"):  # TODO: Find a way to avoid applying to inner belt
+            self.logger.info("Handling adjacent sectors")
+            l1_df = handle_adjacent_sectors(l1_df)
         l1_df = self.format_for_cdf(l1_df)
 
         return l1_df
