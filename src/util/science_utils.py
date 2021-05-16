@@ -1,9 +1,13 @@
-"""Utility functions relating to science."""
+"""Utility functions relating to science.
+
+Code written by science people/scientists belongs here
+"""
 from datetime import datetime, timedelta
 from typing import List, Optional, Sized, Tuple
 
 import numpy as np
 import pandas as pd
+from scipy.stats import chisquare
 from spacepy import pycdf
 
 from util.constants import SCIENCE_TYPES
@@ -147,3 +151,268 @@ def convert_data_products_to_idpu_types(data_products: List[str]) -> List[int]:
     for product in data_products:
         idpu_types.update(convert_data_product_to_idpu_types(product))
     return list(idpu_types)
+
+
+def handle_adjacent_sectors(df: pd.DataFrame) -> pd.DataFrame:
+    """A function to address EPD adjacent sectors.
+
+    Implemented by Jiashu Wu and integrated by James.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        A Pandas DataFrame with columns "bin00" to "bin15", and column
+        "idpu_type" (raw EPD bin counts and collection time).
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame whose bin counts are corrected. NOTE: no other columns are
+        modified.
+    """
+
+    # --------------------------------------------------------------------------
+    # search: 1. adjacent sector have the same value
+    #         2. at least three channels are not zero
+    #
+    # correction:
+    # problem: Yb and Yc have same value, Yd contains Yc' and Yd'
+    #             log(Yb)   = m0 + m1*Xb + m2*Xb^2
+    #             log(Yd/2) = m0 + m1*Xmid + m2*Xmid^2
+    #             log(Ye)   = m0 + m1*Xe + m2*Xe^2
+    #             initial Xmid=(Xc+Xd)/2
+    #
+    # step 1: parabola fit with three points
+    #         find Xmid that gives delta y = Yc'+Yd'-Yd = 0
+    #
+    # step 2: if no delta y = 0 found after 5 iteration
+    #         parabola fit with four points
+    #         find Xmid that gives min chi square
+    # --------------------------------------------------------------------------
+
+    rawdata = np.transpose(
+        np.array(
+            [
+                df["bin00"],
+                df["bin01"],
+                df["bin02"],
+                df["bin03"],
+                df["bin04"],
+                df["bin05"],
+                df["bin06"],
+                df["bin07"],
+                df["bin08"],
+                df["bin09"],
+                df["bin10"],
+                df["bin11"],
+                df["bin12"],
+                df["bin13"],
+                df["bin14"],
+                df["bin15"],
+            ]
+        )
+    )
+
+    # --------------------------------------------------------------------------
+    # search:
+    # --------------------------------------------------------------------------
+    sect_diff = np.absolute(np.diff(rawdata, axis=0))
+    sect_diff_max = np.amax(sect_diff, axis=1)
+    index1 = np.where(sect_diff_max == 0)
+
+    # at least three channels are not zero
+    sect_nozero = np.sum((rawdata > 0) * 1, axis=1)
+    index2 = np.where(sect_nozero >= 3)
+
+    index = np.intersect1d(index1[0], index2[0])
+
+    # --------------------------------------------------------------------------
+    # correction:
+    # --------------------------------------------------------------------------
+
+    maxiter = 4  # maximum iteration
+    recurdata = np.copy(rawdata)
+    datatime = pd.to_datetime(df["idpu_time"])
+
+    for index_i in np.arange(index.shape[0]):
+        for energy_i in np.arange(16):
+            # exclude the cases with Yb Yd Ye have very similar values
+            # a dip will show in the line plot if they are corrected
+            std3point = np.std(
+                [
+                    rawdata[index[index_i], energy_i],
+                    rawdata[index[index_i] + 2, energy_i],
+                    rawdata[index[index_i] + 3, energy_i],
+                ]
+            )
+            mean3point = np.mean(
+                [
+                    rawdata[index[index_i], energy_i],
+                    rawdata[index[index_i] + 2, energy_i],
+                    rawdata[index[index_i] + 3, energy_i],
+                ]
+            )
+            if std3point < 0.1 * mean3point:
+                continue
+
+            # exclude the cases with Yb=Yc=Yd=0 or Yd=0
+            y1 = np.log10(rawdata[index[index_i], energy_i]) if rawdata[index[index_i], energy_i] > 1 else 0
+            y2 = (
+                np.log10(0.5 * rawdata[index[index_i] + 2, energy_i])
+                if 0.5 * rawdata[index[index_i] + 2, energy_i] > 1
+                else 0
+            )
+            y3 = np.log10(rawdata[index[index_i] + 3, energy_i]) if rawdata[index[index_i] + 3, energy_i] > 1 else 0
+            if (y1 + y2 + y3 == 0) or (y2 == 0):
+                recurdata[index[index_i] + 1, energy_i] = 0  # Yc'=0
+                recurdata[index[index_i] + 2, energy_i] = 0  # Yd'=0
+                continue
+
+            # exclude the cases with gap in time
+            # datatime1 = pd.to_datetime(df["idpu_time"])
+            x1 = (datatime[index[index_i]] - datatime[index[index_i]]).total_seconds()  # Xb
+            x3 = (datatime[index[index_i] + 3] - datatime[index[index_i]]).total_seconds()  # Xe
+            x4 = (datatime[index[index_i] + 1] - datatime[index[index_i]]).total_seconds()  # Xc
+            x5 = (datatime[index[index_i] + 2] - datatime[index[index_i]]).total_seconds()  # Xd
+            x2 = 0.5 * (x4 + x5)  # initial Xc+d/2=(Xc+Xd)/2
+
+            # --------------------------------------------------------------------------
+            # correction: step 1
+            # use three points Yb Yd/2 Ye to solve the three parameters of parabola fit
+            # first assume Xd/2=(Xc+Xd)/2
+            # then iterate to find a Xd/2 that allow Yc'+Yd'=Yd
+            # --------------------------------------------------------------------------
+
+            nstep = 10  # time seperation in each interation
+            tstart = x4  # initial=Xc
+            tend = x5  # initial=Xd
+            # iteration
+            sumdiff = np.empty(nstep + 1)
+            y4 = np.empty(nstep + 1)
+            y5 = np.empty(nstep + 1)
+            chisqmatrx = np.empty(nstep + 1)
+            for iter_i in np.arange(maxiter + 1):
+                tmatrix = np.linspace(tstart, tend, nstep + 1, endpoint=True)
+                sumdiff[:] = np.nan
+                y4[:] = np.nan
+                y5[:] = np.nan
+                for step_i in np.arange(nstep + 1):
+                    x2 = tmatrix[step_i]
+                    coeffs = np.polyfit([x1, x2, x3], [y1, y2, y3], 2)  # y=m0+m1*x+m2*x^2
+                    model_poly = np.polyval(coeffs, [x4, x5])
+                    y4[step_i] = np.power(10, model_poly[0])
+                    y5[step_i] = np.power(10, model_poly[1])
+                    sumdiff[step_i] = np.absolute(
+                        y4[step_i] + y5[step_i] - rawdata[index[index_i] + 2, energy_i]
+                    )  # delta y = Yc'+Yd'-Yd
+
+                mindiff = np.min(sumdiff)
+                minindex = np.where(sumdiff == mindiff)
+
+                if mindiff > 1:
+                    # if delta y > 1 then set tmatrix around minimum delta y and iterate
+                    tstart = tmatrix[minindex[0][0] - 1] if minindex[0][0] > 0 else tmatrix[minindex[0][0]]
+                    tend = tmatrix[minindex[0][0] + 1] if minindex[0][0] < nstep else tmatrix[minindex[0][0]]
+                else:  # if  delta y = 0
+                    recurdata[index[index_i] + 1, energy_i] = np.around(y4[minindex[0][0]])  # Yc'
+                    recurdata[index[index_i] + 2, energy_i] = np.around(y5[minindex[0][0]])  # Yd'
+                    break
+
+            # --------------------------------------------------------------------------
+            # correction: step 2
+            # if no delta y = 0 found after 5 iteration use minimum chi square instead
+            # --------------------------------------------------------------------------
+
+            if (iter_i == maxiter) and (mindiff > 1):
+                # add another point Ya or Yf, which one is larger
+                if rawdata[index[index_i] - 1, energy_i] > rawdata[index[index_i] + 4, energy_i]:
+                    y6 = (
+                        np.log10(rawdata[index[index_i] - 1, energy_i])
+                        if rawdata[index[index_i] - 1, energy_i] > 1
+                        else 0
+                    )  # Ya
+                    x6 = (datatime[index[index_i] - 1] - datatime[index[index_i]]).total_seconds()  # Xa
+                else:
+                    y6 = (
+                        np.log10(rawdata[index[index_i] + 4, energy_i])
+                        if rawdata[index[index_i] + 4, energy_i] > 1
+                        else 0
+                    )  # Yf
+                    x6 = (datatime[index[index_i] + 4] - datatime[index[index_i]]).total_seconds()  # Xa
+                # start iteration
+                tstart = x4
+                tend = x5
+                for iter_i in np.arange(maxiter + 1):
+                    tmatrix = np.linspace(tstart, tend, nstep + 1, endpoint=True)
+                    chisqmatrx[:] = np.nan
+                    for step_i in np.arange(nstep + 1):
+                        x2 = tmatrix[step_i]
+                        coeffs = np.polyfit([x1, x2, x3, x6], [y1, y2, y3, y6], 2)
+                        model_poly = np.polyval(coeffs, [x4, x5, x1, x2, x3, x6])
+                        y4[step_i] = np.power(10, model_poly[0])
+                        y5[step_i] = np.power(10, model_poly[1])
+                        y_model = np.power(10, model_poly[2:6])
+                        y_obsv = np.power(10, [y1, y2, y3, y6])
+                        cresult = chisquare(y_model, f_exp=y_obsv)
+                        chisqmatrx[step_i] = cresult.statistic
+
+                    if iter_i == 0:  # first iteration
+                        chisqmin_curr = np.min(chisqmatrx)
+                        minindex = np.where(chisqmatrx == chisqmin_curr)
+                        tstart = tmatrix[minindex[0][0] - 1] if minindex[0][0] > 0 else tmatrix[minindex[0][0]]
+                        tend = tmatrix[minindex[0][0] + 1] if minindex[0][0] < nstep else tmatrix[minindex[0][0]]
+                    else:  # after first iteration
+                        chisqmin_prev = chisqmin_curr
+                        chisqmin_curr = np.min(chisqmatrx)
+                        minindex = np.where(chisqmatrx == chisqmin_curr)
+                        if (
+                            chisqmin_prev - chisqmin_curr
+                        ) < 10 ** -4:  # if previous and current chi square are too close
+                            recurdata[index[index_i] + 1, energy_i] = np.around(y4[minindex[0][0]])  # Yc'
+                            recurdata[index[index_i] + 2, energy_i] = np.around(y5[minindex[0][0]])  # Yd'
+                            break
+                        else:
+                            tstart = tmatrix[minindex[0][0] - 1] if minindex[0][0] > 0 else tmatrix[minindex[0][0]]
+                            tend = tmatrix[minindex[0][0] + 1] if minindex[0][0] < nstep else tmatrix[minindex[0][0]]
+
+        ## for develop only
+        # fig = plt.figure()
+        # plotindx = np.arange(31)-15
+        # plotdata1 = rawdata[index[index_i]+plotindx,:].astype(np.float32)
+        # plotdata1[plotdata1 == 0] = np.nan
+        # ax1 = plt.subplot(2, 1, 1)
+        # plt.plot(plotdata1)
+        # ax1.set_yscale('log')
+        # ax1lim = ax1.get_ylim()
+        # ax1.set_ylim([1,ax1lim[1]])
+
+        # plotdata2 = recurdata[index[index_i]+plotindx,:].astype(np.float32)
+        # plotdata2[plotdata2 == 0] = np.nan
+        # ax2 = plt.subplot(2, 1, 2)
+        # plt.plot(plotdata2)
+        # ax2.set_yscale('log')
+        # ax2lim = ax2.get_ylim()
+        # ax2.set_ylim([1,ax2lim[1]])
+
+        # #plt.show()
+        # plt.savefig(str(index_i)+'.png')
+        # plt.close(fig)
+
+    df["bin00"] = recurdata[:, 0]
+    df["bin01"] = recurdata[:, 1]
+    df["bin02"] = recurdata[:, 2]
+    df["bin03"] = recurdata[:, 3]
+    df["bin04"] = recurdata[:, 4]
+    df["bin05"] = recurdata[:, 5]
+    df["bin06"] = recurdata[:, 6]
+    df["bin07"] = recurdata[:, 7]
+    df["bin08"] = recurdata[:, 8]
+    df["bin09"] = recurdata[:, 9]
+    df["bin10"] = recurdata[:, 10]
+    df["bin11"] = recurdata[:, 11]
+    df["bin12"] = recurdata[:, 12]
+    df["bin13"] = recurdata[:, 13]
+    df["bin14"] = recurdata[:, 14]
+    df["bin15"] = recurdata[:, 15]
+
+    return df
