@@ -158,7 +158,7 @@ BITS_IN_BYTE = 8
 LOOK_BEHIND_DELTA = dt.timedelta(hours=5)  # Begin search this far behind for packets
 ONE_DAY_DELTA = dt.timedelta(days=1)
 MAX_CDF_VALUE_DELTA = 1e-13  # Maximum allowable difference between values in CDFs
-DAILY_EMAIL_LIST = ["jcking1034@gmail.com", "derekclee232@gmail.com"]
+DAILY_EMAIL_LIST = ["jcking1034@gmail.com", "derekclee232@gmail.com", "elfin-notifications@epss.ucla.edu"]
 
 # When an attitude is found, reprocess days that are STATE_CALCULATE_RADIUS before or after the attitude data point
 STATE_CALCULATE_RADIUS = dt.timedelta(days=5)
