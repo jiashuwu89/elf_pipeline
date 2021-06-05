@@ -171,3 +171,6 @@ IBO_DATA_BYTE = 10
 
 # Instruments run at 80 Hz and report data in terms of 1/80 second.
 INSTRUMENT_CLK_FACTOR = 80
+
+# Date Ranges
+BOGUS_EPD_DATERANGE = (dt.date(2021, 2, 26), dt.date(2021, 5, 9))

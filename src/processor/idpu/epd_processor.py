@@ -3,7 +3,7 @@ from typing import Dict, List, Tuple
 
 import pandas as pd
 from elfin.common import models
-from intervaltree import Interval, IntervalTree
+from intervaltree import IntervalTree
 from spacepy import pycdf
 from sqlalchemy import func, text
 from sqlalchemy.orm import Query
@@ -16,10 +16,12 @@ from util import byte_tools
 from util.compression_values import EPD_HUFFMAN, EPD_LOSSY_VALS
 from util.constants import (
     BIN_COUNT,
+    BOGUS_EPD_DATERANGE,
     EPD_CALIBRATION_DIR,
     IBO_DATA_BYTE,
     IBO_TYPES,
     INSTRUMENT_CLK_FACTOR,
+    SURVEY_TYPES,
     VALID_NUM_SECTORS,
 )
 from util.science_utils import handle_adjacent_sectors
@@ -67,8 +69,8 @@ class EpdProcessor(IdpuProcessor):
         # TODO: Update to use mapping of IDPU types to labels (each Dataframe has one IDPU type)
         uncompressed = bool(set([3, 5, 22, 23]).intersection(types))
         compressed = bool(set([4, 6, 24]).intersection(types))
-        survey = bool(set([19, 20]).intersection(types))
-        inner = bool(set([22, 23, 24]).intersection(types))
+        survey = bool(set(SURVEY_TYPES).intersection(types))
+        inner = bool(set(IBO_TYPES).intersection(types))
 
         if uncompressed + compressed + survey > 1:
             raise ValueError("⚠️ Detected more than one kind of EPD data (uncompressed, compressed, survey).")
@@ -76,18 +78,22 @@ class EpdProcessor(IdpuProcessor):
         if uncompressed:
             df = self.update_uncompressed_df(df)
         elif compressed:
-            if inner:
-                df = self.decompress_df(processing_request, df=df, num_sectors=16, table=EPD_HUFFMAN)
-            else:
-                df = self.decompress_df(processing_request, df=df, num_sectors=16, table=EPD_HUFFMAN)
+            df = self.decompress_df(processing_request, df=df, num_sectors=16, table=EPD_HUFFMAN)
         elif survey:
             df = self.decompress_df(processing_request, df=df, num_sectors=4, table=EPD_HUFFMAN)
         else:
             self.logger.warning("⚠️ Detected neither compressed nor uncompressed nor survey data.")
 
-        # All Bogus EPD is idpu_type 4
         if 4 in types:
-            df = self.filter_bogus_epd(processing_request, df)
+            df = self.filter_start_4_bogus_epd(processing_request, df)
+
+        if (
+            pd.to_datetime(df.idpu_time.min()) <= BOGUS_EPD_DATERANGE[1]
+            and pd.to_datetime(df.idpu_time.max()) >= BOGUS_EPD_DATERANGE[0]
+            and inner
+        ):
+            self.logger.info("Detected dataframe in Bogus EPD Time Range")
+            df = self.remove_start_end_spin_periods(df)
 
         return df
 
@@ -210,8 +216,6 @@ class EpdProcessor(IdpuProcessor):
             return False, measured_values
 
         # IDPU 24 (IBO compressed) has a different bit layout, so data is offset by 1
-        # .values is needed to prevent looking at indexing instead of value
-        # stackoverflow.com/questions/35956712/check-if-certain-value-is-contained-in-a-dataframe-column-in-pandas/40419531#40419531
         is_ibo_data = 24.0 in df["idpu_type"].values
         ibo_offset = int(is_ibo_data)
         header_marker_byte = 10 + ibo_offset
@@ -641,8 +645,9 @@ class EpdProcessor(IdpuProcessor):
             f"{prefix}_nspinsinsum": "spin_integration_factor",  # Used spin_integration_factor because I like it more
         }
 
-    def filter_bogus_epd(self, processing_request: ProcessingRequest, df: pd.DataFrame) -> pd.DataFrame:
-        """Filters out epd data of type 4 that is appearing during IBO collection times.
+    def filter_start_4_bogus_epd(self, processing_request: ProcessingRequest, df: pd.DataFrame) -> pd.DataFrame:
+        """Filters out epd data of type 4 that is appearing during IBO collection times. This does not filter out
+        bogus EPD of type 24 which was also observed in the beginning and ends of collections
 
         Parameters
         ----------
@@ -696,14 +701,82 @@ class EpdProcessor(IdpuProcessor):
 
         removed_dfs = df[df.bogus == True]
         self.logger.info(
-            f"Removed Bogus data from the following dates:\n\t"
-            + f"\n\t".join(str(date) for date in removed_dfs["idpu_time"].values)
-            + f"\n\t"
+            "Removed Bogus data from the following dates:\n\t"
+            + "\n\t".join(str(date) for date in removed_dfs["idpu_time"].values)
+            + "\n\t"
             + f"Total = {len(removed_dfs)}"
-            + f"\n"
+            + "\n"
         )
 
         df = df[df.bogus == False]
         del df["bogus"]
+
+        return df
+
+    def remove_start_end_spin_periods(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Removes the first and last spin period of each science zone
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+
+        Returns
+        -------
+        df : pd.DataFrame
+            DataFrame with first and last entries removed.
+            If there are <= 2 entries, it returns the original df
+
+        """
+        self.logger.info("Removing the first and last entries of science zones")
+        science_zones = []
+
+        # Note iloc[0:1] and iloc[i:i+1] are used so that a DataFrame is returned instead of a Series
+        current_science_zone = [df.iloc[0:1]]
+        discarded_science_zone_times = []
+        for i in range(1, df.shape[0]):
+            # Split the DataFrame if we're looking at a different collection
+            if df.iloc[i].idpu_time - df.iloc[i - 1].idpu_time > dt.timedelta(minutes=20):
+                if len(current_science_zone) >= 2:
+                    science_zones.append(pd.concat(current_science_zone[1:-1]))
+
+                    discarded_science_zone_times.extend(
+                        [current_science_zone[0].idpu_time.values[0], current_science_zone[-1].idpu_time.values[0]]
+                    )
+
+                    # self.logger.info(
+                    #   f"Removed the following two spin periods: \n\t"
+                    #  + f"{str(current_science_zone[0].idpu_time.values[0])}\n\t"
+                    # + f"{str(current_science_zone[-1].idpu_time.values[0])}"
+                    # )
+                else:
+                    self.logger.info(
+                        f"<2 spin periods in sz starting at {str(current_science_zone[0].idpu_time.values[0])}"
+                    )
+                current_science_zone = [df.iloc[i : i + 1]]
+
+            # Keep adding spin periods into the DataFrame
+            else:
+                current_science_zone.append(df.iloc[i : i + 1])
+
+        if len(current_science_zone) >= 2:
+            science_zones.append(pd.concat(current_science_zone[1:-1]))
+            discarded_science_zone_times.extend(
+                [current_science_zone[0].idpu_time.values[0], current_science_zone[-1].idpu_time.values[0]]
+            )
+        else:
+            self.logger.info(f"<2 spin periods in szstarting at {str(current_science_zone[0].idpu_time.values[0])}")
+
+        self.logger.info(
+            "Removed Bogus data from the following dates:\n\t"
+            + "\n\t".join(str(date) for date in discarded_science_zone_times)
+            + "\n\t"
+            + f"Total = {len(discarded_science_zone_times)}"
+            + "\n"
+        )
+
+        if len(science_zones) >= 1:
+            df = pd.concat(science_zones).reset_index()
+        else:
+            self.logger.info("No science zones in dataframe with > 2 spin periods")
 
         return df
