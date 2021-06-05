@@ -375,7 +375,7 @@ def handle_adjacent_sectors(df: pd.DataFrame) -> pd.DataFrame:
                             tstart = tmatrix[minindex[0][0] - 1] if minindex[0][0] > 0 else tmatrix[minindex[0][0]]
                             tend = tmatrix[minindex[0][0] + 1] if minindex[0][0] < nstep else tmatrix[minindex[0][0]]
 
-        ## for develop only
+        # for develop only
         # fig = plt.figure()
         # plotindx = np.arange(31)-15
         # plotdata1 = rawdata[index[index_i]+plotindx,:].astype(np.float32)
