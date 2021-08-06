@@ -40,6 +40,9 @@ class PipelineServerManager(ServerManager):
             outdated_file_pattern = re.sub(r"_[0-9]+\.pkt$", "_[0-9]+\\.pkt$", file_name)
             outdated_file_regex = re.compile(outdated_file_pattern)
 
+            self.logger.info(
+                f"Listing files in {remote_directory} (local path {local_path}, remote path {remote_path})"
+            )
             file_names = self.sftp_client.listdir(remote_directory)
             outdated_files = [file_name for file_name in file_names if outdated_file_regex.match(file_name)]
             for outdated_file in outdated_files:
