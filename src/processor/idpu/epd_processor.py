@@ -736,7 +736,7 @@ class EpdProcessor(IdpuProcessor):
         for i in range(1, df.shape[0]):
             # Split the DataFrame if we're looking at a different collection
             if df.iloc[i].idpu_time - df.iloc[i - 1].idpu_time > dt.timedelta(minutes=20):
-                if len(current_science_zone) >= 2:
+                if len(current_science_zone) > 2:
                     science_zones.append(pd.concat(current_science_zone[1:-1]))
 
                     discarded_science_zone_times.extend(
@@ -750,7 +750,7 @@ class EpdProcessor(IdpuProcessor):
                     # )
                 else:
                     self.logger.info(
-                        f"<2 spin periods in sz starting at {str(current_science_zone[0].idpu_time.values[0])}"
+                        f"<=2 spin periods in sz starting at {str(current_science_zone[0].idpu_time.values[0])}"
                     )
                 current_science_zone = [df.iloc[i : i + 1]]
 
