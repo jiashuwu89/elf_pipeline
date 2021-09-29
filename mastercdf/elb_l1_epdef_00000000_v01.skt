@@ -71,10 +71,9 @@
   "Logical_file_id"     1:    CDF_CHAR     { "elb_l1_epdef_00000000_v01" } .
 
   "Logical_source_description"
-                        1:    CDF_CHAR     { "[UNCALIBRATED RAW DATA " -
-                                             "ONLY] Energetic Partical " -
-                                             "Detector Energy Particles," -
-                                             " Electrons>keV " } .
+                        1:    CDF_CHAR     { "Energetic Particle Detector, " -
+                                              "Counts, Electrons>keV " -
+                                              "[UNCALIBRATED RAW DATA] " } .
 
   "Time_resolution"     1:    CDF_CHAR     { "16 sectors/spin (dependent" -
                                              " on spinper)" } .
@@ -220,7 +219,7 @@
     "CATDESC"     CDF_CHAR     { "Central energy bins for each " -
                                  "of 16 EPD electron channels" }
     "FIELDNAM"    CDF_CHAR     { "elb_pef_energies_mean" }
-    "FILLVAL"     CDF_REAL4    { 0.0 }
+    "FILLVAL"     CDF_REAL4    { -128.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "LABLAXIS"    CDF_CHAR     { "Central electron energy bins" } 
     "UNITS"       CDF_CHAR     { "keV" }
@@ -268,7 +267,7 @@
     "CATDESC"     CDF_CHAR     { "Min energy bins associated with each " -
                                  "of 16 EPD electron channels" }
     "FIELDNAM"    CDF_CHAR     { "elb_pef_energies_min" }
-    "FILLVAL"     CDF_REAL4    { 0.0 }
+    "FILLVAL"     CDF_REAL4    { -128.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "LABLAXIS"    CDF_CHAR     { "Min Electron energy bins" } 
     "UNITS"       CDF_CHAR     { "keV" }
@@ -316,7 +315,7 @@
     "CATDESC"     CDF_CHAR     { "Max energy bins for each " -
                                  "of 16 EPD electron channels" }
     "FIELDNAM"    CDF_CHAR     { "elb_pef_energies_max" }
-    "FILLVAL"     CDF_REAL4    { 0.0 }
+    "FILLVAL"     CDF_REAL4    { -128.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "LABLAXIS"    CDF_CHAR     { "Max energy bins" } 
     "UNITS"       CDF_CHAR     { "keV" }
@@ -366,9 +365,10 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_pef_sectnum" }
-    "FILLVAL"     CDF_INT1     {  0 }
+    "FILLVAL"     CDF_INT1     {  -128 }
     "FORMAT"      CDF_CHAR     { "i2" }
     "LABLAXIS"    CDF_CHAR     { "Sector Number" } 
+    "UNITS"       CDF_CHAR     { "num sector" }
     "VALIDMIN"    CDF_INT1     { 0 }
     "VALIDMAX"    CDF_INT1     { 16 }
     "VAR_TYPE"    CDF_CHAR     { "data" } .
@@ -398,9 +398,10 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_pef_nspinsinsum" }
-    "FILLVAL"     CDF_INT1     {  0 }
+    "FILLVAL"     CDF_INT1     {  -128 }
     "FORMAT"      CDF_CHAR     { "i2" }
     "LABLAXIS"    CDF_CHAR     { "Number Spins in sum" } 
+    "UNITS"       CDF_CHAR     { "num spins in sum" }
     "VALIDMIN"    CDF_INT1     { 0 }
     "VALIDMAX"    CDF_INT1     { 16 }
     "VAR_TYPE"    CDF_CHAR     { "data" } .
@@ -430,9 +431,10 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_pef_nsectors" }
-    "FILLVAL"     CDF_INT1     {  0 }
+    "FILLVAL"     CDF_INT1     {  -128 }
     "FORMAT"      CDF_CHAR     { "i2" }
     "LABLAXIS"    CDF_CHAR     { "Number of sectors" } 
+    "UNITS"       CDF_CHAR     { "num sectors" }
     "VALIDMIN"    CDF_INT1     { 0 }
     "VALIDMAX"    CDF_INT1     { 16 }
     "VAR_TYPE"    CDF_CHAR     { "data" } .
