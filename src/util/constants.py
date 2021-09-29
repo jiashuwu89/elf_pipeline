@@ -119,7 +119,7 @@ IDL_SCRIPT_VERSION = 8
 STATE_DEFN_CSV_DIR = "/home/elfin/state_data"
 STATE_PRED_CSV_DIR = "/home/elfin/state_data"
 
-SERVER_BASE_DIR = "/themis/data/elfin"
+SERVER_BASE_DIR = "/nfs/elfin-data"
 CREDENTIALS_FILE = "src/util/credentials.py"
 if os.path.basename(os.getcwd()) in ["pipeline-refactor", "refactor"]:  # TODO: fix this
     MASTERCDF_DIR = "mastercdf"
