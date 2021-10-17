@@ -103,6 +103,8 @@ COMPLETENESS_TABLE_PRODUCT_MAP = {
     "mrmi": MRM_COMPLETENESS_TABLE_PRODUCT_MAP,
 }
 
+GAP_CATEGORIZATION_DATA_TYPES = ["EPDE", "EPDI", "IEPDE", "IEPDI"]
+
 # Science zone completeness gap boundaries and science zone sections
 SMALL_LARGE_GAP_MULTIPLIERS = (1.5, 8.0)
 SCIENCE_ZONE_SECTIONS = [1 / 3, 2 / 3]
