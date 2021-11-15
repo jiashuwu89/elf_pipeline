@@ -8,6 +8,7 @@ from data_type.pipeline_query import PipelineQuery
 from data_type.processing_request import ProcessingRequest
 from output.exception_collector import ExceptionCollector
 from request.request_getter.request_getter import RequestGetter
+from util.constants import MISSION_START_DATE
 
 
 class RequestGetterManager:
@@ -59,4 +60,4 @@ class RequestGetterManager:
                 traceback_msg = traceback.format_exc()
                 self.exception_collector.record_exception(request_getter.__class__, e, traceback_msg)
 
-        return sorted(processing_requests)
+        return sorted(pr for pr in processing_requests if pr.date >= MISSION_START_DATE)
