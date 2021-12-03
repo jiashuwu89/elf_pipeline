@@ -1,6 +1,6 @@
 ! Skeleton table for the "ela_l1_epdef_00000000_v01.cdf" CDF.
-! Generated: Wednesday, 02-Nov-2020 09:56:05
-! CDF created/modified by CDF V3.6.2
+! Generated: Wednesday, 3-Nov-2021 06:03:28
+! CDF created/modified by CDF V3.8.0
 ! Skeleton table created by CDF V3.6.2_1
 
 #header
@@ -12,7 +12,7 @@
 
 ! Variables  G.Attributes  V.Attributes  Records  Dims  Sizes
 ! ---------  ------------  ------------  -------  ----  -----
-     0/10          25            19         0/z      0
+     0/9         25            19         0/z      0
 ! CDF_COMPRESSION: None
 ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
 ! CDF_CHECKSUM: None
@@ -71,9 +71,10 @@
   "Logical_file_id"     1:    CDF_CHAR     { "ela_l1_epdef_00000000_v01" } .
 
   "Logical_source_description"
-                        1:    CDF_CHAR     { "Energetic Particle Detector, " -
-                                              "Counts, Electrons>keV " -
-                                              "[UNCALIBRATED RAW DATA] " } .
+                        1:    CDF_CHAR     { "Energetic Particle " -
+                                             "Detector, Counts, " -
+                                             "Electrons>keV " -
+                                             "[UNCALIBRATED RAW DATA] " } .
 
   "Time_resolution"     1:    CDF_CHAR     { "16 sectors/spin (dependent" -
                                              " on spinper)" } .
@@ -93,8 +94,7 @@
   "LINK_TEXT"           1:    CDF_CHAR     { "http://elfin.igpp.ucla.edu" } .
 
   "LINK_TITLE"          1:    CDF_CHAR     { "Electron Losses and Fields" -
-                                             " INvestigation-A EPD " -
-                                             "file" } .
+                                             " INvestigation-A EPD file" } .
 
   "HTTP_LINK"           1:    CDF_CHAR     { "http://elfin.igpp.ucla.edu" } .
 
@@ -136,10 +136,11 @@
   "ela_pef_time"
               CDF_TIME_TT2000     1       0              T
 
-  ! VAR_COMPRESSION: None
+  ! VAR_COMPRESSION: GZIP.6
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
   ! VAR_SPARSERECORDS: None
   ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_BLOCKINGFACTOR: 8192
   ! VAR_PADVALUE: 0000-01-01T00:00:00.000000000
 
   ! Attribute       Data
@@ -169,20 +170,20 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ela_pef"       CDF_REAL4      1       1    16        T       T
+  "ela_pef"       CDF_REAL4      1       1     16       T         T
 
-  ! VAR_COMPRESSION: None
+  ! VAR_COMPRESSION: GZIP.6
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
   ! VAR_SPARSERECORDS: None
   ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_BLOCKINGFACTOR: 1024
   ! VAR_PADVALUE: -1.0e+30
 
   ! Attribute       Data
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "CATDESC"     CDF_CHAR     { "[ADC UNITS ONLY] L1 EPD Electron counts, " -
-                                 "Fast Mode" }
+    "CATDESC"     CDF_CHAR     { "EPD Electron counts/sector [raw data]" }
     "DEPEND_0"    CDF_CHAR     { "ela_pef_time" }
     "DEPEND_1"    CDF_CHAR     { "ela_pef_energies_mean" }
     "DISPLAY_TYPE"
@@ -190,9 +191,9 @@
     "FIELDNAM"    CDF_CHAR     { "Electron Counts" }
     "FILLVAL"     CDF_REAL4    { nan }
     "FORMAT"      CDF_CHAR     { "F12.8" }
-    "LABLAXIS"    CDF_CHAR     { "Electron counts/sector" } 
+    "LABLAXIS"    CDF_CHAR     { "Electron counts/sector" }
     "UNITS"       CDF_CHAR     { "raw counts" }
-    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
     "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" } .
 
@@ -203,61 +204,63 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ela_pef_energies_mean"       
-                   CDF_REAL4      1      1     16       F        T          
+  "ela_pef_energies_mean"
+                  CDF_REAL4      1       1     16       F         T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
   ! VAR_SPARSERECORDS: None
   ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_BLOCKINGFACTOR: 1
   ! VAR_PADVALUE: -1.0e+30
 
   ! Attribute       Data
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "CATDESC"     CDF_CHAR     { "Central energy bins for each " -
-                                 "of 16 EPD electron channels" }
+    "CATDESC"     CDF_CHAR     { "Central energy bins for each of 16 EPD" -
+                                 " electron channels" }
     "FIELDNAM"    CDF_CHAR     { "ela_pef_energies_mean" }
     "FILLVAL"     CDF_REAL4    { -128.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
-    "LABLAXIS"    CDF_CHAR     { "Central electron energy bins" } 
+    "LABLAXIS"    CDF_CHAR     { "Central electron energy bins" }
     "UNITS"       CDF_CHAR     { "keV" }
     "VALIDMIN"    CDF_REAL4    { 0.0 }
-    "VALIDMAX"    CDF_REAL4    { 1000000.0 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+04 }
     "VAR_TYPE"    CDF_CHAR     { "support_data" } .
 
   ! NRV values follow...
 
-    [1] = 63.2455      
-    [2] = 97.9796      
-    [3] = 138.564      
-    [4] = 183.303      
-    [5] = 238.118      
-    [6] = 305.205      
-    [7] = 385.162      
-    [8] = 520.480
-    [9] = 752.994      
-    [10] = 1081.67      
-    [11] = 1529.71      
-    [12] = 2121.32      
-    [13] = 2893.96      
-    [14] = 3728.61      
-    [15] = 4906.12      
-    [16] = 6500.00 
+    [1] = 63.2455
+    [2] = 97.9796
+    [3] = 138.564
+    [4] = 183.303
+    [5] = 238.118
+    [6] = 305.205
+    [7] = 385.162
+    [8] = 520.48
+    [9] = 752.994
+    [10] = 1081.67
+    [11] = 1529.71
+    [12] = 2121.32
+    [13] = 2893.96
+    [14] = 3728.61
+    [15] = 4906.12
+    [16] = 6500.0
 
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ela_pef_energies_min"       
-                   CDF_REAL4      1     1      16        F       T          
+  "ela_pef_energies_min"
+                  CDF_REAL4      1       1     16       F         T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
   ! VAR_SPARSERECORDS: None
   ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_BLOCKINGFACTOR: 1
   ! VAR_PADVALUE: -1.0e+30
 
   ! Attribute       Data
@@ -269,29 +272,29 @@
     "FIELDNAM"    CDF_CHAR     { "ela_pef_energies_min" }
     "FILLVAL"     CDF_REAL4    { -128.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
-    "LABLAXIS"    CDF_CHAR     { "Min Electron energy bins" } 
+    "LABLAXIS"    CDF_CHAR     { "Min Electron energy bins" }
     "UNITS"       CDF_CHAR     { "keV" }
     "VALIDMIN"    CDF_REAL4    { 0.0 }
-    "VALIDMAX"    CDF_REAL4    { 1000000.0 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+04 }
     "VAR_TYPE"    CDF_CHAR     { "support_data" } .
 
   ! NRV values follow...
 
-    [1] = 50.0      
-    [2] = 80.0      
-    [3] = 120.0      
-    [4] = 160.0      
-    [5] = 210.0      
-    [6] = 270.0      
-    [7] = 345.0      
+    [1] = 50.0
+    [2] = 80.0
+    [3] = 120.0
+    [4] = 160.0
+    [5] = 210.0
+    [6] = 270.0
+    [7] = 345.0
     [8] = 430.0
-    [9] = 630.0      
-    [10] = 900.0      
-    [11] = 1300.0      
-    [12] = 1800.0      
-    [13] = 2500.0      
-    [14] = 3350.0      
-    [15] = 4150.0      
+    [9] = 630.0
+    [10] = 900.0
+    [11] = 1300.0
+    [12] = 1800.0
+    [13] = 2500.0
+    [14] = 3350.0
+    [15] = 4150.0
     [16] = 5800.0
 
 
@@ -299,46 +302,47 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ela_pef_energies_max"       
-                   CDF_REAL4      1     1      16        F       T          
+  "ela_pef_energies_max"
+                  CDF_REAL4      1       1     16       F         T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
   ! VAR_SPARSERECORDS: None
   ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_BLOCKINGFACTOR: 1
   ! VAR_PADVALUE: -1.0e+30
 
   ! Attribute       Data
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "CATDESC"     CDF_CHAR     { "Max energy bins for each " -
-                                 "of 16 EPD electron channels" }
+    "CATDESC"     CDF_CHAR     { "Max energy bins for each of 16 EPD " -
+                                 "electron channels" }
     "FIELDNAM"    CDF_CHAR     { "ela_pef_energies_max" }
     "FILLVAL"     CDF_REAL4    { -128.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
-    "LABLAXIS"    CDF_CHAR     { "Max energy bins" } 
+    "LABLAXIS"    CDF_CHAR     { "Max energy bins" }
     "UNITS"       CDF_CHAR     { "keV" }
     "VALIDMIN"    CDF_REAL4    { 0.0 }
-    "VALIDMAX"    CDF_REAL4    { 1000000. }
-    "VAR_TYPE"    CDF_CHAR     { "suppport_data" } .
+    "VALIDMAX"    CDF_REAL4    { 1.0e+04 }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" } .
 
   ! NRV values follow...
 
-    [1] = 80.0      
-    [2] = 120.0      
-    [3] = 160.0      
-    [4] = 210.0      
-    [5] = 270.0      
-    [6] = 345.0      
+    [1] = 80.0
+    [2] = 120.0
+    [3] = 160.0
+    [4] = 210.0
+    [5] = 270.0
+    [6] = 345.0
     [7] = 430.0
-    [8] = 630.0      
-    [9] = 900.0      
-    [10] = 1300.0      
-    [11] = 1800.0      
-    [12] = 2500.0      
-    [13] = 3350.0      
-    [14] = 4150.0      
+    [8] = 630.0
+    [9] = 900.0
+    [10] = 1300.0
+    [11] = 1800.0
+    [12] = 2500.0
+    [13] = 3350.0
+    [14] = 4150.0
     [15] = 5800.0
     [16] = 8000.0
 
@@ -347,14 +351,15 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ela_pef_sectnum"       
-                   CDF_INT1      1       0                       T 
+  "ela_pef_sectnum"
+                  CDF_INT1       1       0              T
 
-  ! VAR_COMPRESSION: None
+  ! VAR_COMPRESSION: GZIP.6
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
   ! VAR_SPARSERECORDS: None
   ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
+  ! VAR_BLOCKINGFACTOR: 65536
+  ! VAR_PADVALUE: -1
 
   ! Attribute       Data
   ! Name            Type       Value
@@ -365,75 +370,10 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "ela_pef_sectnum" }
-    "FILLVAL"     CDF_INT1     {  -128 }
+    "FILLVAL"     CDF_INT1     { -128 }
     "FORMAT"      CDF_CHAR     { "i2" }
-    "LABLAXIS"    CDF_CHAR     { "Sector Number" } 
-    "UNITS"       CDF_CHAR     { "num sector" }
-    "VALIDMIN"    CDF_INT1     { 0 }
-    "VALIDMAX"    CDF_INT1     { 16 }
-    "VAR_TYPE"    CDF_CHAR     { "data" } .
-
-  ! RV values were not requested.
-
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "ela_pef_nspinsinsum"       
-                   CDF_INT1      1       0                       T 
-
-  ! VAR_COMPRESSION: None
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "CATDESC"     CDF_CHAR     { "number spins in sum" }
-    "DEPEND_0"    CDF_CHAR     { "ela_pef_time" }
-    "DISPLAY_TYPE"
-                  CDF_CHAR     { "time_series" }
-    "FIELDNAM"    CDF_CHAR     { "ela_pef_spin_nspinsinsum" }
-    "FILLVAL"     CDF_INT1     {  -128 }
-    "FORMAT"      CDF_CHAR     { "i2" }
-    "LABLAXIS"    CDF_CHAR     { "Number Spins in Sum" } 
-    "UNITS"       CDF_CHAR     { "num spins in sum" }
-    "VALIDMIN"    CDF_INT1     { 0 }
-    "VALIDMAX"    CDF_INT1     { 16 }
-    "VAR_TYPE"    CDF_CHAR     { "data" } .
-
-  ! RV values were not requested.
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "ela_pef_nsectors"       
-                   CDF_INT1      1       0                       T 
-
-  ! VAR_COMPRESSION: None
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "CATDESC"     CDF_CHAR     { "number of sectors" }
-    "DEPEND_0"    CDF_CHAR     { "ela_pef_time" }
-    "DISPLAY_TYPE"
-                  CDF_CHAR     { "time_series" }
-    "FIELDNAM"    CDF_CHAR     { "ela_pef_nsectors" }
-    "FILLVAL"     CDF_INT1     {  -128 }
-    "FORMAT"      CDF_CHAR     { "i2" }
-    "LABLAXIS"    CDF_CHAR     { "Number of sectors" } 
-    "UNITS"       CDF_CHAR     { "num sectors" }
+    "LABLAXIS"    CDF_CHAR     { "Sector Number" }
+    "UNITS"       CDF_CHAR     { " " }
     "VALIDMIN"    CDF_INT1     { 0 }
     "VALIDMAX"    CDF_INT1     { 32 }
     "VAR_TYPE"    CDF_CHAR     { "data" } .
@@ -445,27 +385,31 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ela_pef_spinper"   CDF_REAL4      1       0              T
+  "ela_pef_nspinsinsum"
+                  CDF_INT1       1       0              T
 
-  ! VAR_COMPRESSION: None
+  ! VAR_COMPRESSION: GZIP.6
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
   ! VAR_SPARSERECORDS: None
   ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: 0.0
+  ! VAR_BLOCKINGFACTOR: 65536
+  ! VAR_PADVALUE: -1
 
   ! Attribute       Data
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "CATDESC"     CDF_CHAR     { "spinperiod" }
+    "CATDESC"     CDF_CHAR     { "number spins in sum" }
     "DEPEND_0"    CDF_CHAR     { "ela_pef_time" }
-    "FIELDNAM"    CDF_CHAR     { "ela_pef_spinper" }
-    "FILLVAL"     CDF_REAL4    { nan }
-    "FORMAT"      CDF_CHAR     { "F12.8" }
-    "LABLAXIS"    CDF_CHAR     { "spinper" }
-    "UNITS"       CDF_CHAR     { "sec" }
-    "VALIDMIN"    CDF_REAL4    { 0.0 }
-    "VALIDMAX"    CDF_REAL4    { 40.0 }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "FIELDNAM"    CDF_CHAR     { "ela_pef_nspinsinsum" }
+    "FILLVAL"     CDF_INT1     { -128 }
+    "FORMAT"      CDF_CHAR     { "i2" }
+    "LABLAXIS"    CDF_CHAR     { "Number Spins in Sum" }
+    "UNITS"       CDF_CHAR     { " " }
+    "VALIDMIN"    CDF_INT1     { 0 }
+    "VALIDMAX"    CDF_INT1     { 32 }
     "VAR_TYPE"    CDF_CHAR     { "data" } .
 
   ! RV values were not requested.
@@ -475,28 +419,64 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ela_pef_spinphase"
-                  CDF_REAL8      1       0              T
+  "ela_pef_nsectors"
+                  CDF_INT1       1       0              T
 
-  ! VAR_COMPRESSION: None
+  ! VAR_COMPRESSION: GZIP.6
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
   ! VAR_SPARSERECORDS: None
   ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_BLOCKINGFACTOR: 65536
+  ! VAR_PADVALUE: -1
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "number of sectors" }
+    "DEPEND_0"    CDF_CHAR     { "ela_pef_time" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "FIELDNAM"    CDF_CHAR     { "ela_pef_nsectors" }
+    "FILLVAL"     CDF_INT1     { -128 }
+    "FORMAT"      CDF_CHAR     { "i2" }
+    "LABLAXIS"    CDF_CHAR     { "Number of sectors" }
+    "UNITS"       CDF_CHAR     { " " }
+    "VALIDMIN"    CDF_INT1     { 0 }
+    "VALIDMAX"    CDF_INT1     { 32 }
+    "VAR_TYPE"    CDF_CHAR     { "data" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "ela_pef_spinper"
+                  CDF_REAL4      1       0              T
+
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_BLOCKINGFACTOR: 16384
   ! VAR_PADVALUE: 0.0
 
   ! Attribute       Data
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "CATDESC"     CDF_CHAR     { "spinphase" }
+    "CATDESC"     CDF_CHAR     { "spinperiod" }
     "DEPEND_0"    CDF_CHAR     { "ela_pef_time" }
-    "FIELDNAM"    CDF_CHAR     { "ela_pef_spinphase" }
-    "FILLVAL"     CDF_REAL8    { nan }
+    "FIELDNAM"    CDF_CHAR     { "ela_pef_spinper" }
+    "FILLVAL"     CDF_REAL4    { -128 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
-    "LABLAXIS"    CDF_CHAR     { "spinphase" }
-    "UNITS"       CDF_CHAR     { "deg" }
-    "VALIDMIN"    CDF_REAL8    { 0.0 }
-    "VALIDMAX"    CDF_REAL8    { 360.0 }
+    "LABLAXIS"    CDF_CHAR     { "spinper" }
+    "UNITS"       CDF_CHAR     { "sec" }
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 40.0 }
+    "DISPLAY_TYPE" CDF_CHAR    { "time_series" }
     "VAR_TYPE"    CDF_CHAR     { "data" } .
 
   ! RV values were not requested.
