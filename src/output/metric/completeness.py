@@ -221,7 +221,7 @@ class CompletenessUpdater:
 
         for i in range(1, times.shape[0]):
             cur_time = times.iloc[i]
-            if cur_time - prev_time > dt.timedelta(minutes=20):
+            if cur_time - prev_time > dt.timedelta(minutes=6):
                 szs.append(sz.copy())
                 sz = [cur_time]
             else:
