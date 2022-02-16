@@ -270,6 +270,7 @@ class EpdProcessor(IdpuProcessor):
                 else:
                     ignore_packet, measured_values = True, [None] * BIN_COUNT * num_sectors
 
+                consecutive_nonheader_packets = 0
             else:  # We get a non-header/non-reference frame/continuation frame
                 ignore_packet, measured_values = update_measured_values_if_valid(measured_values, packet_num, cur_data)
                 consecutive_nonheader_packets += 1
@@ -291,7 +292,6 @@ class EpdProcessor(IdpuProcessor):
                 or consecutive_nonheader_packets >= 9
             ):
                 packet_num += self.find_first_header(data=data.iloc[packet_num:], header_marker_byte=header_marker_byte)
-                consecutive_nonheader_packets = 0
 
         return l0_df.reset_index(drop=True)
 
