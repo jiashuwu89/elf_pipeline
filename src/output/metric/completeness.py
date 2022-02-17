@@ -99,7 +99,7 @@ class CompletenessUpdater:
         completeness_config = self.completeness_config_map[data_type]
 
         times = df["times"]
-        szs = self.split_science_zones(times)
+        szs = self.split_science_zones(processing_request, times)
 
         median_diff = self.get_median_diff(completeness_config, szs)
         if median_diff is None:
@@ -202,11 +202,12 @@ class CompletenessUpdater:
 
         return True
 
-    def split_science_zones(self, times: pd.Series) -> List[List[np.datetime64]]:
+    def split_science_zones(self, processing_request: ProcessingRequest, times: pd.Series) -> List[List[np.datetime64]]:
         """Given a series of times, group them into estimated science zones.
 
         Parameters
         ----------
+        processing_request : ProcessingRequest
         times : pd.Series
             A series of times corresponding to packets (TODO: is this frames?)
 
@@ -222,12 +223,14 @@ class CompletenessUpdater:
         for i in range(1, times.shape[0]):
             cur_time = times.iloc[i]
             if cur_time - prev_time > dt.timedelta(minutes=4, seconds=30):
-                szs.append(sz.copy())
+                if any(t.date() == processing_request.date for t in sz):
+                    szs.append(sz.copy())
                 sz = [cur_time]
             else:
                 sz.append(cur_time)
             prev_time = cur_time
-        szs.append(sz)
+        if any(t.date() == processing_request.date for t in sz):
+            szs.append(sz)
 
         self.logger.info(f"Found {len(szs)} science zone{s_if_plural(szs)}")
         return szs
