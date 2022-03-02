@@ -2,7 +2,7 @@ import datetime as dt
 
 import pandas as pd
 
-from data_type.completeness_config import COMPLETENESS_CONFIG_MAP
+from data_type.completeness_config import COMPLETENESS_CONFIG_MAP, EPDE_COMPLETENESS_CONFIG
 from output.metric.completeness import CompletenessUpdater
 from util.dummy import DummyPipelineConfig, DummyProcessingRequest
 
@@ -47,7 +47,7 @@ class TestCompletenessUpdater:
         )
 
         completeness_updater = CompletenessUpdater(pipeline_config.session, COMPLETENESS_CONFIG_MAP)
-        szs = completeness_updater.split_science_zones(processing_request, times)
+        szs = completeness_updater.split_science_zones(processing_request, EPDE_COMPLETENESS_CONFIG, times)
 
         assert len(szs) == 2
         for sz in szs:
