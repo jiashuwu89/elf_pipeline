@@ -9,6 +9,7 @@ class CompletenessConfig:
     start_delay: dt.timedelta
     start_margin: dt.timedelta
     expected_collection_duration: dt.timedelta
+    classic_science_zone_gap_size: dt.timedelta
 
     idpu_type: int = -1
     intent_type: str = "ScienceCollection"
@@ -20,6 +21,7 @@ MRM_COMPLETENESS_CONFIG = CompletenessConfig(
     start_delay=dt.timedelta(seconds=0),
     start_margin=dt.timedelta(seconds=3),
     expected_collection_duration=dt.timedelta(minutes=24),
+    classic_science_zone_gap_size=dt.timedelta(minutes=5),
     intent_type="AttitudeCollection",
     median_diff=0.32,  # (mrm sample rate = 56.25/18)
 )
@@ -29,6 +31,7 @@ FGM_COMPLETENESS_CONFIG = CompletenessConfig(
     start_delay=dt.timedelta(seconds=50),  # 3 second margin
     start_margin=dt.timedelta(seconds=3),
     expected_collection_duration=dt.timedelta(minutes=6, seconds=5),
+    classic_science_zone_gap_size=dt.timedelta(minutes=20),
     idpu_type=2,
 )
 
@@ -37,6 +40,7 @@ EPDE_COMPLETENESS_CONFIG = CompletenessConfig(
     start_delay=dt.timedelta(seconds=50),  # first two spin periods discarded, with 3 seconds margin
     start_margin=dt.timedelta(seconds=9),
     expected_collection_duration=dt.timedelta(minutes=6, seconds=5),
+    classic_science_zone_gap_size=dt.timedelta(minutes=20),
     idpu_type=4,
 )
 
@@ -45,6 +49,7 @@ EPDI_COMPLETENESS_CONFIG = CompletenessConfig(
     start_delay=dt.timedelta(seconds=50),
     start_margin=dt.timedelta(seconds=9),
     expected_collection_duration=dt.timedelta(minutes=6, seconds=5),
+    classic_science_zone_gap_size=dt.timedelta(minutes=20),
     idpu_type=6,
 )
 

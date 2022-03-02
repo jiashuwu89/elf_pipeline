@@ -5,6 +5,7 @@ import math
 import statistics
 from typing import Any, Dict, List, Optional, Tuple, Type
 
+import intervaltree
 import numpy as np
 import pandas as pd
 import sqlalchemy
@@ -15,10 +16,15 @@ from data_type.processing_request import ProcessingRequest
 from util.constants import (
     COMPLETENESS_TABLE_PRODUCT_MAP,
     GAP_CATEGORIZATION_DATA_TYPES,
+    MRM_PRODUCTS,
     SCIENCE_ZONE_SECTIONS,
     SMALL_LARGE_GAP_MULTIPLIERS,
 )
 from util.science_utils import s_if_plural
+
+INTERVAL_TYPE = "ExecutionTime"
+INTENT_TYPE = "ScienceCollection"
+REFACTOR_CUTOFF_DATE = dt.date(2020, 6, 12)
 
 
 class CompletenessUpdater:
@@ -99,7 +105,7 @@ class CompletenessUpdater:
         completeness_config = self.completeness_config_map[data_type]
 
         times = df["times"]
-        szs = self.split_science_zones(processing_request, times)
+        szs = self.split_science_zones(processing_request, completeness_config, times)
 
         median_diff = self.get_median_diff(completeness_config, szs)
         if median_diff is None:
@@ -111,14 +117,12 @@ class CompletenessUpdater:
 
         # Update completeness for each science zone
         for sz in szs:
-            start_time, end_time = self.estimate_time_range(processing_request, completeness_config, sz)
-            if start_time is None and end_time is None:
-                continue
+            start_time, end_time, found_interval = self.estimate_time_range(processing_request, completeness_config, sz)
 
             # Get Obtained and Expected Counts
             collection_duration = (end_time - start_time).total_seconds()
             obtained = len(sz)
-            estimated_total = math.ceil(collection_duration / median_diff)
+            estimated_total = max(1, math.ceil(collection_duration / median_diff))
 
             # Store data about gaps
             small_gaps, large_gaps = [], []
@@ -144,7 +148,7 @@ class CompletenessUpdater:
                     small_gaps.append(gap)
                     small_gap_duration += gap_size
                 if gap_size > small_gap_bound:
-                    sections[get_gap_position(start_time, end_time, gap)] += 1
+                    sections[self.get_gap_position(start_time, end_time, gap)] += 1
 
             gap_category = ""
             max_gaps, max_section = 0, "None"
@@ -187,7 +191,7 @@ class CompletenessUpdater:
                         sz_start_time=str(start_time),
                         sz_end_time=str(end_time),
                         num_received=obtained,
-                        num_expected=estimated_total,
+                        num_expected=estimated_total if found_interval else None,
                         insert_date=str(dt.datetime.now()),
                         gap_category=gap_category,
                     )
@@ -202,12 +206,15 @@ class CompletenessUpdater:
 
         return True
 
-    def split_science_zones(self, processing_request: ProcessingRequest, times: pd.Series) -> List[List[np.datetime64]]:
+    def split_science_zones(
+        self, processing_request: ProcessingRequest, completeness_config: CompletenessConfig, times: pd.Series
+    ) -> List[List[np.datetime64]]:
         """Given a series of times, group them into estimated science zones.
 
         Parameters
         ----------
         processing_request : ProcessingRequest
+        completeness_config : CompletenessConfig
         times : pd.Series
             A series of times corresponding to packets (TODO: is this frames?)
 
@@ -216,13 +223,74 @@ class CompletenessUpdater:
         List[List[dt.datetime]]
             A list of science zones, which are each a list of times
         """
+
+        time_intervals = (
+            self.session.query(models.TimeIntervals)
+            .filter(
+                models.TimeIntervals.mission_id == processing_request.mission_id,
+                models.TimeIntervals.interval_type == INTERVAL_TYPE,
+                models.TimeIntervals.start_time <= times.iloc[-1].to_pydatetime(),
+                models.TimeIntervals.end_time >= times.iloc[0].to_pydatetime(),
+                models.Intent.intent_type == INTENT_TYPE,
+            )
+            .join(models.Intent, models.TimeIntervals.intent_id == models.Intent.id)
+        )
+
+        def different_science_zones(cur_time, prev_time):
+            return abs(cur_time - prev_time) > completeness_config.classic_science_zone_gap_size
+
+        # After this date, the refactor changes have stabilized to the point where it
+        # is feasible to use the `time_intervals` table for its time ranges. Before,
+        # we know for sure that collections occur far apart enough that our original
+        # criteria suffices.
+        if (
+            time_intervals.count() != 0
+            and processing_request.date > REFACTOR_CUTOFF_DATE
+            and processing_request.data_product not in MRM_PRODUCTS
+        ):
+            it = intervaltree.IntervalTree()
+            for interval in time_intervals:
+                predicted_start_time = (
+                    interval.start_time + completeness_config.start_delay + completeness_config.start_margin
+                )
+                predicted_end_time = (
+                    interval.start_time
+                    + completeness_config.start_delay
+                    + completeness_config.expected_collection_duration
+                )
+                delta = (predicted_end_time - predicted_start_time) / 2
+                it[predicted_start_time:predicted_end_time] = predicted_start_time + delta
+
+            it.merge_overlaps(data_reducer=lambda x, y: x + ((y - x) / 2))
+
+            center_times = {}
+            boundary_times = []
+            for interval in it:
+                boundary_times += [interval.begin, interval.end]
+                center_times[interval.begin] = interval.data
+                center_times[interval.end] = interval.data
+
+            orig_different_science_zones = different_science_zones
+
+            def different_science_zones(cur_time, prev_time):
+                def closest_center(t):
+                    """The center of the interval closest to the current point."""
+                    return center_times[min(boundary_times, key=lambda x: abs((x - t).total_seconds()))]
+
+                # The delta threshold can probably be lowered if the two times are "close" to different intervals
+                # Note that 1 minute was chosen arbitrarily, but seemed ok when testing
+                return orig_different_science_zones(cur_time, prev_time) or (
+                    (closest_center(cur_time) != closest_center(prev_time))
+                    and (abs(cur_time - prev_time) > dt.timedelta(minutes=1))
+                )
+
         szs = []
         prev_time = times.iloc[0]
         sz = [prev_time]
 
         for i in range(1, times.shape[0]):
             cur_time = times.iloc[i]
-            if cur_time - prev_time > dt.timedelta(minutes=4, seconds=30):
+            if different_science_zones(cur_time, prev_time):
                 if any(t.date() == processing_request.date for t in sz):
                     szs.append(sz.copy())
                 sz = [cur_time]
@@ -268,7 +336,7 @@ class CompletenessUpdater:
     # TODO: Get better return type
     def estimate_time_range(
         self, processing_request: ProcessingRequest, completeness_config: CompletenessConfig, sz: List[np.datetime64]
-    ) -> Tuple[Any, Any]:
+    ) -> Tuple[Any, Any, bool]:
         """Estimates the start and end time of a collection.
 
         The start and end times are estimated by using the first and last
@@ -284,14 +352,17 @@ class CompletenessUpdater:
 
         Returns
         -------
-        (start_time, end_time)
-            The estimated start and end times of the collection
+        (start_time, end_time, found_interval)
+            The estimated start and end times of the collection, along with
+            a bool representing whether a corresponding time interval had been
+            found to compare with.
         """
         sz_start_time = sz[0]
         sz_end_time = sz[-1]
 
         # Find corresponding collection (for the time range)
         # Assumes that only one execution time will be found
+        # TODO: Check this assumption, may not hold anymore
         q = (
             self.session.query(models.TimeIntervals)
             .filter(
@@ -306,7 +377,7 @@ class CompletenessUpdater:
         )
         if not q:
             self.logger.warning(f"Empty Query, skipping interval {sz_start_time} to {sz_end_time}")
-            return None, None
+            return sz_start_time, sz_end_time, False
 
         start_time = min(
             sz_start_time,
@@ -317,45 +388,44 @@ class CompletenessUpdater:
             q.start_time + completeness_config.start_delay + completeness_config.expected_collection_duration,
         )
 
-        return start_time, end_time
+        return start_time, end_time, True
 
+    def get_gap_position(
+        self, start_time: np.datetime64, end_time: np.datetime64, gap: Tuple[np.datetime64, np.datetime64]
+    ) -> str:
+        """Determines which section in the science zone a gap occurs in.
 
-def get_gap_position(
-    start_time: np.datetime64, end_time: np.datetime64, gap: Tuple[np.datetime64, np.datetime64]
-) -> str:
-    """Determines which section in the science zone a gap occurs in.
+        The start and end time of the gap can be located in one of three sections.
+        Depending on this combination of sections, a string is returned.
 
-    The start and end time of the gap can be located in one of three sections.
-    Depending on this combination of sections, a string is returned.
+        Parameters
+        ----------
+        duration : float
+            The duration of collection for the science zone.
+        start_time : float
+            The start time of collection for the science zone.
+        gap : Tuple[np.datetime64, np.datetime64]
+            A tuple holding the start and end time of the gap.
 
-    Parameters
-    ----------
-    duration : float
-        The duration of collection for the science zone.
-    start_time : float
-        The start time of collection for the science zone.
-    gap : Tuple[np.datetime64, np.datetime64]
-        A tuple holding the start and end time of the gap.
+        Returns
+        -------
+        str
+            A string is returned, representing the qualitative section
+            in which the gap is located.
+        """
+        gap_start, gap_end = gap
+        duration = end_time - start_time
+        FIRST_LIMIT = start_time + duration * SCIENCE_ZONE_SECTIONS[0]
+        SECOND_LIMIT = start_time + duration * SCIENCE_ZONE_SECTIONS[1]
 
-    Returns
-    -------
-    str
-        A string is returned, representing the qualitative section
-        in which the gap is located.
-    """
-    gap_start, gap_end = gap
-    duration = end_time - start_time
-    FIRST_LIMIT = start_time + duration * SCIENCE_ZONE_SECTIONS[0]
-    SECOND_LIMIT = start_time + duration * SCIENCE_ZONE_SECTIONS[1]
-
-    if gap_start < FIRST_LIMIT and gap_end < FIRST_LIMIT:
-        return "in beginning"
-    if gap_start < FIRST_LIMIT and gap_end < SECOND_LIMIT:
-        return "in beginning/middle"
-    if gap_start < FIRST_LIMIT and gap_end >= SECOND_LIMIT:
-        return "throughout"
-    if gap_start < SECOND_LIMIT and gap_end < SECOND_LIMIT:
-        return "in middle"
-    if gap_start < SECOND_LIMIT and gap_end >= SECOND_LIMIT:
-        return "in middle/end"
-    return "in end"
+        if gap_start < FIRST_LIMIT and gap_end < FIRST_LIMIT:
+            return "in beginning"
+        if gap_start < FIRST_LIMIT and gap_end < SECOND_LIMIT:
+            return "in beginning/middle"
+        if gap_start < FIRST_LIMIT and gap_end >= SECOND_LIMIT:
+            return "throughout"
+        if gap_start < SECOND_LIMIT and gap_end < SECOND_LIMIT:
+            return "in middle"
+        if gap_start < SECOND_LIMIT and gap_end >= SECOND_LIMIT:
+            return "in middle/end"
+        return "in end"
