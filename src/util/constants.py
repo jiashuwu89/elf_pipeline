@@ -41,6 +41,8 @@ PACKET_MAP = {
     3: ["epdef"],
     4: ["epdef"],
     22: ["epdef"],
+    7: ["epdef"],  # uncompressed 32-sector EPDEF
+    8: ["epdef"],  # compressed 32-sector EPDEF
     5: ["epdif"],
     6: ["epdif"],
     23: ["epdif"],
@@ -58,7 +60,7 @@ SCIENCE_TYPES = {
     "eng": [14, 15, 16],  # 14: SIPS, 15: EPD, 16: FGM
     "fgf": [1, 2, 17, 18],
     "fgs": [1, 2, 17, 18],
-    "epdef": [3, 4, 22, 24],
+    "epdef": [3, 4, 7, 8, 22, 24],
     "epdes": [20],
     "epdif": [5, 6, 23, 24],
     "epdis": [19],
@@ -77,6 +79,8 @@ FGM_COMPLETENESS_TABLE_PRODUCT_MAP = {1: "FGM", 2: "FGM", 17: "FGM", 18: "FGM"}
 EPDE_COMPLETENESS_TABLE_PRODUCT_MAP = {
     3: "EPDE",
     4: "EPDE",
+    7: "EPDE",  # TODO: Separate label for 32 sector EPDE?
+    8: "EPDE",  # TODO: Separate label for 32 sector EPDE?
     20: "EPDE",  # TODO: Separate label for survey mode?
     22: "IEPDE",
     24: "IEPDE",
@@ -168,7 +172,7 @@ ATTITUDE_SOLUTION_RADIUS = dt.timedelta(days=30)
 
 # EPD
 BIN_COUNT = 16
-VALID_NUM_SECTORS = [4, 16]
+VALID_NUM_SECTORS = [4, 16, 32]
 IBO_DATA_BYTE = 10
 
 # Instruments run at 80 Hz and report data in terms of 1/80 second.
