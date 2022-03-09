@@ -18,6 +18,7 @@ from util.constants import (
     BIN_COUNT,
     BOGUS_EPD_DATERANGE,
     EPD_CALIBRATION_DIR,
+    EPD_PRODUCTS,
     IBO_DATA_BYTE,
     IBO_TYPES,
     INSTRUMENT_CLK_FACTOR,
@@ -67,8 +68,8 @@ class EpdProcessor(IdpuProcessor):
         # TODO: unify with fgm_processor
         types = df["idpu_type"].values
         # TODO: Update to use mapping of IDPU types to labels (each Dataframe has one IDPU type)
-        uncompressed = bool(set([3, 5, 22, 23]).intersection(types))
-        compressed = bool(set([4, 6, 24]).intersection(types))
+        uncompressed = bool(set([3, 5, 7, 22, 23]).intersection(types))
+        compressed = bool(set([4, 6, 8, 24]).intersection(types))
         survey = bool(set(SURVEY_TYPES).intersection(types))
         inner = bool(set(IBO_TYPES).intersection(types))
 
@@ -78,7 +79,8 @@ class EpdProcessor(IdpuProcessor):
         if uncompressed:
             df = self.update_uncompressed_df(df)
         elif compressed:
-            df = self.decompress_df(processing_request, df=df, num_sectors=16, table=EPD_HUFFMAN)
+            num_sectors = 32 if bool(set([7, 8]).intersection(types)) else 16
+            df = self.decompress_df(processing_request, df=df, num_sectors=num_sectors, table=EPD_HUFFMAN)
         elif survey:
             df = self.decompress_df(processing_request, df=df, num_sectors=4, table=EPD_HUFFMAN)
         else:
@@ -193,7 +195,7 @@ class EpdProcessor(IdpuProcessor):
                 return True, [None] * BIN_COUNT * num_sectors
 
             bitstring = byte_tools.bin_string(cur_data[10:])
-            for i in range(BIN_COUNT * num_sectors):  # Updating each of the 256 values in the period
+            for i in range(BIN_COUNT * num_sectors):  # Updating each of the values in the period
                 try:
                     sign, bitstring = self.get_sign(bitstring)
                 except ValueError as e:
@@ -359,24 +361,27 @@ class EpdProcessor(IdpuProcessor):
         lossy_vals is the table of 255 potential values
         loss_val_idx is one of the indices that were found from the compressed packets
         lossy_val is the value found using lossy_vals and lossy_val_idx
-        """
-        self.logger.debug("Formatting period to level 0 df")
-        spin_period_bytes, collection_time_bytes = cur_data[8:10], cur_data[:8]
 
-        # Add the time
-        bytes_data = spin_period_bytes + collection_time_bytes
+        Update 2022-01-13: The sector number byte will now always be constant
+        (0xFF chosen arbitrarily). The function to convert from L0 to L1
+        (parse_periods) has and will continue to generate sector numbers
+        programmatically, rather than read sector numbers from the data. This
+        avoids having to rely on this byte.
+        """
         num_sectors = len(measured_values) / 16
         if num_sectors not in VALID_NUM_SECTORS:
             raise ValueError(f"Bad Number of Sectors: {num_sectors}")
 
-        num_bins = 0
-        sector_num = 0x0F
-        bytes_data += bytes([sector_num])
+        self.logger.debug("Formatting period to level 0 df")
+        spin_period_bytes, collection_time_bytes = cur_data[8:10], cur_data[:8]
+        sector_num_byte = int.to_bytes(0xFF, 1, "little")
 
+        bytes_data = spin_period_bytes + collection_time_bytes + sector_num_byte
+
+        num_bins = 0
         for loss_val_idx in measured_values:
             if num_bins == 16:  # increment the sector_num and prepare for a new sector
-                sector_num += 0x10 if num_sectors == 16 else 0x40
-                bytes_data += bytes([sector_num])
+                bytes_data += sector_num_byte
                 num_bins = 0
             lossy_val = lossy_vals[loss_val_idx]
             bytes_data += byte_tools.get_two_unsigned_bytes(lossy_val & 0xFFFF)  # least significant word first
@@ -429,6 +434,12 @@ class EpdProcessor(IdpuProcessor):
             to bytes using function, then read in bins 0-15 for sectors 0-F
             * Return same DataFrame structure as before
 
+        Update 2022-01-13: This function has, for a while, programmatically
+        generated sector numbers rather than reading them from data. This
+        update is to explicitly state that the function will not rely on
+        sector numbers written in data. Note that this is motivated partially
+        due to the changing format of the byte as a result of 32-sector EPD.
+
         Parameters
         ----------
         processing_request: ProcessingRequest
@@ -441,26 +452,53 @@ class EpdProcessor(IdpuProcessor):
             A DataFrame containing bin count information from parsing periods
         """
 
+        def get_num_sectors(data_product: str, idpu_type: int):
+            if data_product in ("epdes", "epdis"):
+                return 4
+            return 16 if idpu_type not in (7, 8) else 32  # data_product in ("epdef", "epdif")
+
+        if processing_request.data_product not in EPD_PRODUCTS:
+            raise ValueError(f"Bad data product name: {processing_request.data_product}")
+
         bins: List[List[int]] = [[] for i in range(16)]
         all_sec_num = []
+        all_num_sectors = []  # Total sectors per period
         all_idpu_times = []
         all_spin_periods = []
         all_spin_integration_factors = []
 
-        # Determine the number of sectors
-        # TODO: The way this works could be much better, but it was written befor survey mode
-        # was fully supported. The formula for num_sectors could be (data[20:] / 16) - 1, but
-        # not completely sure
-        if processing_request.data_product[-1] == "f":
-            num_sectors = 16
-        elif processing_request.data_product[-1] == "s":
-            self.logger.warning("Survey Mode handling is still in progress")
-            num_sectors = 4
-        else:
-            raise ValueError(f"Bad data product name: {processing_request.data_product}")
+        if df.empty:
+            return pd.DataFrame(
+                columns=[
+                    "idpu_time",
+                    "spin_period",
+                    "spin_integration_factor",
+                    "sec_num",
+                    "numsectors",
+                    "bin00",
+                    "bin01",
+                    "bin02",
+                    "bin03",
+                    "bin04",
+                    "bin05",
+                    "bin06",
+                    "bin07",
+                    "bin08",
+                    "bin09",
+                    "bin10",
+                    "bin11",
+                    "bin12",
+                    "bin13",
+                    "bin14",
+                    "bin15",
+                ]
+            )
 
         for _, row in df.iterrows():
+            # Due to 32-sector EPD, num_sectors can now vary for a single data product
+            num_sectors = get_num_sectors(processing_request.data_product, row["idpu_type"])
             cur_spin_period, cur_time_captured, bin_data = self.get_context(row["data"])
+
             all_idpu_times.extend(
                 self.calculate_center_times_for_period(
                     cur_spin_period, cur_time_captured, num_sectors, row["idpu_type"], row["spin_integration_factor"]
@@ -469,8 +507,10 @@ class EpdProcessor(IdpuProcessor):
             all_spin_periods.extend([cur_spin_period for _ in range(num_sectors)])
             all_spin_integration_factors.extend([row["spin_integration_factor"] for _ in range(num_sectors)])
 
-            for i in range(0, 16, 16 // num_sectors):
+            for i in self.get_sector_iterator(num_sectors):
                 all_sec_num.append(i)
+                all_num_sectors.append(num_sectors)
+
                 for j in range(1, 65, 4):
                     bins[j // 4].append(
                         (bin_data[j] << 8) + (bin_data[j + 1]) + (bin_data[j + 2] << 24) + (bin_data[j + 3] << 16)
@@ -483,7 +523,7 @@ class EpdProcessor(IdpuProcessor):
                 "spin_period": all_spin_periods,
                 "spin_integration_factor": all_spin_integration_factors,
                 "sec_num": all_sec_num,
-                "numsectors": num_sectors,  # NOTE: Revisit this if the number of sectors changes!
+                "numsectors": all_num_sectors,
                 "bin00": bins[0],
                 "bin01": bins[1],
                 "bin02": bins[2],
@@ -537,8 +577,19 @@ class EpdProcessor(IdpuProcessor):
         # List of times at each sector
         return [
             (time_captured + seconds_per_sector * i + center_time_offset + spin_integration_offset)
-            for i in range(0, 16, 16 // num_sectors)
+            for i in self.get_sector_iterator(num_sectors)
         ]
+
+    @staticmethod
+    def get_sector_iterator(num_sectors: int) -> range:
+        if num_sectors == 16:
+            return range(16)
+        elif num_sectors == 32:
+            return range(32)
+        elif num_sectors == 4:
+            return range(0, 16, 4)
+        else:
+            raise ValueError(f"Invalid number of sectors: {num_sectors}")
 
     @staticmethod
     def format_for_cdf(df: pd.DataFrame) -> pd.DataFrame:
