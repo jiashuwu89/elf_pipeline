@@ -97,10 +97,13 @@ def interpolate_attitude(
     # Define time array (1 soln per minute between t_init and t_fin), then
     # extract time portion in dt to find nearest minute
     t_arr_minres = []
+
+    current_time = t_init
+
     if t_init.second > 0 or t_init.microsecond > 0:
-        current_time = datetime(t_init.year, t_init.month, t_init.day, t_init.hour, t_init.minute + 1, 0)
-    else:
-        current_time = t_init
+        current_time += timedelta(minutes=1)
+        current_time = current_time.replace(second=0, microsecond=0)
+
     while current_time <= t_fin:
         t_arr_minres.append(current_time)
         current_time += timedelta(0, 60)

@@ -50,6 +50,13 @@ class TestScienceUtils:
         assert interp_times.shape == (2391,)
         assert interp_atts.shape == (2391, 3)
 
+        # Regression test: Handle case where start time has 59 minutes, nonzero seconds/microseconds
+        dt_init = dt.datetime(2022, 1, 2, 3, 59, 1)
+        dt_fin = dt.datetime(2022, 1, 3, 0, 0, 0)
+        interp_times, interp_atts = science_utils.interpolate_attitude(Si, dt_init, Sf, dt_fin)
+
+        assert interp_times[0] == dt.datetime(2022, 1, 2, 4)
+
     def test_convert_data_products_to_idpu_types(self):
         assert science_utils.convert_data_products_to_idpu_types([]) == []
 
