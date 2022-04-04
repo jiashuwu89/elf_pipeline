@@ -1,6 +1,5 @@
 """Utility functions to merge Downlink DataFrames"""
 import logging
-import multiprocessing
 from collections import defaultdict
 from typing import Optional
 
@@ -104,19 +103,16 @@ def check_zero_offset(s1, s2, half_min):
 
 
 def merge_downlinks(sf1: pd.DataFrame, sf2: pd.DataFrame, offset: int) -> pd.DataFrame:
-    """Merges two downlinks together, given an offset amount
+    """Merges two downlinks together, given an offset amount.
 
     # TODO: Sort downlinks to merge by denominator, better merges!
-
-    Steps
-    - Start with sf1 and sf2
-    - Look through sf2[:overlap] for not null
-    - Append sf2[overlap:] to sf1
 
     Parameters
     ----------
     sf1, sf2 : pd.DataFrame
-        Formatted Pandas DataFrames with science data
+        Formatted Pandas DataFrames with science data. These DataFrames are
+        expected to overlap (at least one row from sf1 must 'match' with a row
+        from sf2)
     offset : int
         The offset between DataFrames, where sf1[i + offset] aligns with
         sf2[i] for all i
@@ -124,28 +120,59 @@ def merge_downlinks(sf1: pd.DataFrame, sf2: pd.DataFrame, offset: int) -> pd.Dat
     Returns
     -------
     pd.DataFrame
-        The merged dataframe, of the same format
-
+        The merged DataFrame, with the same columns and updated numerator and
+        denominator values
     """
-    # TODO: FIX THIS BECAUSE THIS IS PRETTY WACK
-    # Make sure sf1 occurs before sf2
+    # For simplicity, this ensures that the DataFrame bound to sf1 does not start after sf2
     if offset < 0:
         sf1, sf2 = sf2, sf1
         offset = -1 * offset
 
-    # Anything in sf1 that doesn't overlap
+    # Anything in sf1 that comes before the start of sf2
     df_1 = sf1.iloc[:offset]
 
-    # Any overlap between sf1 and sf2
-    overlap = min(sf1.shape[0] - offset, sf2.shape[0])
-    with multiprocessing.Pool() as pool:
-        x = [row for _, row in sf1.iloc[offset : (offset + overlap)].iterrows()]
-        y = [row for _, row in sf2.iloc[:overlap].iterrows()]
-        args = zip(x, y)
-        df_2 = pd.concat(pool.starmap(merge_helper, args), ignore_index=True)
+    num_overlap = min(sf1.shape[0] - offset, sf2.shape[0])
+    sf1_overlap = sf1.iloc[offset : (offset + num_overlap)]
+    sf2_overlap = sf2.iloc[:num_overlap]
 
-    # Anything in sf2 that doesn't overlap
-    df_3 = sf2.iloc[overlap:]
+    def pick_overlapping_rows(index: int) -> bool:
+        a = sf1_overlap.iloc[index]
+        b = sf2_overlap.iloc[index]
+
+        # If only one has data, use that
+        if pd.isnull(b["data"]):
+            # If a["data"] is null, then it does not matter which one we return - return first arbitrarily
+            return a
+        elif pd.isnull(a["data"]):  # implicitly, b["data"] is not null
+            return b
+
+        # At this point, we know both have some data
+
+        # TODO: we should add better checking to see if the data is similar or completely different,
+        # which could give a better idea as to whether data differs due to a few bit flips or to improper
+        # DataFrame creation.
+        if a["data"] != b["data"]:
+            temp_logger = logging.getLogger(pick_overlapping_rows.__name__)
+            temp_logger.warning(
+                f"🛑\tCONFLICTING DATA between packets with packet_id {a['packet_id']} and {b['packet_id']}"
+            )
+
+        # If only one has an idpu time, use that (similar pattern as above)
+        if pd.isnull(b["idpu_time"]):
+            # TODO: What if a["idpu_time"] is also null? Probably return whichever was downlinked first.
+            # I'm leaving this as is, to keep the behavior consistent with original implementation.
+            return a
+        elif pd.isnull(a["idpu_time"]):
+            return b
+
+        # Both have data and idpu times, so pick whichever was downlinked first (less likely to have been corrupted)
+        return a if a["timestamp"] < b["timestamp"] else b
+
+    # Any overlap between sf1 and sf2
+    df_2 = pd.Series(range(num_overlap)).apply(pick_overlapping_rows)
+
+    # If sf2 extends past sf1
+    df_3 = sf2.iloc[num_overlap:]
 
     # If sf1 extends past sf2
     df_4 = sf1.iloc[(offset + sf2.shape[0]) :]
@@ -158,38 +185,3 @@ def merge_downlinks(sf1: pd.DataFrame, sf2: pd.DataFrame, offset: int) -> pd.Dat
     merged["numerator"] = merged.index
 
     return merged
-
-
-def merge_helper(a, b):
-    """
-    Helper function for multiprocessing portion of merge_downlinks
-    Format of a, b:
-    id, mission_id, idpu_type, idpu_time, data, numerator, denominator, packet_id, packet_data, timestamp
-    """
-    if a["data"] is None and b["data"] is None:
-        to_return = a
-    elif a["data"] is not None and b["data"] is None:
-        to_return = a
-    elif a["data"] is None and b["data"] is not None:
-        to_return = b
-    else:  # both have some data
-        if a["data"] != b["data"]:
-            _merge_helper_log = logging.getLogger(merge_helper.__name__)
-            _merge_helper_log.info(
-                f"WARNING: CONFLICTING DATA, keeping data with earlier timestamp (less likely to have been corrupted):\
-                    \n\tPacket ID: {a['packet_id']}, Timestamp: {a['timestamp']}\tPacket ID: {b['packet_id']}, \
-                    Timestamp: {b['timestamp']}"
-            )
-        if pd.isnull(b["idpu_time"]):  # also if neither has a timestamp
-            to_return = a
-        elif pd.isnull(a["idpu_time"]):
-            to_return = b
-        # Both have an idpu_time (compression time), so pick whichever was downlinked first
-        else:
-            if a["timestamp"] < b["timestamp"]:
-                # if a['idpu_time'] > b['idpu_time']:  # <- Use this to check if 2019-10-09 overlaps with 2019-09-30
-                to_return = a
-            else:
-                to_return = b
-
-    return to_return.to_frame().T
