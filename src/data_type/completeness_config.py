@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 
-@dataclass
+@dataclass(frozen=True)
 class CompletenessConfig:
     data_type: str
     start_delay: dt.timedelta
