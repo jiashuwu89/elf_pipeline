@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from collections import defaultdict
 from typing import List, Tuple
 
 import numpy as np
@@ -128,44 +129,81 @@ class IdpuProcessor(ScienceProcessor):
         Parameters
         ----------
         downlinks : List[Downlink]
-            A list of Downlink objects
+            A list of Downlink objects, all with the same mission id
 
         Returns
         -------
         List[pd.DataFrame]
             A list of DataFrames of data that was merged
         """
+
         downlinks = [
             dl for dl in downlinks if dl.first_packet_info.science_packet_id and dl.last_packet_info.science_packet_id
         ]
-        downlinks = sorted(downlinks)
-
+        downlinks = sorted(downlinks)  # TODO: See if sorting should be updated, and see if we can avoid omitting dls
         if not downlinks:
             raise RuntimeError("No Downlinks to merge!")
 
+        mission_ids = {dl.mission_id for dl in downlinks}
+        if len(mission_ids) != 1:
+            raise ValueError(f"Expected all downlinks to have the same mission_id, got {mission_ids}")
+
+        # Avoid merging downlinks with differing mission_id or idpu_type
+        grouped_downlinks = defaultdict(list)
+        for dl in downlinks:
+            grouped_downlinks[(dl.mission_id, dl.idpu_type)].append(dl)
+
+        return [
+            df for dls in grouped_downlinks.values() for df in self._get_merged_dataframes_from_grouped_downlinks(dls)
+        ]
+
+    def _get_merged_dataframes_from_grouped_downlinks(self, downlinks: List[Downlink]) -> List[pd.DataFrame]:
+        """Helper for get_merged_dataframes.
+
+        Parameters
+        ----------
+        downlinks : List[Downlink]
+            A non-empty list of Downlink objects, all with the same mission id
+            and idpu type
+
+        Returns
+        -------
+        List[pd.DataFrame]
+            A list of DataFrames of data that was merged
+        """
+        if len(downlinks) == 0:
+            raise RuntimeError("No Downlinks to merge!")
+
+        mission_ids = {dl.mission_id for dl in downlinks}
+        if len(mission_ids) != 1:
+            raise ValueError(f"Expected all downlinks to have the same mission_id, got {mission_ids}")
+
+        idpu_types = {dl.idpu_type for dl in downlinks}
+        if len(idpu_types) != 1:
+            raise ValueError(f"Expected all downlinks to have the same idpu type, got {idpu_types}")
+
+        downlinks = sorted(downlinks)
+
         merged_downlinks = []
         first_dl = downlinks[0]
-        m_idpu_type = first_dl.idpu_type
         m_first_time = first_dl.first_packet_info.idpu_time
         m_last_time = first_dl.last_packet_info.idpu_time
         m_df = self.downlink_manager.get_df_from_downlink(first_dl)
 
         for _, downlink in enumerate(downlinks[1:]):
-            idpu_type = downlink.idpu_type
             first_time = downlink.first_packet_info.idpu_time
             last_time = downlink.last_packet_info.idpu_time
             df = self.downlink_manager.get_df_from_downlink(downlink)
 
             # Merge if we have found a good offset (downlink overlaps with the current one and packet type matches)
             offset = downlink_utils.calculate_offset(m_df, df)
-            if idpu_type == m_idpu_type and offset is not None and m_first_time <= first_time <= m_last_time:
+            if offset is not None and m_first_time <= first_time <= m_last_time:
                 m_last_time = max(m_last_time, last_time)
                 m_df = downlink_utils.merge_downlinks(m_df, df, offset)
             else:
                 merged_downlinks.append(m_df)
                 m_first_time = first_time
                 m_last_time = last_time
-                m_idpu_type = idpu_type
                 m_df = df
 
         merged_downlinks.append(m_df)
