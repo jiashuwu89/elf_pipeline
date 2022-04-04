@@ -1,3 +1,4 @@
+"""Tests for FgmProcessor and IdpuProcessor"""
 import datetime as dt
 import filecmp
 
@@ -5,6 +6,8 @@ import pandas as pd
 import pytest
 from spacepy import pycdf
 
+from data_type.downlink import Downlink
+from data_type.packet_info import PacketInfo
 from data_type.processing_request import ProcessingRequest
 from processor.idpu.fgm_processor import FgmProcessor
 from util import general_utils
@@ -46,6 +49,69 @@ class TestFgmProcessor:
     def test_get_merged_dataframes(self):
         with pytest.raises(RuntimeError):
             self.fgm_processor.get_merged_dataframes([])
+
+        packet_info = PacketInfo(1, dt.datetime(2022, 4, 1), dt.datetime(2022, 3, 31), 10)
+
+        # Different mission IDs
+        downlinks_with_different_mission_ids = [
+            Downlink(
+                1,
+                2,
+                packet_info,
+                packet_info,
+            ),
+            Downlink(
+                2,
+                2,
+                packet_info,
+                packet_info,
+            ),
+        ]
+        with pytest.raises(ValueError):
+            self.fgm_processor.get_merged_dataframes(downlinks_with_different_mission_ids)
+
+    def test_get_merged_dataframes_from_grouped_downlinks(self):
+
+        packet_info = PacketInfo(1, dt.datetime(2022, 4, 1), dt.datetime(2022, 3, 31), 10)
+
+        with pytest.raises(RuntimeError):
+            self.fgm_processor._get_merged_dataframes_from_grouped_downlinks([])
+
+        # Different mission IDs
+        downlinks_with_different_mission_ids = [
+            Downlink(
+                1,
+                2,
+                packet_info,
+                packet_info,
+            ),
+            Downlink(
+                2,
+                2,
+                packet_info,
+                packet_info,
+            ),
+        ]
+        with pytest.raises(ValueError):
+            self.fgm_processor._get_merged_dataframes_from_grouped_downlinks(downlinks_with_different_mission_ids)
+
+        # Different IDPU types
+        downlinks_with_different_idpu_types = [
+            Downlink(
+                1,
+                2,
+                packet_info,
+                packet_info,
+            ),
+            Downlink(
+                1,
+                4,
+                packet_info,
+                packet_info,
+            ),
+        ]
+        with pytest.raises(ValueError):
+            self.fgm_processor._get_merged_dataframes_from_grouped_downlinks(downlinks_with_different_idpu_types)
 
     def test_drop_packets_by_freq(self):
         pr = ProcessingRequest(1, "state", dt.date(2020, 7, 1))
