@@ -12,7 +12,7 @@ class TestGeneralUtils:
 
     def test_calculate_file_md5sum(self):
         fname_1 = "tst/test_data/cdf/ela_l1_epdef_20200404_v01.cdf"
-        assert general_utils.calculate_file_md5sum(fname_1) == "08a87dbef01519e6bf502bf0e5f4219e"
+        assert general_utils.calculate_file_md5sum(fname_1) == "9884cad84d7446b24b8a8a7ee149f6c6"
 
         fname_2 = "tst/test_data/cdf/elb_l1_state_defn_20200613_v01.cdf"
         assert general_utils.calculate_file_md5sum(fname_2) == "6e9339185dd45c338df3e691df236e65"
