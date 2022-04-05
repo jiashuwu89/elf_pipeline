@@ -2,6 +2,7 @@ import datetime as dt
 import filecmp
 
 import pandas as pd
+import pytest
 from spacepy import pycdf
 
 from data_type.processing_request import ProcessingRequest
@@ -39,6 +40,7 @@ def temp_process_rejoined_data(EPD: EpdProcessor, processing_request: Processing
 
 
 class TestEpdProcessor:
+    @pytest.mark.integration
     def test_generate_files(self):
         pr = ProcessingRequest(1, "epdef", dt.date(2020, 4, 4))
         epd_processor = EpdProcessor(SafeTestPipelineConfig(), DUMMY_DOWNLINK_MANAGER)
@@ -61,6 +63,7 @@ class TestEpdProcessor:
         new_cdf.close()
         expected_cdf.close()
 
+    @pytest.mark.integration
     def test_em3_iepde_uncompressed_data(self):
         pc = SafeTestPipelineConfig()
         epd_processor = EpdProcessor(pc, DUMMY_DOWNLINK_MANAGER)
@@ -93,6 +96,7 @@ class TestEpdProcessor:
         l1_cdf.close()
         test_cdf.close()
 
+    @pytest.mark.integration
     def test_em3_iepdi_uncompressed_data(self):
         pc = SafeTestPipelineConfig()
         epd_processor = EpdProcessor(pc, DUMMY_DOWNLINK_MANAGER)
@@ -122,6 +126,7 @@ class TestEpdProcessor:
         l1_cdf.close()
         test_cdf.close()
 
+    @pytest.mark.integration
     def test_em3_iepde_compressed_data(self):
         pc = SafeTestPipelineConfig()
         epd_processor = EpdProcessor(pc, DUMMY_DOWNLINK_MANAGER)
@@ -152,6 +157,7 @@ class TestEpdProcessor:
         l1_cdf.close()
         test_cdf.close()
 
+    @pytest.mark.integration
     def test_em3_iepdi_compressed_data(self):
         pc = SafeTestPipelineConfig()
         epd_processor = EpdProcessor(pc, DUMMY_DOWNLINK_MANAGER)

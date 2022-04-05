@@ -17,7 +17,7 @@ cache:
     - .venv
 
 stages:
-  - Static Analysis
+  - Static Analysis and Testing
   - Deploy
 
 before_script:
@@ -25,31 +25,31 @@ before_script:
   - poetry install
 
 check-format:
-  stage: Static Analysis
+  stage: Static Analysis and Testing
   script:
   - make check-format
 
 flake8:
-  stage: Static Analysis
+  stage: Static Analysis and Testing
   script:
   - make flake8
   allow_failure: true
 
 pylint:
-  stage: Static Analysis
+  stage: Static Analysis and Testing
   script:
   - make pylint
   allow_failure: true
 
 check-types:
-  stage: Static Analysis
+  stage: Static Analysis and Testing
   script:
   - make check-types
 
 test:
-  stage: Static Analysis
+  stage: Static Analysis and Testing
   script:
-  - make coverage
+  - make test
   artifacts:
     paths:
       - htmlcov/

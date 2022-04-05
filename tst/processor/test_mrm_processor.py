@@ -1,5 +1,6 @@
 import datetime as dt
 
+import pytest
 from spacepy import pycdf
 
 from data_type.processing_request import ProcessingRequest
@@ -12,6 +13,7 @@ from util.dummy import SafeTestPipelineConfig
 
 
 class TestMrmProcessor:
+    @pytest.mark.integration
     def test_generate_files(self):
         mrm_processor = MrmProcessor(SafeTestPipelineConfig())
 

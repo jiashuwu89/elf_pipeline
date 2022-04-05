@@ -13,6 +13,7 @@ from util.dummy import DummyProcessingRequest, SafeTestPipelineConfig
 
 
 class TestStateProcessor:
+    @pytest.mark.integration
     @pytest.mark.skip(reason="Updated mastercdfs from Cindy's email on 2021-11-16")
     def test_generate_files(self):
         state_processor = StateProcessor(SafeTestPipelineConfig())

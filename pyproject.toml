@@ -91,6 +91,12 @@ exclude_lines = [
     "if __name__",
 ]
 
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks an integration test (deselect with '-m \"not integration\"')",
+    "serial",
+]
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"

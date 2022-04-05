@@ -5,7 +5,7 @@ COVERAGE_LIMIT=80
 PR=poetry run
 
 
-.PHONY: help todo clean format flake8 pylint check-style check-types test coverage doc
+.PHONY: help todo clean format flake8 pylint check-style check-types unit-test integration-test coverage test doc
 
 
 help:
@@ -57,15 +57,21 @@ check-types:
 	@echo "⭐ Checking Types ⭐"
 	$(PR) mypy --ignore-missing-imports $(SRC);
 
-test:
-	@echo "⭐ Performing Tests ⭐"
-	$(PR) coverage run --source=$(SRC) -m pytest;
+unit-test:
+	@echo "⭐ Performing Unit Tests ⭐"
+	$(PR) coverage run --source=$(SRC) -m pytest -m "not integration";
+
+integration-test:
+	@echo "⭐ Performing Integration Tests ⭐"
+	$(PR) coverage run --source=$(SRC) -m pytest -m "integration";
 
 # Eliminating the following to use coverage in CI/CD pipeline: --fail-under=$(COVERAGE_LIMIT)
-coverage: test
+coverage: unit-test
 	@echo "⭐ Checking Code Coverage ⭐"
 	$(PR) coverage html;
 	$(PR) coverage report;
+
+test: coverage integration-test
 
 doc:
 	@echo "⭐ Generating Documentation ⭐"
