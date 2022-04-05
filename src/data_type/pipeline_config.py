@@ -86,7 +86,7 @@ class ArgparsePipelineConfig(PipelineConfig):
         # Initialize DB connection
         if db.SESSIONMAKER is None:
             db.connect("production")
-        self._session = db.SESSIONMAKER()
+        self._session = db.SESSIONMAKER()  # type: ignore
 
         # Initialize parameters/options from command line
         self._update_db = self.db_update_necessary(args.abandon_calculated_products)

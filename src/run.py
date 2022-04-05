@@ -11,7 +11,9 @@ import os
 try:
     from git import Repo
 except ImportError:
-    Repo = None
+    git_imported = False
+else:
+    git_imported = True
 
 from coordinator import Coordinator
 from data_type.pipeline_config import ArgparsePipelineConfig
@@ -158,7 +160,7 @@ class CLIHandler:
         start_time: dt.datetime = dt.datetime.utcnow()
         self.logger.info(f"🤠  Beginning at {start_time.strftime('%Y-%m-%d %H:%M:%S')} (UTC)  🤠")
 
-        if Repo:
+        if git_imported:
             cur_repo = Repo(os.path.pardir)  # TODO: This assumes we're running from src
             active_branch = cur_repo.active_branch
             self.logger.info(

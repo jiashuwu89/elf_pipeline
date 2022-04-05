@@ -557,7 +557,7 @@ class EpdProcessor(IdpuProcessor):
     def calculate_center_times_for_period(
         self, spin_period, time_captured, num_sectors, data_type, spin_integration_factor
     ):
-        """ Interpolates center times for in between sectors and converts to tt2000 """
+        """Interpolates center times for in between sectors and converts to tt2000"""
         seconds_per_sector = dt.timedelta(seconds=(spin_period / INSTRUMENT_CLK_FACTOR) / num_sectors)
         center_time_offset = seconds_per_sector / 2
 
@@ -750,7 +750,7 @@ class EpdProcessor(IdpuProcessor):
         # Checking if any idpu_time is in an ibo collection interval
         df["bogus"] = df.apply(lambda x: len(ibo_intervals.at(x.idpu_time)) != 0, axis=1)
 
-        removed_dfs = df[df.bogus == True]
+        removed_dfs = df[df.bogus]
         self.logger.info(
             "Removed Bogus data from the following dates:\n\t"
             + "\n\t".join(str(date) for date in removed_dfs["idpu_time"].values)
@@ -759,7 +759,7 @@ class EpdProcessor(IdpuProcessor):
             + "\n"
         )
 
-        df = df[df.bogus == False]
+        df = df[~df.bogus]
         del df["bogus"]
 
         return df

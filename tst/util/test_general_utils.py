@@ -1,4 +1,3 @@
-import atexit
 import datetime as dt
 import os
 

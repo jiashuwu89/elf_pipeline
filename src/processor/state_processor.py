@@ -356,7 +356,7 @@ class StateProcessor(ScienceProcessor):
     # TODO: Eliminate q_dict because I was stupid
     @staticmethod
     def get_q_dict(q):
-        """ Turns some yucky SQL query result thing into a useful dict """
+        """Turns some yucky SQL query result thing into a useful dict"""
         q_dict = {
             "X": q.X,
             "Y": q.Y,

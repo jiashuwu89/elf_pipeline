@@ -208,7 +208,7 @@ class CompletenessUpdater:
 
     def split_science_zones(
         self, processing_request: ProcessingRequest, completeness_config: CompletenessConfig, times: pd.Series
-    ) -> List[List[np.datetime64]]:
+    ) -> List[List[pd.Timestamp]]:
         """Given a series of times, group them into estimated science zones.
 
         Parameters
@@ -220,7 +220,7 @@ class CompletenessUpdater:
 
         Returns
         -------
-        List[List[dt.datetime]]
+        List[List[pd.Timestamp]]
             A list of science zones, which are each a list of times
         """
 
@@ -304,7 +304,7 @@ class CompletenessUpdater:
         return szs
 
     def get_median_diff(
-        self, completeness_config: CompletenessConfig, szs: List[List[np.datetime64]]
+        self, completeness_config: CompletenessConfig, szs: List[List[pd.Timestamp]]
     ) -> Optional[float]:
         """Calculates the median diff (delta) between packets grouped by zone.
 
@@ -315,7 +315,7 @@ class CompletenessUpdater:
 
         Parameters
         ----------
-        szs : List[List[dt.datetime]]
+        szs : List[List[pd.Timestamp]]
             A list of science zones
 
         Returns
@@ -335,7 +335,7 @@ class CompletenessUpdater:
 
     # TODO: Get better return type
     def estimate_time_range(
-        self, processing_request: ProcessingRequest, completeness_config: CompletenessConfig, sz: List[np.datetime64]
+        self, processing_request: ProcessingRequest, completeness_config: CompletenessConfig, sz: List[pd.Timestamp]
     ) -> Tuple[Any, Any, bool]:
         """Estimates the start and end time of a collection.
 
@@ -348,7 +348,7 @@ class CompletenessUpdater:
         ----------
         processing_request : ProcessingRequest
         completeness_config : CompletenessConfig
-        sz : List[np.datetime64]
+        sz : List[pd.Timestamp]
 
         Returns
         -------

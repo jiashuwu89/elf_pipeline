@@ -5,7 +5,7 @@ COVERAGE_LIMIT=80
 PR=poetry run
 
 
-.PHONY: help todo clean format flake8 pylint check-style check-types unit-test integration-test coverage test doc
+.PHONY: help todo clean format flake8 check-style check-types unit-test integration-test coverage test doc
 
 
 help:
@@ -46,12 +46,7 @@ flake8:
 	$(PR) flake8 $(SRC) --max-line-length $(LINE_LENGTH) --ignore=E203,W503 --benchmark;
 	$(PR) flake8 $(TST) --max-line-length $(LINE_LENGTH) --ignore=E203,W503 --benchmark;
 
-pylint:
-	@echo "⭐ Checking Style with pylint ⭐";
-	$(PR) pylint $(SRC);
-	$(PR) pylint $(TST);
-
-check-style: flake8 pylint;
+check-style: flake8;
 
 check-types:
 	@echo "⭐ Checking Types ⭐"
