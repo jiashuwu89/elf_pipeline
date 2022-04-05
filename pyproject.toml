@@ -24,7 +24,7 @@ numpy = "1.19.4"  # Pinned for consistent results from function `handle_adjacent
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
-Sphinx = "^3.2.1"
+Sphinx = "4.5.0"  # Pinned to avoid problem with jinja2
 flake8 = "^3.8.3"
 isort = "^5.5.4"
 mypy = "^0.940"
