@@ -4,30 +4,32 @@ version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
 
+# https://stackoverflow.com/questions/60580113/change-python-version-to-3-x
+# TODO: Clean this up
 [tool.poetry.dependencies]
-python = "3.8"
+python = "3.8.*"
 astropy = "^4.0.1"
-pandas = "^1.1.2"
+pandas = "1.1.4"  # Pinned to avoid deprecation warnings concerning `apply`
 paramiko = "^2.7.2"
 sqlalchemy = "^1.3.19"
 spacepy = "^0.2.1"
 elfin-ops-libs = "^2.4.0"
 pytest = "^6.0.2"
 sphinx_rtd_theme = "^0.5.0"
-prefect = "^0.13.7"
 elfin-sp-libs = "^0.1.2"
 gitpython = "^3.1.11"
 intervaltree = "^3.1.0"
-scipy = "^1.6.3"
+scipy = "1.6.3"  # Pinned to avoid poetry problems
+numpy = "1.19.4"  # Pinned for consistent results from function `handle_adjacent_sectors`
 
 [tool.poetry.dev-dependencies]
-black = "^20.8b1"
+black = "^22.3.0"
 Sphinx = "^3.2.1"
 flake8 = "^3.8.3"
 isort = "^5.5.4"
-mypy = "^0.782"
-pylint = "^2.6.0"
+mypy = "^0.940"
 coverage = {extras = ["toml"], version = "^5.3"}
+types-python-dateutil = "^2.8.10"
 
 [[tool.poetry.source]]
 name = "elfin"  # This name will be used in the configuration to retreive the proper credentials

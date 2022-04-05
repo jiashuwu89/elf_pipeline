@@ -44,7 +44,7 @@ class PipelineQuery(ABC):
         raise NotImplementedError
 
     @staticmethod
-    def data_products_to_idpu_types(data_products: List[str]) -> List[str]:
+    def data_products_to_idpu_types(data_products: List[str]) -> List[int]:
         idpu_types = []
         for data_product in data_products:
             idpu_types += SCIENCE_TYPES.get(data_product, [])
@@ -178,9 +178,9 @@ class ArgparsePipelineQuery(PipelineQuery):
         return TimeType.COLLECTION if collection else TimeType.DOWNLINK
 
     @staticmethod
-    def validate_time(start_time: str, end_time: str) -> Tuple[dt.datetime, dt.datetime]:
-        start_time = dateparser(start_time, tzinfos=0)
-        end_time = dateparser(end_time, tzinfos=0)
+    def validate_time(start_time_str: str, end_time_str: str) -> Tuple[dt.datetime, dt.datetime]:
+        start_time = dateparser(start_time_str, tzinfos=0)
+        end_time = dateparser(end_time_str, tzinfos=0)
 
         if start_time >= end_time:
             raise RuntimeError(f"Start time {start_time} should be earlier than end time {end_time}")

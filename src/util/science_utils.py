@@ -3,7 +3,7 @@
 Code written by science people/scientists belongs here
 """
 from datetime import datetime, timedelta
-from typing import List, Optional, Sized, Tuple
+from typing import Any, List, Optional, Sized, Tuple
 
 import numpy as np
 import pandas as pd
@@ -64,7 +64,7 @@ def get_angle_between(v1: pd.Series, v2: pd.Series) -> pd.Series:
 
 
 def interpolate_attitude(
-    S_init: np.ndarray, t_init: datetime, S_fin: np.ndarray, t_fin: datetime
+    S_init: List[Any], t_init: datetime, S_fin: List[Any], t_fin: datetime
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Wynne's Function to perform attitude interpolation.
 
@@ -74,10 +74,10 @@ def interpolate_attitude(
         First time
     t_fin : dt.datetime
         Last time
-    S_init : np.array
-        First numpy array
-    S_fin : np.array
-        Last numpy array
+    S_init : List[Any]
+        First array
+    S_fin : List[Any]
+        Last array
 
     Returns
     -------
@@ -370,7 +370,7 @@ def handle_adjacent_sectors(df: pd.DataFrame) -> pd.DataFrame:
                         minindex = np.where(chisqmatrx == chisqmin_curr)
                         if (
                             chisqmin_prev - chisqmin_curr
-                        ) < 10 ** -4:  # if previous and current chi square are too close
+                        ) < 10**-4:  # if previous and current chi square are too close
                             recurdata[index[index_i] + 1, energy_i] = np.around(y4[minindex[0][0]])  # Yc'
                             recurdata[index[index_i] + 2, energy_i] = np.around(y5[minindex[0][0]])  # Yd'
                             break

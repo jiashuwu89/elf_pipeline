@@ -1,4 +1,4 @@
-
+# For reference: https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Python.gitlab-ci.yml
 
 variables:
   # Change pip's cache directory to be inside the project directory since we can
@@ -29,17 +29,10 @@ check-format:
   script:
   - make check-format
 
-flake8:
+check-style:
   stage: Static Analysis and Testing
   script:
-  - make flake8
-  allow_failure: true
-
-pylint:
-  stage: Static Analysis and Testing
-  script:
-  - make pylint
-  allow_failure: true
+  - make check-style
 
 check-types:
   stage: Static Analysis and Testing

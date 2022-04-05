@@ -564,7 +564,7 @@ class FgmProcessor(IdpuProcessor):
         df = df.dropna(subset=["data", "idpu_time"])
         df = df.sort_values(["idpu_time", "idpu_type"])
 
-        df["rounded_idpu_time"] = pd.DatetimeIndex(df["idpu_time"]).round("ms")  # pylint: disable=no-member
+        df["rounded_idpu_time"] = pd.DatetimeIndex(df["idpu_time"]).round("ms")
         df = df.drop_duplicates("rounded_idpu_time", keep="first")
         df = df[["mission_id", "idpu_type", "idpu_time", "numerator", "denominator", "data", "10hz_mode"]]
 
