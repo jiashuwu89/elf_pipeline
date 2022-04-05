@@ -21,6 +21,7 @@ class TestFgmProcessor:
 
     # TODO: Check old FGM files. It seems that some of their data does not fall under the
     # correct file (out of the range of the day)
+    @pytest.mark.integration
     def test_generate_files(self):
         pr_1 = ProcessingRequest(1, "fgs", dt.date(2019, 7, 21))
         generated_files = self.fgm_processor.generate_files(pr_1)
