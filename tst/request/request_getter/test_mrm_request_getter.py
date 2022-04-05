@@ -9,7 +9,6 @@ from util.dummy import DummyPipelineConfig
 class TestMrmRequestGetter:
     MRM_REQUEST_GETTER = MrmRequestGetter(DummyPipelineConfig())
 
-    # @pytest.mark.skipif(not os.path.isfile(CREDENTIALS_FILE), reason="Probably in CI/CD pipeline")
     def test_get(self):
         pq_1 = ParameterizedPipelineQuery(
             [1], ["mrma"], (dt.datetime(1990, 1, 1), dt.datetime(1990, 2, 2), TimeType.COLLECTION)
