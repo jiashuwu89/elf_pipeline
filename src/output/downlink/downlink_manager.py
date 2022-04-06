@@ -111,7 +111,7 @@ class DownlinkManager:
         downlinks = []
         for mission_id in pipeline_query.mission_ids:
             self.logger.info(f"➜  Calculating new Downlinks for mission {mission_id}")
-            cur_mission_downlinks = self.calculate_new_downlinks_by_mission_id(
+            cur_mission_downlinks = self._calculate_new_downlinks_by_mission_id(
                 mission_id, pipeline_query.start_time, pipeline_query.end_time
             )
 
@@ -135,11 +135,12 @@ class DownlinkManager:
             if dl.idpu_type in pipeline_query.data_products_to_idpu_types(pipeline_query.data_products)
         ]
 
-    # HELPER FOR get_downlinks_by_downlink_time, should be private
-    def calculate_new_downlinks_by_mission_id(
+    def _calculate_new_downlinks_by_mission_id(
         self, mission_id: int, start_time: dt.datetime, end_time: dt.datetime
     ) -> List[Downlink]:
         """Use science packets to calculate downlinks for a specific mission.
+
+        Helper for get_downlinks_by_downlink_time.
 
         Parameters
         ----------
@@ -157,10 +158,14 @@ class DownlinkManager:
         """
         downlinks = []
 
-        query = self.session.query(models.SciencePacket).filter(
-            models.SciencePacket.timestamp >= start_time,
-            models.SciencePacket.timestamp <= end_time,
-            models.SciencePacket.mission_id == mission_id,
+        query = (
+            self.session.query(models.SciencePacket)
+            .filter(
+                models.SciencePacket.timestamp >= start_time,
+                models.SciencePacket.timestamp <= end_time,
+                models.SciencePacket.mission_id == mission_id,
+            )
+            .order_by(models.SciencePacket.id)
         )
 
         # Information about Packets to be Tracked
