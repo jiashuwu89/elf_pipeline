@@ -166,9 +166,9 @@ class Coordinator:
         Set[str]
             A list of filenames of the generated files
         """
-        if not self.generate_files:
+        if not self.pipeline_config.generate_files:
             self.logger.info("Received option to avoid generating files")
-            return []
+            return set()
 
         return self.processor_manager.generate_files(processing_requests)
 
