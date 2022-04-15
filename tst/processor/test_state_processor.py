@@ -1,4 +1,5 @@
 import datetime as dt
+import os
 
 import pytest
 from spacepy import pycdf
@@ -37,3 +38,25 @@ class TestStateProcessor:
     def test_get_cdf_fields(self):
         state_processor = StateProcessor(SafeTestPipelineConfig())
         assert state_processor.get_cdf_fields(DummyProcessingRequest()) == {}
+
+    def test_make_filename(self):
+        # TODO: Make sure that SafeTestPipelineConfig output dir is deleted after running
+        state_processor = StateProcessor(SafeTestPipelineConfig())
+
+        test_cases = [
+            (ProcessingRequest(1, "state-defn", dt.date(2022, 4, 5)), "ela_l1_state_defn_20220405_v01.cdf"),
+            (ProcessingRequest(2, "state-pred", dt.date(2022, 4, 6)), "elb_l1_state_pred_20220406_v01.cdf"),
+        ]
+
+        for pr, expected_fname in test_cases:
+            assert state_processor.make_filename(pr, 1) == os.path.join(state_processor.output_dir, expected_fname)
+
+        # Only level 1 state files supported
+        pr = ProcessingRequest(1, "state-defn", dt.date(2022, 4, 5))
+        with pytest.raises(ValueError):
+            state_processor.make_filename(pr, 0, 100)
+
+        # Bad data product name
+        pr = ProcessingRequest(1, "BAD_DATA_PRODUCT", dt.date(2022, 4, 5))
+        with pytest.raises(ValueError):
+            state_processor.make_filename(pr, 1)

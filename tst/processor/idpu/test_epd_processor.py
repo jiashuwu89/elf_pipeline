@@ -9,7 +9,7 @@ from data_type.processing_request import ProcessingRequest
 from processor.idpu.epd_processor import EpdProcessor
 from util import general_utils
 from util.compression_values import EPD_HUFFMAN
-from util.constants import TEST_DATA_DIR
+from util.constants import TEST_DATA_DIR, VALID_NUM_SECTORS
 from util.dummy import DUMMY_DOWNLINK_MANAGER, SafeTestPipelineConfig
 
 
@@ -209,3 +209,52 @@ class TestEpdProcessor:
         assert epd_processor.calculate_center_times_for_period(
             spin_period, time_captured, num_sectors, data_type, spin_integration_factor
         ) == [dt.timedelta(seconds=(0 + 1 * i + 0.5)) for i in range(16)]
+
+    def test_find_lossy_idx(self):
+        b = bytes.fromhex(
+            "032203081534f84400e4ab59634b381607000000000000000000000f1208020000000000000000000000000603010000000000000"
+            "000000000000000000000000000000000000000000000020200000000000000000001000000000402020000000000000000000000"
+            "0000151f0d0701000000000000000000000064704f4012050000000000000000000061654b3c1504000000000000000000000e140"
+            "c03000101000000000000000000050202000000000000000000000000000102000000000000000000000000000004010000000000"
+            "00000000000000000100060200000100000000000000000000182b0d06010001000000000000000000646f5341180601000000000"
+            "000000000"
+        )
+        assert EpdProcessor.find_lossy_idx(b, 10) == 1
+
+    def test_get_sign(self):
+        assert EpdProcessor.get_sign("001") == (+1, "1")
+        assert EpdProcessor.get_sign("011") == (-1, "1")
+
+        with pytest.raises(ValueError):
+            EpdProcessor.get_sign("101")
+
+        with pytest.raises(ValueError):
+            EpdProcessor.get_sign("111")
+
+    def test_get_sector_iterator(self):
+        for num_sectors in VALID_NUM_SECTORS:
+            assert len(EpdProcessor.get_sector_iterator(num_sectors)) == num_sectors
+
+        with pytest.raises(ValueError):
+            EpdProcessor.get_sector_iterator(10)
+
+    def test_get_cdf_fields(self):
+        epd_processor = EpdProcessor(SafeTestPipelineConfig(), DUMMY_DOWNLINK_MANAGER)
+        # TODO: survey mode mastercdfs missing some fields like nsectors, nspinsinsum
+        prs = [
+            ProcessingRequest(1, "epdef", dt.date(2022, 4, 6)),
+            # ProcessingRequest(1, "epdes", dt.date(2022, 4, 6)),
+            ProcessingRequest(1, "epdif", dt.date(2022, 4, 6)),
+            # ProcessingRequest(1, "epdis", dt.date(2022, 4, 6)),
+            ProcessingRequest(2, "epdef", dt.date(2022, 4, 6)),
+            # ProcessingRequest(2, "epdes", dt.date(2022, 4, 6)),
+            ProcessingRequest(2, "epdif", dt.date(2022, 4, 6)),
+            # ProcessingRequest(2, "epdis", dt.date(2022, 4, 6)),
+        ]
+
+        for pr in prs:
+            cdf = epd_processor.create_empty_cdf(epd_processor.make_filename(pr, 1))
+            field_mapping = epd_processor.get_cdf_fields(pr)
+
+            for field in field_mapping:
+                assert field in cdf.keys()

@@ -9,7 +9,7 @@ from spacepy import pycdf
 from data_type.downlink import Downlink
 from data_type.packet_info import PacketInfo
 from data_type.processing_request import ProcessingRequest
-from processor.idpu.fgm_processor import FgmProcessor
+from processor.idpu.fgm_processor import FgmFrequencyEnum, FgmProcessor
 from util import general_utils
 from util.constants import TEST_DATA_DIR
 from util.dummy import DUMMY_DOWNLINK_MANAGER, SafeTestPipelineConfig
@@ -118,3 +118,67 @@ class TestFgmProcessor:
         pr = ProcessingRequest(1, "state", dt.date(2020, 7, 1))
         with pytest.raises(ValueError):
             self.fgm_processor.drop_packets_by_freq(pr, pd.DataFrame())
+
+        df = pd.DataFrame(
+            {
+                "10hz_mode": [FgmFrequencyEnum.TEN_HERTZ] * 5
+                + [FgmFrequencyEnum.EIGHTY_HERTZ] * 5
+                + [FgmFrequencyEnum.UNKNOWN] * 5
+            }
+        )
+
+        pr = ProcessingRequest(1, "fgf", dt.date(2020, 7, 1))
+        assert self.fgm_processor.drop_packets_by_freq(pr, df).index.tolist() == [5, 6, 7, 8, 9]
+
+        pr = ProcessingRequest(1, "fgs", dt.date(2020, 7, 1))
+        assert self.fgm_processor.drop_packets_by_freq(pr, df).index.tolist() == [0, 1, 2, 3, 4]
+
+    def test_create_new_packet(self):
+        # TODO: Test cases are examples pulled directly from the following ProcessingRequest, could be more rigorous:
+        # ProcessingRequest(mission_id=1, data_product='fgf', date=datetime.date(2022, 3, 8))
+        test_cases = [
+            (([274904, -452140, 4422691], 25, 28937), "0431d8f919d4437c230000000019710900"),
+            (([425272, 363060, 4646467], 26, 28937), "067d38058a3446e643000000001a710900"),
+            (([576120, 1149428, 4640515], 27, 28937), "08ca781189f446cf03000000001b710900"),
+        ]
+        for ((axes, numerator, denominator), expected) in test_cases:
+            assert self.fgm_processor.create_new_packet(axes, numerator, denominator) == expected
+
+    def test_packets_in_compressed_packet(self):
+        test_cases = [
+            (dt.datetime(2018, 12, 1), 10),
+            (dt.datetime(2019, 12, 1), 10),
+            (dt.datetime(2020, 12, 1), 10),
+            (dt.datetime(2021, 12, 1), 25),
+        ]
+        for idpu_time, expected in test_cases:
+            assert self.fgm_processor.packets_in_compressed_packet(idpu_time) == expected
+
+    def test_check_sampling_rate(self):
+        test_cases = []
+        for multiplier in range(1, 10):
+            test_cases.extend(
+                [
+                    ((dt.timedelta(microseconds=1 / 80 * 1e6) * multiplier, multiplier), FgmFrequencyEnum.EIGHTY_HERTZ),
+                    ((dt.timedelta(microseconds=1 / 10 * 1e6) * multiplier, multiplier), FgmFrequencyEnum.TEN_HERTZ),
+                    ((dt.timedelta(microseconds=1 / 2 * 1e6) * multiplier, multiplier), FgmFrequencyEnum.UNKNOWN),
+                ]
+            )
+
+        for ((time_gap, multiplier), expected) in test_cases:
+            assert self.fgm_processor.check_sampling_rate(time_gap, multiplier) == expected
+
+    def test_get_cdf_fields(self):
+        prs = [
+            ProcessingRequest(1, "fgs", dt.date(2022, 4, 6)),
+            ProcessingRequest(1, "fgf", dt.date(2022, 4, 6)),
+            ProcessingRequest(2, "fgs", dt.date(2022, 4, 6)),
+            ProcessingRequest(2, "fgf", dt.date(2022, 4, 6)),
+        ]
+
+        for pr in prs:
+            cdf = self.fgm_processor.create_empty_cdf(self.fgm_processor.make_filename(pr, 1))
+            field_mapping = self.fgm_processor.get_cdf_fields(pr)
+
+            for field in field_mapping:
+                assert field in cdf.keys()

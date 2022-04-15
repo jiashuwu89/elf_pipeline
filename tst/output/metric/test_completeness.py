@@ -2,12 +2,25 @@ import datetime as dt
 
 import pandas as pd
 
-from data_type.completeness_config import COMPLETENESS_CONFIG_MAP, EPDE_COMPLETENESS_CONFIG
+from data_type.completeness_config import COMPLETENESS_CONFIG_MAP, EPDE_COMPLETENESS_CONFIG, MRM_COMPLETENESS_CONFIG
 from output.metric.completeness import CompletenessUpdater
 from util.dummy import DummyPipelineConfig, DummyProcessingRequest
 
 
 class TestCompletenessUpdater:
+    def test_update_completeness_table(self):
+        pipeline_config = DummyPipelineConfig()
+        processing_request = DummyProcessingRequest()
+        empty_df = pd.DataFrame()
+
+        def raise_exception(x, y, z):
+            raise AssertionError("Should not be called")
+
+        completeness_updater = CompletenessUpdater(pipeline_config.session, COMPLETENESS_CONFIG_MAP)
+        completeness_updater.update_completeness_table_with_single_idpu_type = raise_exception
+
+        completeness_updater.update_completeness_table(processing_request, empty_df, False)
+
     def test_update_completeness_table_with_single_idpu_type(self):
         pipeline_config = DummyPipelineConfig()
         processing_request = DummyProcessingRequest()
@@ -16,6 +29,14 @@ class TestCompletenessUpdater:
         completeness_updater = CompletenessUpdater(pipeline_config.session, COMPLETENESS_CONFIG_MAP)
         assert (
             completeness_updater.update_completeness_table_with_single_idpu_type(processing_request, empty_df, False)
+            is False
+        )
+
+        multiple_idpu_type_df = pd.DataFrame({"idpu_type": [2, 2, 2, 2, 2, 4, 4, 4, 4, 4]})
+        assert (
+            completeness_updater.update_completeness_table_with_single_idpu_type(
+                processing_request, multiple_idpu_type_df, False
+            )
             is False
         )
 
@@ -53,3 +74,30 @@ class TestCompletenessUpdater:
         for sz in szs:
             assert len(sz) == 5
             assert any(t.date() == processing_request.date for t in sz)
+
+    def test_get_median_diff(self):
+        pipeline_config = DummyPipelineConfig()
+        completeness_updater = CompletenessUpdater(pipeline_config.session, COMPLETENESS_CONFIG_MAP)
+
+        assert completeness_updater.get_median_diff(MRM_COMPLETENESS_CONFIG, []) == MRM_COMPLETENESS_CONFIG.median_diff
+
+        assert completeness_updater.get_median_diff(EPDE_COMPLETENESS_CONFIG, []) is None
+
+        base_timestamp = pd.Timestamp(2022, 4, 6)
+        delta = pd.Timedelta(1, "second")
+        assert (
+            completeness_updater.get_median_diff(
+                EPDE_COMPLETENESS_CONFIG, [[base_timestamp + i * delta for i in range(10)]]
+            )
+            == 1
+        )
+        assert (
+            completeness_updater.get_median_diff(
+                EPDE_COMPLETENESS_CONFIG,
+                [
+                    [base_timestamp + i * delta for i in range(10)],
+                    [base_timestamp + pd.Timedelta(1, "hour") + i * delta for i in range(10)],
+                ],
+            )
+            == 1
+        )

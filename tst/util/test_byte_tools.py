@@ -1,3 +1,5 @@
+import datetime as dt
+
 import pytest
 
 from util import byte_tools
@@ -8,8 +10,16 @@ class TestByteTools:
     def test_little_e_to_big_e(self):
         assert byte_tools.little_e_to_big_e(b"badcfe") == b"abcdef"
 
-    # def test_raw_idpu_bytes_to_datetime(self):
-    #     pass
+    def test_raw_idpu_bytes_to_datetime(self):
+        assert byte_tools.raw_idpu_bytes_to_datetime(bytes.fromhex("032208163839f0da")) == dt.datetime(
+            2022, 3, 16, 8, 39, 38, 855225
+        )
+        assert byte_tools.raw_idpu_bytes_to_datetime(bytes.fromhex("0322081638390000")) == dt.datetime(
+            2022, 3, 16, 8, 39, 38
+        )
+
+        with pytest.raises(ValueError):
+            byte_tools.raw_idpu_bytes_to_datetime(bytes.fromhex("0022081638390000"))
 
     def test_get_signed(self):
         assert byte_tools.get_signed(b"1234") == 825373492
