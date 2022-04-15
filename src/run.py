@@ -161,7 +161,7 @@ class CLIHandler:
         self.logger.info(f"🤠  Beginning at {start_time.strftime('%Y-%m-%d %H:%M:%S')} (UTC)  🤠")
 
         if git_imported:
-            cur_repo = Repo(os.path.pardir)  # TODO: This assumes we're running from src
+            cur_repo = Repo(os.path.join(os.path.pardir, ".git"))  # TODO: This assumes we're running from src
             active_branch = cur_repo.active_branch
             self.logger.info(
                 "Git info:\n\t"
