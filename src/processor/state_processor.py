@@ -95,6 +95,8 @@ class StateProcessor(ScienceProcessor):
             The name of the file containing data corresponding to the
             given ProcessingRequest
         """
+        if level != 1:
+            raise ValueError(f"Only level 1 State files are supported, got level {level}")
         fname = self.get_fname(
             processing_request.probe, level, processing_request.data_product, processing_request.date
         )
