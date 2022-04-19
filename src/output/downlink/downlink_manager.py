@@ -179,7 +179,7 @@ class DownlinkManager:
         first_id = None
         last_id = None
 
-        prev_idpu_time = None
+        bad_collection_time = False
 
         for science_packet in query:
             # If we get a packet without an idpu_type, can't be sure if it
@@ -199,6 +199,7 @@ class DownlinkManager:
                 or science_packet.idpu_type != cur_packet_type
                 or science_packet.numerator < cur_num
                 or science_packet.denominator != cur_denom
+                or bad_collection_time
             ):
 
                 # flush the existing downlink
@@ -207,55 +208,53 @@ class DownlinkManager:
                     last_packet_info = PacketInfo(last_id, last_idpu_time, last_collection_time, cur_denom)
                     downlinks.append(Downlink(mission_id, cur_packet_type, first_packet_info, last_packet_info))
 
-                cur_packet_type = None
+                cur_packet_type = science_packet.idpu_type
                 first_idpu_time = None
                 last_idpu_time = None
                 first_collection_time = None
                 last_collection_time = None
                 first_id = science_packet.id
-                last_id = None
+                last_id = science_packet.id
+                cur_denom = science_packet.denominator
 
-            # Update Current packet num/denom, and packet type (if not set)
+                bad_collection_time = False
+
+            # update first/last collection and idpu times only if idpu time is available
+            if not science_packet.idpu_time:
+                cur_num = science_packet.numerator
+                last_id = science_packet.id
+                continue
+
+            # Compressed packet, and idpu_time changed: collection_time comes from the data
+            if science_packet.idpu_type in COMPRESSED_TYPES and (
+                (not last_idpu_time) or last_idpu_time != science_packet.idpu_time
+            ):
+                try:
+                    collection_time = byte_tools.raw_idpu_bytes_to_datetime(bytes.fromhex(science_packet.data[:16]))
+                except ValueError as e:
+                    # Start a new downlink if this seems to be a bad packet
+                    self.logger.warning(
+                        f"⚠️ New Downlink, skipping current packet (ID: {science_packet.id})"
+                        f" due to unreadable datetime {science_packet.data[:16]}: {e}"
+                    )
+                    bad_collection_time = True
+                    continue
+
+            # Not compressed packet: collection_time comes from filesystem
+            elif science_packet.idpu_type not in COMPRESSED_TYPES:
+                collection_time = science_packet.idpu_time
+
+            # Set first_idpu_time if not yet set
+            if not first_idpu_time:
+                first_idpu_time = science_packet.idpu_time
+                first_collection_time = collection_time
+
+            # Always update last_idpu_time
+            last_idpu_time = science_packet.idpu_time
+            last_collection_time = collection_time
+
+            # Always update last ID
             cur_num = science_packet.numerator
-            cur_denom = science_packet.denominator
-            if cur_packet_type is None:
-                cur_packet_type = science_packet.idpu_type
-
-            # update first/last timestamps, if we have a timestamp to use
-            if science_packet.idpu_time:
-
-                # Compressed packet, and idpu_time changed: collection_time comes from the data
-                if science_packet.idpu_type in COMPRESSED_TYPES and (
-                    (not prev_idpu_time) or prev_idpu_time != science_packet.idpu_time
-                ):
-                    try:
-                        collection_time = byte_tools.raw_idpu_bytes_to_datetime(bytes.fromhex(science_packet.data[:16]))
-                    except ValueError as e:
-                        # Start a New Downlink if this seems to be a bad packet
-                        self.logger.warning(
-                            f"⚠️ New Downlink, skipping current packet (ID: {science_packet.id})"
-                            + f"due to unreadable datetime {science_packet.data[:16]}: {e}"
-                        )
-                        first_id = None
-                        continue
-
-                # Not compressed packet: collection_time comes from filesystem
-                elif science_packet.idpu_type not in COMPRESSED_TYPES:
-                    collection_time = science_packet.idpu_time
-
-                idpu_time = science_packet.idpu_time
-                prev_idpu_time = idpu_time
-
-                # Set first_idpu_time if not yet set
-                if not first_idpu_time:
-                    first_idpu_time = idpu_time
-                    first_collection_time = collection_time
-
-                # Always update last_idpu_time
-                last_idpu_time = idpu_time
-                last_collection_time = collection_time
-
-            # always update last ID
             last_id = science_packet.id
 
         # flush the final downlink
