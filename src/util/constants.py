@@ -178,6 +178,21 @@ IBO_DATA_BYTE = 10
 # Instruments run at 80 Hz and report data in terms of 1/80 second.
 INSTRUMENT_CLK_FACTOR = 80
 
+# ENG
+CATEGORICALS_TO_CDF_NAME_MAP = {
+    models.Categoricals.TMP_1: "fc_idpu_temp",
+    models.Categoricals.TMP_2: "fc_batt_temp_1",
+    models.Categoricals.TMP_3: "fc_batt_temp_2",
+    models.Categoricals.TMP_4: "fc_batt_temp_3",
+    models.Categoricals.TMP_5: "fc_batt_temp_4",
+    models.Categoricals.TMP_6: "fc_chassis_temp",
+    # models.Categoricals.TMP_7: SHOULD BE HELIUM RADIO BUT NOT USED
+    models.Categoricals.SP_TMP_1: "acb_solarpanel_temp_1",
+    models.Categoricals.SP_TMP_2: "acb_solarpanel_temp_2",
+    models.Categoricals.SP_TMP_3: "acb_solarpanel_temp_3",
+    models.Categoricals.SP_TMP_4: "acb_solarpanel_temp_4",
+}
+
 # Date Ranges
 BOGUS_EPD_DATERANGE = (dt.date(2021, 2, 26), dt.date(2021, 5, 9))
 MISSION_START_DATE = dt.date(2018, 9, 15)
