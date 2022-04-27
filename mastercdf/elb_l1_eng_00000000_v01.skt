@@ -12,7 +12,7 @@
 
 ! Variables  G.Attributes  V.Attributes  Records  Dims  Sizes
 ! ---------  ------------  ------------  -------  ----  -----
-     0/27          25            15         0/z      0
+     0/31          25            15         0/z      0
 
 
 #GLOBALattributes
@@ -165,11 +165,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_sips_5v0_voltage" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -198,11 +198,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_sips_5v0_current" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -231,11 +231,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_sips_input_voltage" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -264,11 +264,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_sips_input_current" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -297,11 +297,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_sips_input_temp" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -362,11 +362,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_epd_biash" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -394,11 +394,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_epd_biasl" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -427,11 +427,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_epd_efe_temp" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -493,11 +493,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_idpu_msp_version" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -559,11 +559,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_fgm_3_3_volt" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -591,11 +591,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_fgm_8_volt" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -624,11 +624,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_fgm_analog_ground" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -656,11 +656,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_fgm_sh_temp" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -8388608 }
-    "VALIDMAX"    CDF_INT4     { 8388608 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -689,11 +689,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_fgm_eu_temp" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -755,11 +755,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_fc_chasis_temp" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -788,11 +788,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_fc_idpu_temp" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -821,11 +821,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_fc_batt_temp_1" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -854,11 +854,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_fc_batt_temp_2" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -887,11 +887,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_fc_batt_temp_3" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -920,11 +920,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_fc_batt_temp_4" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -953,11 +953,11 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_fc_avionics_temp_1" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
@@ -986,11 +986,143 @@
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "FIELDNAM"    CDF_CHAR     { "elb_fc_avionics_temp_2" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
     "FORMAT"      CDF_CHAR     { "F12.8" }
     "UNITS"       CDF_CHAR     { "ADC"}
-    "VALIDMIN"    CDF_INT4     { -1.0e+06 }
-    "VALIDMAX"    CDF_INT4     { 1.0e+06 }
+    "VALIDMIN"    CDF_REAL4    { -1.0e+06 }
+    "VALIDMAX"    CDF_REAL4    { 1.0e+06 }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "elb_acb_solarpanel_temp_1"   
+                  CDF_REAL4       1     0               T         
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: 0.0
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ACB solarpanel temperature 1" }
+    "DEPEND_0"    CDF_CHAR     { "elb_fc_time" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "FIELDNAM"    CDF_CHAR     { "elb_acb_solarpanel_temp_1" }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
+    "FORMAT"      CDF_CHAR     { "F12.8" }
+    "UNITS"       CDF_CHAR     { "ADC"}
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 1000000.0 }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "elb_acb_solarpanel_temp_2"   
+                  CDF_REAL4       1     0               T         
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: 0.0
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ACB solarpanel temperature 2" }
+    "DEPEND_0"    CDF_CHAR     { "elb_fc_time" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "FIELDNAM"    CDF_CHAR     { "elb_acb_solarpanel_temp_2" }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
+    "FORMAT"      CDF_CHAR     { "F12.8" }
+    "UNITS"       CDF_CHAR     { "ADC"}
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 1000000.0 }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "elb_acb_solarpanel_temp_3"   
+                  CDF_REAL4       1     0               T         
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: 0.0
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ACB solarpanel temperature 3" }
+    "DEPEND_0"    CDF_CHAR     { "elb_fc_time" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "FIELDNAM"    CDF_CHAR     { "elb_acb_solarpanel_temp_3" }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
+    "FORMAT"      CDF_CHAR     { "F12.8" }
+    "UNITS"       CDF_CHAR     { "ADC"}
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 1000000.0 }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "elb_acb_solarpanel_temp_4"   
+                  CDF_REAL4       1     0               T         
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: 0.0
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "ACB solarpanel temperature 4" }
+    "DEPEND_0"    CDF_CHAR     { "elb_fc_time" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" }
+    "FIELDNAM"    CDF_CHAR     { "elb_acb_solarpanel_temp_4" }
+    "FILLVAL"     CDF_REAL4    { 0.0 }
+    "FORMAT"      CDF_CHAR     { "F12.8" }
+    "UNITS"       CDF_CHAR     { "ADC"}
+    "VALIDMIN"    CDF_REAL4    { 0.0 }
+    "VALIDMAX"    CDF_REAL4    { 1000000.0 }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 

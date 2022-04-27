@@ -8,7 +8,7 @@ from elfin.common import models
 from data_type.exception import EmptyException
 from data_type.processing_request import ProcessingRequest
 from processor.idpu.idpu_processor import IdpuProcessor
-from util.constants import ONE_DAY_DELTA
+from util.constants import CATEGORICALS_TO_CDF_NAME_MAP, ONE_DAY_DELTA
 from util.science_utils import dt_to_tt2000
 
 
@@ -229,24 +229,17 @@ class EngProcessor(IdpuProcessor):
         pd.DataFrame
             A DataFrame of FC Data
         """
-        name_converter = {
-            models.Categoricals.TMP_1: "fc_idpu_temp",
-            models.Categoricals.TMP_2: "fc_batt_temp_1",
-            models.Categoricals.TMP_3: "fc_batt_temp_2",
-            models.Categoricals.TMP_4: "fc_batt_temp_3",
-            models.Categoricals.TMP_5: "fc_batt_temp_4",
-            models.Categoricals.TMP_6: "fc_chassis_temp"
-            # models.Categoricals.TMP_7: SHOULD BE HELIUM RADIO BUT NOT USED
-        }
 
         query = self.session.query(models.Categorical).filter(
             models.Categorical.mission_id == processing_request.mission_id,
             models.Categorical.timestamp >= processing_request.date,
             models.Categorical.timestamp < processing_request.date + ONE_DAY_DELTA,
-            models.Categorical.name.in_(name_converter.keys()),
+            models.Categorical.name.in_(CATEGORICALS_TO_CDF_NAME_MAP.keys()),
         )
 
-        fc_df = pd.DataFrame([{"fc_time": row.timestamp, name_converter[row.name]: row.value} for row in query])
+        fc_df = pd.DataFrame(
+            [{"fc_time": row.timestamp, CATEGORICALS_TO_CDF_NAME_MAP[row.name]: row.value} for row in query]
+        )
         return fc_df
 
     def get_bmon_df(self, processing_request: ProcessingRequest) -> pd.DataFrame:
@@ -274,7 +267,6 @@ class EngProcessor(IdpuProcessor):
         # TODO: Fix type for this
         fc_temp: Dict[int, Dict[Any, Any]] = {1: {}, 2: {}}
         for row in query:
-            row.timestamp = row.timestamp
             if row.timestamp not in fc_temp[row.power_board_id]:
                 fc_temp[row.power_board_id][row.timestamp] = set()
             fc_temp[row.power_board_id][row.timestamp].add(row.temperature_register)
@@ -322,6 +314,10 @@ class EngProcessor(IdpuProcessor):
             "fc_batt_temp_4",
             "fc_chassis_temp",
             "fc_idpu_temp",
+            "acb_solarpanel_temp_1",
+            "acb_solarpanel_temp_2",
+            "acb_solarpanel_temp_3",
+            "acb_solarpanel_temp_4",
             "sips_5v0_current",
             "sips_5v0_voltage",
             "sips_input_current",

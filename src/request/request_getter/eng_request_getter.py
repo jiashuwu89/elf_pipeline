@@ -8,6 +8,7 @@ from data_type.processing_request import ProcessingRequest
 from data_type.time_type import TimeType
 from request.request_getter.request_getter import RequestGetter
 from util import science_utils
+from util.constants import CATEGORICALS_TO_CDF_NAME_MAP
 
 
 # TODO: For all request getters, make sure that the data product is requested BEFORE getting requests
@@ -69,15 +70,6 @@ class EngRequestGetter(RequestGetter):
         """
         self.logger.info("➜  Getting ENG Categoricals requests")
 
-        categoricals = [
-            models.Categoricals.TMP_1,
-            models.Categoricals.TMP_2,
-            models.Categoricals.TMP_3,
-            models.Categoricals.TMP_4,
-            models.Categoricals.TMP_5,
-            models.Categoricals.TMP_6,
-        ]
-
         query = self.pipeline_config.session.query(
             models.Categorical.mission_id, func.date(models.Categorical.timestamp)
         ).distinct()
@@ -86,14 +78,14 @@ class EngRequestGetter(RequestGetter):
                 models.Categorical.mission_id.in_(pipeline_query.mission_ids),
                 models.Packet.timestamp >= pipeline_query.start_time,
                 models.Packet.timestamp < pipeline_query.end_time,
-                models.Categorical.name.in_(categoricals),
+                models.Categorical.name.in_(CATEGORICALS_TO_CDF_NAME_MAP.keys()),
             ).join(models.Packet, models.Categorical.packet_id == models.Packet.id)
         elif pipeline_query.times == TimeType.COLLECTION:
             query = query.filter(
                 models.Categorical.mission_id.in_(pipeline_query.mission_ids),
                 models.Categorical.timestamp >= pipeline_query.start_time,
                 models.Categorical.timestamp < pipeline_query.end_time,
-                models.Categorical.name.in_(categoricals),
+                models.Categorical.name.in_(CATEGORICALS_TO_CDF_NAME_MAP.keys()),
             )
         else:
             raise ValueError(f"Bad times: {pipeline_query.times}")
