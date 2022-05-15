@@ -79,8 +79,8 @@ FGM_COMPLETENESS_TABLE_PRODUCT_MAP = {1: "FGM", 2: "FGM", 17: "FGM", 18: "FGM"}
 EPDE_COMPLETENESS_TABLE_PRODUCT_MAP = {
     3: "EPDE",
     4: "EPDE",
-    7: "EPDE",  # TODO: Separate label for 32 sector EPDE?
-    8: "EPDE",  # TODO: Separate label for 32 sector EPDE?
+    7: "EPDE_32",
+    8: "EPDE_32",
     20: "EPDE",  # TODO: Separate label for survey mode?
     22: "IEPDE",
     24: "IEPDE",
@@ -107,7 +107,7 @@ COMPLETENESS_TABLE_PRODUCT_MAP = {
     "mrmi": MRM_COMPLETENESS_TABLE_PRODUCT_MAP,
 }
 
-GAP_CATEGORIZATION_DATA_TYPES = ["EPDE", "EPDI", "IEPDE", "IEPDI"]
+GAP_CATEGORIZATION_DATA_TYPES = ["EPDE", "EPDE_32", "EPDI", "IEPDE", "IEPDI"]
 
 # Science zone completeness gap boundaries and science zone sections
 SMALL_LARGE_GAP_MULTIPLIERS = (1.5, 8.0)
