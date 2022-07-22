@@ -1,18 +1,21 @@
 """Class to generate FGM files"""
 import datetime as dt
 from enum import Enum
+import requests
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
 
+from data_type.completeness_config import FGM_COMPLETENESS_CONFIG
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
 from output.downlink.downlink_manager import DownlinkManager
+from output.metric.completeness import CompletenessUpdater
 from processor.idpu.idpu_processor import IdpuProcessor
 from util import byte_tools
 from util.compression_values import FGM_HUFFMAN
-from util.constants import BITS_IN_BYTE
+from util.constants import BITS_IN_BYTE, SP_SERVER_URL
 from util.science_utils import hex_to_int
 
 # TODO: Hardcoded values -> Constants
@@ -184,6 +187,37 @@ class FgmProcessor(IdpuProcessor):
         l1_df["ax2"] = l1_df["ax2"].astype(np.float32)
         l1_df["ax3"] = l1_df["ax3"].astype(np.float32)
         l1_df["data"] = l1_df[["ax1", "ax2", "ax3"]].values.tolist()
+
+        # TODO: Only set up for ela fgs right now
+        if processing_request.mission_id != 1 or processing_request.data_product != "fgs":
+            return l1_df
+
+        cu = CompletenessUpdater(self.session, None, None)
+        to_add_df = pd.DataFrame(columns=["fgs_fsp_time", "fgs_fsp_res_dmxl", "fgs_fsp_res_dmxl_trend", "fgs_fsp_res_gei", "fgs_fsp_igrf_dmxl", "fgs_fsp_igrf_gei"])
+        science_zone_groups = cu.split_science_zones(processing_request, FGM_COMPLETENESS_CONFIG, l1_df["idpu_time"])
+        for science_zone_group in science_zone_groups:
+            science_zone_df = l1_df.loc[l1_df["idpu_time"].between(science_zone_group[0], science_zone_group[-1])]
+
+            response = requests.post(f"{SP_SERVER_URL}/fgm_calib", json={
+                "ela_fgs_time": science_zone_df["idpu_time"],
+                "ela_fgs": science_zone_df["data"],
+            })
+
+            if response.status_code != 200:
+                self.logger.warning(response)
+                continue
+
+            # TODO: Add data to df
+            to_add_df = pd.DataFrame({
+                "fgs_fsp_time": response["fgs_fsp_time"],
+                "fgs_fsp_res_dmxl": response["fgs_fsp_res_dmxl"],
+                "fgs_fsp_res_dmxl_trend": response["fgs_fsp_res_dmxl_trend"],
+                "fgs_fsp_res_gei": response["fgs_fsp_res_gei"],
+                "fgs_fsp_igrf_dmxl": response["fgs_fsp_igrf_dmxl"],
+                "fgs_fsp_igrf_gei": response["fgs_fsp_igrf_gei"],
+            })
+
+            l1_df = pd.concat([l1_df, to_add_df], axis=0, ignore_index=True)
 
         return l1_df
 
@@ -586,4 +620,14 @@ class FgmProcessor(IdpuProcessor):
         """
         probe = processing_request.probe
         data_product = processing_request.data_product
-        return {f"{probe}_{data_product}": "data", f"{probe}_{data_product}_time": "idpu_time"}
+
+        return {
+            f"{probe}_{data_product}": "data",
+            f"{probe}_{data_product}_time": "idpu_time",
+            f"{probe}_fgs_fsp_time": "fgs_fsp_time",
+            f"{probe}_fgs_fsp_res_dmxl": "fgs_fsp_res_dmxl",
+            f"{probe}_fgs_fsp_res_dmxl_trend": "fgs_fsp_res_dmxl_trend",
+            f"{probe}_fgs_fsp_res_gei": "fgs_fsp_res_gei",
+            f"{probe}_fgs_fsp_igrf_dmxl": "fgs_fsp_igrf_dmxl",
+            f"{probe}_fgs_fsp_igrf_gei": "fgs_fsp_igrf_gei"
+        }

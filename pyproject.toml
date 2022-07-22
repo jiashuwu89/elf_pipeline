@@ -21,6 +21,7 @@ gitpython = "^3.1.11"
 intervaltree = "^3.1.0"
 scipy = "1.6.3"  # Pinned to avoid poetry problems
 numpy = "1.19.4"  # Pinned for consistent results from function `handle_adjacent_sectors`
+requests = "^2.28.1"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
