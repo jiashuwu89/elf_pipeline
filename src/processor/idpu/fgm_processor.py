@@ -225,9 +225,10 @@ class FgmProcessor(IdpuProcessor):
             l1_df = pd.concat([l1_df, to_add_df], axis=0, ignore_index=True)
 
         for column_name in ["data", "fgs_fsp_res_dmxl", "fgs_fsp_res_dmxl_trend", "fgs_fsp_res_gei", "fgs_fsp_igrf_dmxl", "fgs_fsp_igrf_gei"]:
-            l1_df[column_name].loc[l1_df[column_name].isna()] = [[None, None, None] for _ in range(sum(l1_df[column_name].isna()))]
-
-        l1_df = l1_df.fillna(0)
+            isna = l1_df[column_name].isna()
+            l1_df.loc[isna, column_name] = pd.Series([[None, None, None]] * isna.sum()).values
+            # l1_df[column_name] = l1_df[column_name].apply(lambda x: x if x else [None, None, None])
+            # l1_df.loc[l1_df[column_name].isna(), column_name] = [[None, None, None] for _ in range(sum(l1_df[column_name].isna()))]
 
         return l1_df
 
