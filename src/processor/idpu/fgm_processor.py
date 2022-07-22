@@ -6,8 +6,9 @@ from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from spacepy import pycdf
 
-from data_type.completeness_config import FGM_COMPLETENESS_CONFIG
+from data_type.completeness_config import COMPLETENESS_CONFIG_MAP, FGM_COMPLETENESS_CONFIG
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
 from output.downlink.downlink_manager import DownlinkManager
@@ -192,32 +193,41 @@ class FgmProcessor(IdpuProcessor):
         if processing_request.mission_id != 1 or processing_request.data_product != "fgs":
             return l1_df
 
-        cu = CompletenessUpdater(self.session, None, None)
+        cu = CompletenessUpdater(self.session, COMPLETENESS_CONFIG_MAP)
         to_add_df = pd.DataFrame(columns=["fgs_fsp_time", "fgs_fsp_res_dmxl", "fgs_fsp_res_dmxl_trend", "fgs_fsp_res_gei", "fgs_fsp_igrf_dmxl", "fgs_fsp_igrf_gei"])
         science_zone_groups = cu.split_science_zones(processing_request, FGM_COMPLETENESS_CONFIG, l1_df["idpu_time"])
         for science_zone_group in science_zone_groups:
             science_zone_df = l1_df.loc[l1_df["idpu_time"].between(science_zone_group[0], science_zone_group[-1])]
 
-            response = requests.post(f"{SP_SERVER_URL}/fgm_calib", json={
-                "ela_fgs_time": science_zone_df["idpu_time"],
-                "ela_fgs": science_zone_df["data"],
+            response = requests.post(f"{SP_SERVER_URL}/fgm_calib/fgm_calib", headers={"Content-Type": "application/json", "accept": "application/json"}, json={
+                "fgs_time": [t.isoformat() for t in science_zone_df["idpu_time"]],
+                "fgs": list(science_zone_df["data"]),
             })
 
             if response.status_code != 200:
-                self.logger.warning(response)
                 continue
+
+            response_json = response.json()
 
             # TODO: Add data to df
             to_add_df = pd.DataFrame({
-                "fgs_fsp_time": response["fgs_fsp_time"],
-                "fgs_fsp_res_dmxl": response["fgs_fsp_res_dmxl"],
-                "fgs_fsp_res_dmxl_trend": response["fgs_fsp_res_dmxl_trend"],
-                "fgs_fsp_res_gei": response["fgs_fsp_res_gei"],
-                "fgs_fsp_igrf_dmxl": response["fgs_fsp_igrf_dmxl"],
-                "fgs_fsp_igrf_gei": response["fgs_fsp_igrf_gei"],
+                "fgs_fsp_time": response_json["fgs_fsp_time"],
+                "fgs_fsp_res_dmxl": response_json["fgs_fsp_res_dmxl"],
+                "fgs_fsp_res_dmxl_trend": response_json["fgs_fsp_res_dmxl_trend"],
+                "fgs_fsp_res_gei": response_json["fgs_fsp_res_gei"],
+                "fgs_fsp_igrf_dmxl": response_json["fgs_fsp_igrf_dmxl"],
+                "fgs_fsp_igrf_gei": response_json["fgs_fsp_igrf_gei"],
             })
 
+            # TODO: Is this OK?
+            to_add_df["fgs_fsp_time"] = to_add_df["fgs_fsp_time"].apply(lambda x: pycdf.lib.datetime_to_tt2000(dt.datetime.fromisoformat(x)))
+
             l1_df = pd.concat([l1_df, to_add_df], axis=0, ignore_index=True)
+
+        for column_name in ["data", "fgs_fsp_res_dmxl", "fgs_fsp_res_dmxl_trend", "fgs_fsp_res_gei", "fgs_fsp_igrf_dmxl", "fgs_fsp_igrf_gei"]:
+            l1_df[column_name].loc[l1_df[column_name].isna()] = [[None, None, None] for _ in range(sum(l1_df[column_name].isna()))]
+
+        l1_df = l1_df.fillna(0)
 
         return l1_df
 

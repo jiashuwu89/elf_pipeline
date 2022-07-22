@@ -482,8 +482,9 @@ class IdpuProcessor(ScienceProcessor):
         # TODO: Move this to transform_l0_df
         try:
             l1_df = l1_df[
-                (l1_df["idpu_time"] >= np.datetime64(processing_request.date))
-                & (l1_df["idpu_time"] < np.datetime64(processing_request.date + ONE_DAY_DELTA))
+                l1_df["idpu_time"].isna()
+                | ((l1_df["idpu_time"] >= np.datetime64(processing_request.date))
+                & (l1_df["idpu_time"] < np.datetime64(processing_request.date + ONE_DAY_DELTA)))
             ]
             l1_df["idpu_time"] = l1_df["idpu_time"].apply(dt_to_tt2000)
             if l1_df.empty:
