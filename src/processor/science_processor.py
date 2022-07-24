@@ -106,23 +106,27 @@ class ScienceProcessor(ABC):
 
         return pycdf.CDF(fname, master_cdf)
 
-    def fill_cdf(self, processing_request: ProcessingRequest, df: pd.DataFrame, cdf: pycdf.CDF) -> None:
+    def fill_cdf(
+        self, processing_request: ProcessingRequest, cdf: pycdf.CDF, df: pd.DataFrame, cdf_fields: Dict[str, str]
+    ) -> None:
         """Inserts data from df into a CDF file.
 
         Parameters
         ----------
         processing_request : ProcessingRequest
-        df : pd.DataFrame
-            A DataFrame of science data to be used in the CDF
         cdf : pycdf.CDF
             The CDF object to receive science data
+        df : pd.DataFrame
+            A DataFrame of science data to be used in the CDF
+        cdf_fields: Dict[str, str]
+            A mapping from cdf field names to the column name in df with which
+            it is associated
 
         Returns
         -------
         None
             The CDF is modified in-place
         """
-        cdf_fields = self.get_cdf_fields(processing_request)
         for cdf_field_name, df_field_name in cdf_fields.items():
             if cdf_field_name in cdf.keys() and df_field_name in df.columns:
                 data = df[df_field_name].values

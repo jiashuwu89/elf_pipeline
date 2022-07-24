@@ -59,7 +59,8 @@ class MrmProcessor(ScienceProcessor):
         cdf_fname = self.make_filename(processing_request, level=1)
 
         cdf = self.create_empty_cdf(cdf_fname)
-        self.fill_cdf(processing_request, mrm_df, cdf)
+        cdf_fields = self.get_cdf_fields(processing_request)
+        self.fill_cdf(processing_request, cdf, mrm_df, cdf_fields)
         cdf.close()
 
         return [cdf_fname]
@@ -97,7 +98,9 @@ class MrmProcessor(ScienceProcessor):
 
         return mrm_df
 
-    def fill_cdf(self, processing_request: ProcessingRequest, df: pd.DataFrame, cdf: pycdf.CDF) -> None:
+    def fill_cdf(
+        self, processing_request: ProcessingRequest, cdf: pycdf.CDF, df: pd.DataFrame, cdf_fields: Dict[str, str]
+    ) -> None:
         """Fills a given CDF with relevant MRM data.
 
         This overrides the default fill_cdf method in order to insert data
@@ -106,13 +109,14 @@ class MrmProcessor(ScienceProcessor):
         Parameters
         ----------
         processing_request : ProcessingRequest
+        cdf : pycdf.CDF
+            A CDF object to which MRM data will be inserted.
         df : pd.DataFrame
             A Pandas DataFrame with MRM data, in the format of the DataFrames
             obtained from the get_mrm_df method.
-        cdf : pycdf.CDF
-            A CDF object to which MRM data will be inserted.
+        cdf_fields: Dict[str, str]
         """
-        super().fill_cdf(processing_request, df, cdf)
+        super().fill_cdf(processing_request, cdf, df, cdf_fields)
 
         datestr_run = dt.datetime.utcnow().strftime("%04Y-%02m-%02d")
         cdf.attrs["Generation_date"] = datestr_run

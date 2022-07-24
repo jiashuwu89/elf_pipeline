@@ -630,7 +630,9 @@ class EpdProcessor(IdpuProcessor):
         ].values.tolist()
         return df
 
-    def fill_cdf(self, processing_request: ProcessingRequest, df: pd.DataFrame, cdf: pycdf.CDF) -> None:
+    def fill_cdf(
+        self, processing_request: ProcessingRequest, cdf: pycdf.CDF, df: pd.DataFrame, cdf_fields: Dict[str, str]
+    ) -> None:
         """Fills a CDF with the relevant EPD information from a DatFrame.
 
         On top of the base functionality, this method also includes EPD energies.
@@ -638,15 +640,16 @@ class EpdProcessor(IdpuProcessor):
         Parameters
         ----------
         processing_request : ProcessingRequest
-        df : pd.DataFrame
         cdf : pycdf.CDF
+        df : pd.DataFrame
+        cdf_fields: Dict[str, str]
 
         Returns
         -------
         None
             The given CDF is directly modified
         """
-        super().fill_cdf(processing_request, df, cdf)
+        super().fill_cdf(processing_request, cdf, df, cdf_fields)
 
         prefix = f"{processing_request.probe}_p{processing_request.data_product[-2:]}"
         e_or_i = processing_request.data_product[-2:-1]

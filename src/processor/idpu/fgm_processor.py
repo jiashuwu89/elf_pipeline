@@ -1,11 +1,11 @@
 """Class to generate FGM files"""
 import datetime as dt
 from enum import Enum
-import requests
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
+import requests
 from spacepy import pycdf
 
 from data_type.completeness_config import COMPLETENESS_CONFIG_MAP, FGM_COMPLETENESS_CONFIG
@@ -160,6 +160,53 @@ class FgmProcessor(IdpuProcessor):
         final = pd.concat([first, final])
         return final
 
+    def generate_l1_products(
+        self, processing_request: ProcessingRequest, l0_df: pd.DataFrame = None
+    ) -> Tuple[str, pd.DataFrame]:
+        """Generates level 1 products related to the ProcessingRequest.
+
+        Parameters
+        ----------
+        processing_request: ProcessingRequest
+        l0_df : pd.DataFrame
+            A DataFrame of finalized level 0 data corresponding to the
+            ProcessingRequest. If it is not provided, the method will
+            generate the level 0 DataFrame internally
+
+        Returns
+        -------
+        Tuple[str, pd.DatatFrame]
+            A tuple of the generated file's name, and a DataFrame of level 1
+            data corresponding to the ProcessingRequest
+        """
+        self.logger.info(f"🟢  Generating Level 1 products for {str(processing_request)}")
+        l1_df = self.generate_l1_df(processing_request, l0_df)
+        l1_file_name, _ = self.generate_l1_file(processing_request, l1_df.copy())
+
+        # Adds fsp data to the CDF
+        # NOTE: This is a bit hacky to avoid too many changes, but probably
+        # should be incorporated into generate_l1_file (which would require
+        # many more changes to handle multiple dfs)
+        fsp_df = self.generate_fsp_df(processing_request, l1_df)
+        cdf = pycdf.CDF(l1_file_name)
+        cdf.readonly(False)
+        self.fill_cdf(
+            processing_request,
+            cdf,
+            fsp_df,
+            {
+                f"{processing_request.probe}_fgs_fsp_time": "fgs_fsp_time",
+                f"{processing_request.probe}_fgs_fsp_res_dmxl": "fgs_fsp_res_dmxl",
+                f"{processing_request.probe}_fgs_fsp_res_dmxl_trend": "fgs_fsp_res_dmxl_trend",
+                f"{processing_request.probe}_fgs_fsp_res_gei": "fgs_fsp_res_gei",
+                f"{processing_request.probe}_fgs_fsp_igrf_dmxl": "fgs_fsp_igrf_dmxl",
+                f"{processing_request.probe}_fgs_fsp_igrf_gei": "fgs_fsp_igrf_gei",
+            },
+        )
+        cdf.close()
+
+        return l1_file_name, l1_df
+
     def transform_l0_df(self, processing_request: ProcessingRequest, l0_df: pd.DataFrame) -> pd.DataFrame:
         """Does the necessary processing on a l0 df to create a l1 df.
 
@@ -189,48 +236,82 @@ class FgmProcessor(IdpuProcessor):
         l1_df["ax3"] = l1_df["ax3"].astype(np.float32)
         l1_df["data"] = l1_df[["ax1", "ax2", "ax3"]].values.tolist()
 
-        # TODO: Only set up for ela fgs right now
-        if processing_request.mission_id != 1 or processing_request.data_product != "fgs":
+        return l1_df
+
+    def generate_fsp_df(self, processing_request: ProcessingRequest, l1_df: pd.DataFrame) -> pd.DataFrame:
+        """Creates a DataFrame of FSP-related products
+
+        Parameters
+        ----------
+        processing_request : ProcessingRequest
+        l1_df : pd.DataFrame
+            A DataFrame of completely processed level 1 FGM data
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame of FSP-related products
+        """
+
+        # TODO: Only set up for fgs right now, is this right?
+        if processing_request.data_product != "fgs":
             return l1_df
 
-        cu = CompletenessUpdater(self.session, COMPLETENESS_CONFIG_MAP)
-        to_add_df = pd.DataFrame(columns=["fgs_fsp_time", "fgs_fsp_res_dmxl", "fgs_fsp_res_dmxl_trend", "fgs_fsp_res_gei", "fgs_fsp_igrf_dmxl", "fgs_fsp_igrf_gei"])
+        cu = CompletenessUpdater(self.session, COMPLETENESS_CONFIG_MAP)  # Used to split science zones, a bit hacky
+
+        fsp_df = pd.DataFrame(
+            columns=[
+                "fgs_fsp_time",
+                "fgs_fsp_res_dmxl",
+                "fgs_fsp_res_dmxl_trend",
+                "fgs_fsp_res_gei",
+                "fgs_fsp_igrf_dmxl",
+                "fgs_fsp_igrf_gei",
+            ]
+        )
         science_zone_groups = cu.split_science_zones(processing_request, FGM_COMPLETENESS_CONFIG, l1_df["idpu_time"])
         for science_zone_group in science_zone_groups:
             science_zone_df = l1_df.loc[l1_df["idpu_time"].between(science_zone_group[0], science_zone_group[-1])]
 
-            response = requests.post(f"{SP_SERVER_URL}/fgm_calib/fgm_calib", headers={"Content-Type": "application/json", "accept": "application/json"}, json={
-                "fgs_time": [t.isoformat() for t in science_zone_df["idpu_time"]],
-                "fgs": list(science_zone_df["data"]),
-            })
+            # NOTE: Dependency on `sp-server`
+            response = requests.post(
+                f"{SP_SERVER_URL}/fgm_calib/fgm_calib",
+                headers={"Content-Type": "application/json", "accept": "application/json"},
+                json={
+                    "fgs_time": [t.isoformat() for t in science_zone_df["idpu_time"]],
+                    "fgs": list(science_zone_df["data"]),
+                },
+            )
 
             if response.status_code != 200:
+                self.logger.warning(f"Bad response: {response}")
                 continue
 
             response_json = response.json()
 
-            # TODO: Add data to df
-            to_add_df = pd.DataFrame({
-                "fgs_fsp_time": response_json["fgs_fsp_time"],
-                "fgs_fsp_res_dmxl": response_json["fgs_fsp_res_dmxl"],
-                "fgs_fsp_res_dmxl_trend": response_json["fgs_fsp_res_dmxl_trend"],
-                "fgs_fsp_res_gei": response_json["fgs_fsp_res_gei"],
-                "fgs_fsp_igrf_dmxl": response_json["fgs_fsp_igrf_dmxl"],
-                "fgs_fsp_igrf_gei": response_json["fgs_fsp_igrf_gei"],
-            })
+            to_add_df = pd.DataFrame(
+                {
+                    "fgs_fsp_time": response_json["fgs_fsp_time"],
+                    "fgs_fsp_res_dmxl": response_json["fgs_fsp_res_dmxl"],
+                    "fgs_fsp_res_dmxl_trend": response_json["fgs_fsp_res_dmxl_trend"],
+                    "fgs_fsp_res_gei": response_json["fgs_fsp_res_gei"],
+                    "fgs_fsp_igrf_dmxl": response_json["fgs_fsp_igrf_dmxl"],
+                    "fgs_fsp_igrf_gei": response_json["fgs_fsp_igrf_gei"],
+                }
+            )
+            to_add_df["fgs_fsp_time"] = to_add_df["fgs_fsp_time"].apply(
+                lambda x: pycdf.lib.datetime_to_tt2000(dt.datetime.fromisoformat(x))
+            )
 
-            # TODO: Is this OK?
-            to_add_df["fgs_fsp_time"] = to_add_df["fgs_fsp_time"].apply(lambda x: pycdf.lib.datetime_to_tt2000(dt.datetime.fromisoformat(x)))
+            fsp_df = pd.concat([fsp_df, to_add_df], axis=0, ignore_index=True)
 
-            l1_df = pd.concat([l1_df, to_add_df], axis=0, ignore_index=True)
+        # for column_name in ["data", "fgs_fsp_res_dmxl", "fgs_fsp_res_dmxl_trend", "fgs_fsp_res_gei", "fgs_fsp_igrf_dmxl", "fgs_fsp_igrf_gei"]:
+        #     isna = l1_df[column_name].isna()
+        #     l1_df.loc[isna, column_name] = pd.Series([[None, None, None]] * isna.sum()).values
+        # l1_df[column_name] = l1_df[column_name].apply(lambda x: x if x else [None, None, None])
+        # l1_df.loc[l1_df[column_name].isna(), column_name] = [[None, None, None] for _ in range(sum(l1_df[column_name].isna()))]
 
-        for column_name in ["data", "fgs_fsp_res_dmxl", "fgs_fsp_res_dmxl_trend", "fgs_fsp_res_gei", "fgs_fsp_igrf_dmxl", "fgs_fsp_igrf_gei"]:
-            isna = l1_df[column_name].isna()
-            l1_df.loc[isna, column_name] = pd.Series([[None, None, None]] * isna.sum()).values
-            # l1_df[column_name] = l1_df[column_name].apply(lambda x: x if x else [None, None, None])
-            # l1_df.loc[l1_df[column_name].isna(), column_name] = [[None, None, None] for _ in range(sum(l1_df[column_name].isna()))]
-
-        return l1_df
+        return fsp_df
 
     def is10hz_sampling_rate(
         self, first_ts: pd.Timestamp, second_ts: pd.Timestamp, multiplier: int
@@ -635,10 +716,4 @@ class FgmProcessor(IdpuProcessor):
         return {
             f"{probe}_{data_product}": "data",
             f"{probe}_{data_product}_time": "idpu_time",
-            f"{probe}_fgs_fsp_time": "fgs_fsp_time",
-            f"{probe}_fgs_fsp_res_dmxl": "fgs_fsp_res_dmxl",
-            f"{probe}_fgs_fsp_res_dmxl_trend": "fgs_fsp_res_dmxl_trend",
-            f"{probe}_fgs_fsp_res_gei": "fgs_fsp_res_gei",
-            f"{probe}_fgs_fsp_igrf_dmxl": "fgs_fsp_igrf_dmxl",
-            f"{probe}_fgs_fsp_igrf_gei": "fgs_fsp_igrf_gei"
         }

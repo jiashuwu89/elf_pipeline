@@ -482,9 +482,8 @@ class IdpuProcessor(ScienceProcessor):
         # TODO: Move this to transform_l0_df
         try:
             l1_df = l1_df[
-                l1_df["idpu_time"].isna()
-                | ((l1_df["idpu_time"] >= np.datetime64(processing_request.date))
-                & (l1_df["idpu_time"] < np.datetime64(processing_request.date + ONE_DAY_DELTA)))
+                (l1_df["idpu_time"] >= np.datetime64(processing_request.date))
+                & (l1_df["idpu_time"] < np.datetime64(processing_request.date + ONE_DAY_DELTA))
             ]
             l1_df["idpu_time"] = l1_df["idpu_time"].apply(dt_to_tt2000)
             if l1_df.empty:
@@ -530,7 +529,8 @@ class IdpuProcessor(ScienceProcessor):
         self.logger.info(f"🟣  Generating Level 1 DataFrame for {str(processing_request)}")
         fname = self.make_filename(processing_request, 1)
         cdf = self.create_empty_cdf(fname)
-        self.fill_cdf(processing_request, l1_df, cdf)
+        cdf_fields = self.get_cdf_fields(processing_request)
+        self.fill_cdf(processing_request, cdf, l1_df, cdf_fields)
         cdf.close()
 
         return fname, l1_df
