@@ -44,8 +44,8 @@ class TestStateProcessor:
         state_processor = StateProcessor(SafeTestPipelineConfig())
 
         test_cases = [
-            (ProcessingRequest(1, "state-defn", dt.date(2022, 4, 5)), "ela_l1_state_defn_20220405_v01.cdf"),
-            (ProcessingRequest(2, "state-pred", dt.date(2022, 4, 6)), "elb_l1_state_pred_20220406_v01.cdf"),
+            (ProcessingRequest(1, "state-defn", dt.date(2022, 4, 5)), "ela_l1_state_defn_20220405_v02.cdf"),
+            (ProcessingRequest(2, "state-pred", dt.date(2022, 4, 6)), "elb_l1_state_pred_20220406_v02.cdf"),
         ]
 
         for pr, expected_fname in test_cases:

@@ -14,7 +14,7 @@ from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
 from processor.science_processor import ScienceProcessor
 from util import general_utils
-from util.constants import ATTITUDE_SOLUTION_RADIUS, IDL_SCRIPT_VERSION, MINS_IN_DAY, ONE_DAY_DELTA
+from util.constants import ATTITUDE_SOLUTION_RADIUS, IDL_SCRIPT_VERSION, MINS_IN_DAY, ONE_DAY_DELTA, SECONDS_IN_MINUTE
 from util.science_utils import get_angle_between, interpolate_attitude
 
 # TODO: Make sure that dfs input and output are consistent in terms of column types
@@ -110,7 +110,7 @@ class StateProcessor(ScienceProcessor):
             state_type = "defn"
         else:
             raise ValueError("data_product should be 'pred' or 'defn'")
-        return f"{probe}_l{level}_state_{state_type}_{file_date.strftime('%Y%m%d')}_v01.cdf"
+        return f"{probe}_l{level}_state_{state_type}_{file_date.strftime('%Y%m%d')}_v02.cdf"
 
     def create_empty_cdf(self, fname: str) -> pycdf.CDF:
         """Creates a CDF with the desired fname, using the correct mastercdf.
@@ -157,10 +157,11 @@ class StateProcessor(ScienceProcessor):
         df = None
         for d in [processing_request.date - ONE_DAY_DELTA, processing_request.date]:
             cdf_fname = self.get_fname(processing_request.probe, 1, processing_request.data_product, d)
+            # TODO: Using rstrip like this is dangerous, refactor to avoid
             if processing_request.data_product == "state-defn":
-                csv_fname = f"{self.state_defn_csv_dir}/{cdf_fname.split('/')[-1].rstrip('.cdf')}.csv"
+                csv_fname = f"{self.state_defn_csv_dir}/{cdf_fname.split('/')[-1].rstrip('v02.cdf')}v01.csv"
             elif processing_request.data_product == "state-pred":
-                csv_fname = f"{self.state_pred_csv_dir}/{cdf_fname.split('/')[-1].rstrip('.cdf')}.csv"
+                csv_fname = f"{self.state_pred_csv_dir}/{cdf_fname.split('/')[-1].rstrip('v02.cdf')}v01.csv"
             else:
                 raise ValueError("State must be either 'pred' or 'defn'")
 
@@ -350,8 +351,13 @@ class StateProcessor(ScienceProcessor):
             final_df.loc[:, "Z"] = q_dict_list[0]["Z"]
             final_df.loc[:, "uncertainty"] = q_dict_list[0]["uncertainty"]
             final_df.loc[:, "solution_date"] = q_dict_list[0]["solution_date_tt2000"]
+            final_df.loc[:, "spinper"] = q_dict_list[0]["spinper"]
         else:
             final_df = self.insert_interpolated_attitude_data(final_df, q_dict_list)
+
+        # 0 for interpolated, 1 for modeled
+        # TODO: When solutions come from attitools, ensure the flag is correctly set
+        final_df.loc[:, "att_flag"] = 0
 
         return final_df
 
@@ -366,6 +372,7 @@ class StateProcessor(ScienceProcessor):
             "uncertainty": q.uncertainty,
             "solution_date_dt": q.time,
             "solution_date_tt2000": pycdf.lib.datetime_to_tt2000(q.time),
+            "spinper": SECONDS_IN_MINUTE / q.rpm,
         }
         return q_dict
 
@@ -453,6 +460,7 @@ class StateProcessor(ScienceProcessor):
         # Filling in solution_date and uncertainty for all items
         final_df.loc[:, "solution_date"] = q_dict_list[-1]["solution_date_tt2000"]
         final_df.loc[:, "uncertainty"] = q_dict_list[-1]["uncertainty"]
+        final_df.loc[:, "spinper"] = q_dict_list[-1]["spinper"]
 
         # Interpolation (Using Wynne's code) and filling in before/after first and last solutions
         xyz_list = [[q["X"], q["Y"], q["Z"]] for q in q_dict_list]
@@ -479,6 +487,7 @@ class StateProcessor(ScienceProcessor):
 
             final_df.loc[unfilled & below_halfway, "solution_date"] = q["solution_date_tt2000"]
             final_df.loc[unfilled & below_halfway, "uncertainty"] = q["uncertainty"]
+            final_df.loc[unfilled & below_halfway, "spinper"] = q["spinper"]
 
         return final_df
 
@@ -494,10 +503,12 @@ class StateProcessor(ScienceProcessor):
             get_attitude
         cdf : pycdf.CDF
         """
-        cdf[probe + "_att_time"] = att_df["time"].values
-        cdf[probe + "_att_solution_date"] = att_df["solution_date"].values
-        cdf[probe + "_att_gei"] = att_df[["X", "Y", "Z"]].values
-        cdf[probe + "_att_uncertainty"] = att_df["uncertainty"].values
+        cdf[f"{probe}_att_time"] = att_df["time"].values
+        cdf[f"{probe}_att_solution_date"] = att_df["solution_date"].values
+        cdf[f"{probe}_att_gei"] = att_df[["X", "Y", "Z"]].values
+        cdf[f"{probe}_att_uncertainty"] = att_df["uncertainty"].values
+        cdf[f"{probe}_att_spinper"] = att_df["spinper"].values
+        cdf[f"{probe}_att_flag"] = att_df["att_flag"].values
 
     def update_cdf_with_sun_calculations(
         self, probe: str, vel_pos_df: pd.DataFrame, att_df: pd.DataFrame, cdf: pycdf.CDF
@@ -584,7 +595,14 @@ class StateProcessor(ScienceProcessor):
         probe : str
         cdf : pycdf.CDF
         """
-        nan_numeric_cols = ["_att_solution_date", "_att_uncertainty", "_spin_sun_angle", "_spin_orbnorm_angle"]
+        nan_numeric_cols = [
+            "_att_solution_date",
+            "_att_uncertainty",
+            "_att_spinper",
+            "_att_flag",
+            "_spin_sun_angle",
+            "_spin_orbnorm_angle",
+        ]
         nan_df_cols = ["_att_time", "X", "Y", "Z"] + nan_numeric_cols
 
         # If nan_df needs to be created, then create it
