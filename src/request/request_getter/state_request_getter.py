@@ -189,7 +189,7 @@ class StateRequestGetter(RequestGetter):
             end_limit = date + STATE_CALCULATE_RADIUS
             while cur_date <= end_limit:
                 curr_date_fname = f"""{STATE_DEFN_CSV_DIR}/{StateProcessor.get_fname(MISSION_DICT[mission_id],
-                                  1, 'state-defn', cur_date).split('.')[0]}.csv"""
+                                  1, 'state-defn', cur_date).split("v02.")[0]}v01.csv"""
                 if os.path.exists(curr_date_fname):
                     attitude_requests.add(ProcessingRequest(mission_id, "state-defn", cur_date))
                 cur_date += ONE_DAY_DELTA

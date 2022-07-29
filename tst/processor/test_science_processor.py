@@ -53,7 +53,12 @@ class TestScienceProcessor:
             f"{MISSION_DICT[mission_id]}_l{level}_{product}_20220405_v01.cdf"
             for mission_id in ALL_MISSIONS
             for level in ALL_LEVELS
-            for product in IDPU_PRODUCTS + MRM_PRODUCTS + ["state_defn", "state_pred"]
+            for product in IDPU_PRODUCTS + MRM_PRODUCTS
+        ] + [
+            f"{MISSION_DICT[mission_id]}_l{level}_{product}_20220405_v02.cdf"
+            for mission_id in ALL_MISSIONS
+            for level in ALL_LEVELS
+            for product in ["state_defn", "state_pred"]
         ]
 
         for fname in base_names:

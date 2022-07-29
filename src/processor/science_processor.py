@@ -9,7 +9,7 @@ from spacepy import pycdf
 
 from data_type.pipeline_config import PipelineConfig
 from data_type.processing_request import ProcessingRequest
-from util.constants import MASTERCDF_DIR
+from util.constants import MASTERCDF_DIR, STATE_PRODUCTS
 
 # TODO: level 0 files on server are MESSY because of COUNTS in fname, so files not OVERWRITTEN
 
@@ -69,7 +69,10 @@ class ScienceProcessor(ABC):
                 raise ValueError("No size given for level 0 naming")
             fname += f"_{size}.pkt"
         elif level == 1:
-            fname += "_v01.cdf"
+            if processing_request.data_product in STATE_PRODUCTS:
+                fname += "_v02.cdf"
+            else:
+                fname += "_v01.cdf"
         else:
             raise ValueError(f"Invalid Level: {level}")
         return f"{self.output_dir}/{fname}"
@@ -92,12 +95,13 @@ class ScienceProcessor(ABC):
         fname_parts = fname.split("/")[-1].split("_")
         probe = fname_parts[0]
         level_str = fname_parts[1]
-        idpu_type = fname_parts[2]
+        idpu_type = fname_parts[2]  # In the case of 'state_defn'/'state_pred', this is just 'state'
+        suffix = fname_parts[-1]
 
         if os.path.isfile(fname):
             os.remove(fname)
 
-        master_cdf = f"{MASTERCDF_DIR}/{probe}_{level_str}_{idpu_type}_00000000_v01.cdf"
+        master_cdf = f"{MASTERCDF_DIR}/{probe}_{level_str}_{idpu_type}_00000000_{suffix}"
         self.logger.debug(f"Creating cdf using mastercdf {master_cdf}")
 
         return pycdf.CDF(fname, master_cdf)
