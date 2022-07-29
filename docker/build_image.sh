@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Note that due to difficulties with the private GitLab Container Registry,
+# we've decided to use Docker Hub, so this script should no longer be used.
+# Instead, refer to https://docs.docker.com/docker-hub/, and make sure to tag
+# the image using a tag of the form vX. See the Docker Hub page at
+# https://hub.docker.com/r/jcking1034/pipeline-refactor-cicd
+
 GIT_HASH=$(git rev-parse --verify --short=8 HEAD)
 REGISTRY_LOCATION="git.elfin.ucla:5050"
 CONTAINER_NAME="${REGISTRY_LOCATION}/science-processing/pipeline-refactor/dev-image"
