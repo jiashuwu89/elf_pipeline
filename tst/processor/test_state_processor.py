@@ -2,6 +2,7 @@ import datetime as dt
 import os
 
 import pytest
+from elfin.common import models
 from spacepy import pycdf
 
 from data_type.processing_request import ProcessingRequest
@@ -60,3 +61,20 @@ class TestStateProcessor:
         pr = ProcessingRequest(1, "BAD_DATA_PRODUCT", dt.date(2022, 4, 5))
         with pytest.raises(ValueError):
             state_processor.make_filename(pr, 1)
+
+    def test_get_q_dict(self):
+        state_processor = StateProcessor(SafeTestPipelineConfig())
+        calculated_attitude = models.CalculatedAttitude(
+            X=1, Y=2, Z=3, uncertainty=4, time=dt.datetime(2022, 7, 29), rpm=20
+        )
+        q_dict = state_processor.get_q_dict(calculated_attitude)
+        assert q_dict["solution_date_dt"] == pycdf.lib.tt2000_to_datetime(q_dict["solution_date_tt2000"])
+        assert q_dict["spinper"] == 3
+
+        # Calculated Attitude without RPM
+        calculated_attitude = models.CalculatedAttitude(
+            X=1, Y=2, Z=3, uncertainty=4, time=dt.datetime(2022, 7, 29), rpm=None
+        )
+        q_dict = state_processor.get_q_dict(calculated_attitude)
+        assert q_dict["solution_date_dt"] == pycdf.lib.tt2000_to_datetime(q_dict["solution_date_tt2000"])
+        assert q_dict["spinper"] is None
