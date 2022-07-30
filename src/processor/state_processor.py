@@ -363,7 +363,7 @@ class StateProcessor(ScienceProcessor):
 
     # TODO: Eliminate q_dict because I was stupid
     @staticmethod
-    def get_q_dict(q):
+    def get_q_dict(q: models.CalculatedAttitude):
         """Turns some yucky SQL query result thing into a useful dict"""
         q_dict = {
             "X": q.X,
@@ -372,7 +372,7 @@ class StateProcessor(ScienceProcessor):
             "uncertainty": q.uncertainty,
             "solution_date_dt": q.time,
             "solution_date_tt2000": pycdf.lib.datetime_to_tt2000(q.time),
-            "spinper": SECONDS_IN_MINUTE / q.rpm,
+            "spinper": (SECONDS_IN_MINUTE / q.rpm) if q.rpm else None,
         }
         return q_dict
 
