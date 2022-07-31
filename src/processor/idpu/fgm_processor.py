@@ -286,7 +286,10 @@ class FgmProcessor(IdpuProcessor):
             )
 
             if response.status_code != 200:
-                self.logger.warning(f"Bad response: {response}")
+                self.logger.warning(
+                    f"Bad response for science zone between {science_zone_group[0]} and {science_zone_group[1]}. "
+                    + f"Status Code: {response.status_code}, Reason: {response.reason}"
+                )
                 continue
 
             response_json = response.json()
