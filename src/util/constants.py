@@ -13,6 +13,8 @@ The contents include data structures storing information concerning:
 """
 import datetime as dt
 import os
+from dataclasses import dataclass
+from typing import Literal, Union
 
 from elfin.common import models
 
@@ -175,6 +177,34 @@ ATTITUDE_SOLUTION_RADIUS = dt.timedelta(days=30)
 BIN_COUNT = 16
 VALID_NUM_SECTORS = [4, 16, 32]
 IBO_DATA_BYTE = 10
+
+
+# Refer to https://elfin.igpp.ucla.edu/data-notes
+@dataclass
+class BadEpdDataRange:
+    mission_id: Union[Literal[1], Literal[2]]
+    start_time: dt.datetime
+    end_time: dt.datetime
+    reason: str
+
+
+BAD_EPD_DATA_RANGES = [
+    BadEpdDataRange(
+        1,
+        dt.datetime(2022, 1, 3, 1, 10, 0),
+        dt.datetime(2022, 1, 3, 1, 17, 0),  # Confirmed with Ethan on 2022-08-01
+        "Non-nominal EPD configuration on ELFIN-A",
+    ),
+    BadEpdDataRange(
+        2, dt.datetime(2022, 6, 18, 0, 0, 0), dt.datetime(2022, 7, 5, 0, 0, 0), "Flight Computer Page Fault"
+    ),
+    BadEpdDataRange(
+        2, dt.datetime(2022, 5, 31, 0, 0, 0), dt.datetime(2022, 6, 14, 0, 0, 0), "Flight Computer Page Fault"
+    ),
+    BadEpdDataRange(
+        2, dt.datetime(2021, 11, 19, 20, 0, 0), dt.datetime(2021, 11, 25, 4, 0, 0), "Flight Computer Page Fault"
+    ),
+]
 
 # Instruments run at 80 Hz and report data in terms of 1/80 second.
 INSTRUMENT_CLK_FACTOR = 80

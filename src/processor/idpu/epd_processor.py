@@ -15,6 +15,7 @@ from processor.idpu.idpu_processor import IdpuProcessor
 from util import byte_tools
 from util.compression_values import EPD_HUFFMAN, EPD_LOSSY_VALS
 from util.constants import (
+    BAD_EPD_DATA_RANGES,
     BIN_COUNT,
     BOGUS_EPD_DATERANGE,
     EPD_CALIBRATION_DIR,
@@ -89,6 +90,7 @@ class EpdProcessor(IdpuProcessor):
         if 4 in types:
             df = self.filter_start_4_bogus_epd(processing_request, df)
 
+        # At this point, idpu time should hold collection time, including decompressed data
         if (
             pd.to_datetime(df.idpu_time.min()) <= BOGUS_EPD_DATERANGE[1]
             and pd.to_datetime(df.idpu_time.max()) >= BOGUS_EPD_DATERANGE[0]
@@ -96,6 +98,18 @@ class EpdProcessor(IdpuProcessor):
         ):
             self.logger.info("Detected dataframe in Bogus EPD Time Range")
             df = self.remove_start_end_spin_periods(df)
+
+        # Omit bad data
+        for bad_epd_range in BAD_EPD_DATA_RANGES:
+            if bad_epd_range.mission_id != processing_request.mission_id:
+                continue
+
+            bad_data = df["idpu_time"].between(bad_epd_range.start_time, bad_epd_range.end_time)
+            if any(bad_data):
+                self.logger.warning(
+                    f"Found bad data relating to {bad_epd_range} (Number of rows to omit: {bad_data.sum()})"
+                )
+                df = df.loc[~bad_data]
 
         return df
 
