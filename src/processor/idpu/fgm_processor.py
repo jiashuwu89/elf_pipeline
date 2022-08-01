@@ -280,6 +280,7 @@ class FgmProcessor(IdpuProcessor):
                 f"{SP_SERVER_URL}/fgm_calib/fgm_calib",
                 headers={"Content-Type": "application/json", "accept": "application/json"},
                 json={
+                    "mission_id": processing_request.mission_id,
                     "fgs_time": [t.isoformat() for t in science_zone_df["idpu_time"]],
                     "fgs": list(science_zone_df["data"]),
                 },
