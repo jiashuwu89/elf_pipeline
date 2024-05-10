@@ -226,7 +226,7 @@ CATEGORICALS_TO_CDF_NAME_MAP = {
 
 # FGM
 # TODO: Fix this
-SP_SERVER_URL = "http://127.0.0.1:8000"
+SP_SERVER_URL = "http://127.0.0.1:8080"
 
 # Date Ranges
 BOGUS_EPD_DATERANGE = (dt.date(2021, 2, 26), dt.date(2021, 5, 9))

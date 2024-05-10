@@ -190,22 +190,23 @@ class FgmProcessor(IdpuProcessor):
         temp_l1_df = l1_df.copy()
         temp_l1_df["idpu_time"] = temp_l1_df["idpu_time"].apply(pycdf.lib.tt2000_to_datetime)
         fsp_df = self.generate_fsp_df(processing_request, temp_l1_df)
-        cdf = pycdf.CDF(l1_file_name)
-        cdf.readonly(False)
-        self.fill_cdf(
-            processing_request,
-            cdf,
-            fsp_df,
-            {
-                f"{processing_request.probe}_fgs_fsp_time": "fgs_fsp_time",
-                f"{processing_request.probe}_fgs_fsp_res_dmxl": "fgs_fsp_res_dmxl",
-                f"{processing_request.probe}_fgs_fsp_res_dmxl_trend": "fgs_fsp_res_dmxl_trend",
-                f"{processing_request.probe}_fgs_fsp_res_gei": "fgs_fsp_res_gei",
-                f"{processing_request.probe}_fgs_fsp_igrf_dmxl": "fgs_fsp_igrf_dmxl",
-                f"{processing_request.probe}_fgs_fsp_igrf_gei": "fgs_fsp_igrf_gei",
-            },
-        )
-        cdf.close()
+        if not fsp_df.empty:
+            cdf = pycdf.CDF(l1_file_name)
+            cdf.readonly(False)
+            self.fill_cdf(
+                processing_request,
+                cdf,
+                fsp_df,
+                {
+                    f"{processing_request.probe}_fgs_fsp_time": "fgs_fsp_time",
+                    f"{processing_request.probe}_fgs_fsp_res_dmxl": "fgs_fsp_res_dmxl",
+                    f"{processing_request.probe}_fgs_fsp_res_dmxl_trend": "fgs_fsp_res_dmxl_trend",
+                    f"{processing_request.probe}_fgs_fsp_res_gei": "fgs_fsp_res_gei",
+                    f"{processing_request.probe}_fgs_fsp_igrf_dmxl": "fgs_fsp_igrf_dmxl",
+                    f"{processing_request.probe}_fgs_fsp_igrf_gei": "fgs_fsp_igrf_gei",
+                },
+            )
+            cdf.close()
 
         return l1_file_name, l1_df
 
@@ -271,6 +272,12 @@ class FgmProcessor(IdpuProcessor):
                 "fgs_fsp_igrf_gei",
             ]
         )
+        Gthphi_columns = ['start_time','end_time','G1', 'G2', 'G3', 'th1','th2','th3', 'ph1','ph2','ph3', 'O1/G1','O2/G2','O3/G3']
+        Bpara_columns = ['start_time','end_time','G11', 'G12', 'G13', 'O1', 'G21','G22','G23', 'O2', 'G31','G32','G33', 'O3']
+
+        B_parameter = pd.DataFrame(columns = Bpara_columns)
+        Gthphi_parameter = pd.DataFrame(columns = Gthphi_columns)
+
         science_zone_groups = cu.split_science_zones(processing_request, FGM_COMPLETENESS_CONFIG, l1_df["idpu_time"])
         for science_zone_group in science_zone_groups:
             science_zone_df = l1_df.loc[l1_df["idpu_time"].between(science_zone_group[0], science_zone_group[-1])]
@@ -310,8 +317,24 @@ class FgmProcessor(IdpuProcessor):
             )
 
             fsp_df = pd.concat([fsp_df, to_add_df], axis=0, ignore_index=True)
+	    
+            #generate calib parameter df
+            starttime_str = dt.datetime.fromisoformat(response_json["fgs_fsp_time"][0]).strftime('%Y-%m-%d/%H:%M:%S.%f')
+            endtime_str = dt.datetime.fromisoformat(response_json["fgs_fsp_time"][-1]).strftime('%Y-%m-%d/%H:%M:%S.%f')
+            B_df = pd.DataFrame([[starttime_str, endtime_str] + response_json["B_parameter"]], columns=Bpara_columns)
+            B_parameter = pd.concat([B_parameter, B_df], axis=0, ignore_index=True)
+            Gthphi_df = pd.DataFrame([[starttime_str, endtime_str] + response_json["Gthphi_parameter"]], columns=Gthphi_columns)
+            Gthphi_parameter = pd.concat([Gthphi_parameter, Gthphi_df], axis=0, ignore_index=True)
+
+        #output parameter df to csv file
+        startime_str_allzone = science_zone_groups[0][0].strftime('%Y-%m-%d/%H:%M:%S')
+        endtime_str_allzone = science_zone_groups[-1][-1].strftime('%Y-%m-%d/%H:%M:%S')
+        mission = 'ela' if processing_request.mission_id == 1 else 'elb'
+        B_parameter.to_csv(f"/home/elfin/fgm-testing/calibpara_csv/{startime_str_allzone[0:10]}_{startime_str_allzone[11:13]}{startime_str_allzone[14:16]}_{endtime_str_allzone[0:10]}_{endtime_str_allzone[11:13]}{endtime_str_allzone[14:16]}_{mission}_Bpara.csv", index=False)
+        Gthphi_parameter.to_csv(f"/home/elfin/fgm-testing/calibpara_csv/{startime_str_allzone[0:10]}_{startime_str_allzone[11:13]}{startime_str_allzone[14:16]}_{endtime_str_allzone[0:10]}_{endtime_str_allzone[11:13]}{endtime_str_allzone[14:16]}_{mission}_Gthphi.csv", index=False)
 
         return fsp_df
+
 
     def is10hz_sampling_rate(
         self, first_ts: pd.Timestamp, second_ts: pd.Timestamp, multiplier: int

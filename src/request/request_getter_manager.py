@@ -51,6 +51,7 @@ class RequestGetterManager:
         Set[ProcessingRequests]
             All ProcessingRequests found, representing items to be generated
         """
+        
         processing_requests = set()
 
         for request_getter in self.request_getters:
@@ -61,3 +62,8 @@ class RequestGetterManager:
                 self.exception_collector.record_exception(request_getter.__class__, e, traceback_msg)
 
         return sorted(pr for pr in processing_requests if pr.date >= MISSION_START_DATE)
+        
+        """
+        import datetime as dt
+        return [ProcessingRequest(mission_id=1, data_product="fgs", date=dt.date(2022, 8, 17))]
+        """
