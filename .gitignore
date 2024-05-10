@@ -10,3 +10,5 @@ htmlcov
 .mypy_cache
 **/.DS_Store
 .venv
+src/*.cdf
+src/*.pkt
