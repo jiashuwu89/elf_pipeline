@@ -319,12 +319,14 @@ class FgmProcessor(IdpuProcessor):
             fsp_df = pd.concat([fsp_df, to_add_df], axis=0, ignore_index=True)
 	    
             #generate calib parameter df
-            starttime_str = dt.datetime.fromisoformat(response_json["fgs_fsp_time"][0]).strftime('%Y-%m-%d/%H:%M:%S.%f')
-            endtime_str = dt.datetime.fromisoformat(response_json["fgs_fsp_time"][-1]).strftime('%Y-%m-%d/%H:%M:%S.%f')
-            B_df = pd.DataFrame([[starttime_str, endtime_str] + response_json["B_parameter"]], columns=Bpara_columns)
-            B_parameter = pd.concat([B_parameter, B_df], axis=0, ignore_index=True)
-            Gthphi_df = pd.DataFrame([[starttime_str, endtime_str] + response_json["Gthphi_parameter"]], columns=Gthphi_columns)
-            Gthphi_parameter = pd.concat([Gthphi_parameter, Gthphi_df], axis=0, ignore_index=True)
+
+            if response_json["fgs_fsp_time"] != []:
+                starttime_str = dt.datetime.fromisoformat(response_json["fgs_fsp_time"][0]).strftime('%Y-%m-%d/%H:%M:%S.%f')
+                endtime_str = dt.datetime.fromisoformat(response_json["fgs_fsp_time"][-1]).strftime('%Y-%m-%d/%H:%M:%S.%f')
+                B_df = pd.DataFrame([[starttime_str, endtime_str] + response_json["B_parameter"]], columns=Bpara_columns)
+                B_parameter = pd.concat([B_parameter, B_df], axis=0, ignore_index=True)
+                Gthphi_df = pd.DataFrame([[starttime_str, endtime_str] + response_json["Gthphi_parameter"]], columns=Gthphi_columns)
+                Gthphi_parameter = pd.concat([Gthphi_parameter, Gthphi_df], axis=0, ignore_index=True)
 
         #output parameter df to csv file
         startime_str_allzone = science_zone_groups[0][0].strftime('%Y-%m-%d/%H:%M:%S')
